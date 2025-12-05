@@ -17,10 +17,3 @@ def compute(args: Task) -> Result:
             raise ValueError(f"Unknown op: {args.op}")
 
     return Result(value=value)
-
-def make_tool_registry():
-    from ...tool_registry import ToolRegistry
-
-    tool_registry = ToolRegistry()
-    tool_registry.register("compute", "A deterministic arithmetic tool.", compute, Task)
-    return tool_registry
