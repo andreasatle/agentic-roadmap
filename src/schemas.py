@@ -1,35 +1,15 @@
 from __future__ import annotations
 
-from typing import Literal, TypeVar, Generic, Any
+from typing import Literal, TypeVar, Generic
 from pydantic import BaseModel, Field, model_validator
-from .protocols import ToolArgs, ToolOutput
 
 # ---------------------------------------------------------
 # Core atomic semantic types
 # ---------------------------------------------------------
 
-class Task(BaseModel):
-    """A well-bounded arithmetic task."""
-    op: Literal["ADD", "SUB", "MUL"]
-    a: int = Field(..., ge=1, le=20)
-    b: int = Field(..., ge=1, le=20)
-
-
-class Result(BaseModel):
-    """A numeric answer produced by Worker."""
-    value: int = Field(..., ge=-10_000, le=10_000)
-
-
-T = TypeVar("T", bound=BaseModel)
-
-class ToolRequest(BaseModel, Generic[T]):
-    """A side-effect request to invoke a registered tool."""
-    tool_name: str = Field(..., max_length=64)
-    args: T
-
 
 class Decision(BaseModel):
-    """A numeric judgment from Critic."""
+    """A judgment from Critic."""
     decision: Literal["ACCEPT", "REJECT"]
     feedback: str | None = None
 
@@ -49,29 +29,6 @@ class Decision(BaseModel):
 # Agent input/output contracts
 # ---------------------------------------------------------
 
-class PlannerInput(BaseModel):
-    """Planner has no meaningful input, but we keep a type for symmetry."""
-    pass
-
-
-PlannerOutput = Task
-
-
-class WorkerInput(BaseModel):
-    """
-    Worker consumes:
-    - the Task,
-    - optional previous_result (from earlier attempt),
-    - optional feedback (from Critic),
-    - optional tool_result (from Supervisor-executed tool).
-    """
-    task: Task
-    previous_result: Result | None = None
-    feedback: str | None = None
-    tool_result: Result | None = None
-
-# This is probably at the wrong place, but should add clearity.
-Compute = Task
 
 class ConstrainedXOROutput(BaseModel):
     """Superclass that enforces exactly one active branch over child fields."""
@@ -88,14 +45,40 @@ class ConstrainedXOROutput(BaseModel):
             )
         return self
     
-class WorkerOutput(ConstrainedXOROutput):
-    result: Result | None = None
-    tool_request: ToolRequest[Compute] | None = None
-
-class CriticInput(BaseModel):
-    """Critic sees the original plan and the Worker’s numeric answer."""
-    plan: Task
-    worker_answer: Result
 
 
-CriticOutput = Decision
+
+T = TypeVar("T")  # Task
+R = TypeVar("R")  # Result
+D = TypeVar("D")  # Decision
+TR = TypeVar("TR")  # Tool Request Args
+
+class ToolRequest(BaseModel, Generic[TR]):
+    """A side-effect request to invoke a registered tool."""
+    tool_name: str = Field(..., max_length=64)
+    args: TR
+
+class PlannerInput(BaseModel, Generic[T, R]):
+    pass
+
+class PlannerOutput(BaseModel, Generic[T]):
+    task: T
+
+class WorkerInput(BaseModel, Generic[T, R]):
+    task: T
+    previous_result: R | None = None
+    feedback: str | None = None
+    tool_result: R | None = None
+
+class WorkerOutput(ConstrainedXOROutput, Generic[R, TR]):
+    result: R | None = None
+    tool_request: ToolRequest[TR] | None = None
+
+class CriticInput(BaseModel, Generic[T, R]):
+    """Critic sees the original plan and the Worker’s answer."""
+    plan: T
+    worker_answer: R
+
+class CriticOutput(BaseModel, Generic[D]):
+    """Critic output wrapper for decision payloads."""
+    decision: D

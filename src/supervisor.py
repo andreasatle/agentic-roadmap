@@ -18,9 +18,10 @@ class Supervisor:
     def __call__(self) -> dict:
         """Planner → Worker → Critic loop, bounded, scalable."""
         planner_output = self.dispatcher.plan()
+        plan_task = planner_output.task
 
         # Initial WorkerInput
-        worker_input = WorkerInput(task=planner_output)
+        worker_input = WorkerInput(task=plan_task)
         for iter in range(1, self.max_loops + 1):
             worker_output = self.dispatcher.work(worker_input)
 
@@ -30,7 +31,7 @@ class Supervisor:
                 # ----- Tool branch → call registry → reinject into worker input
                 case WorkerOutput(tool_request=request) if request is not None:
                     # Guard: tool args should match the originating plan
-                    if request.args.model_dump() != planner_output.model_dump():
+                    if request.args.model_dump() != plan_task.model_dump():
                         raise RuntimeError("Tool args do not match plan")
 
                     # Call the registry exactly once
@@ -38,14 +39,14 @@ class Supervisor:
 
                     # Rebuild next WorkerInput using registry output (Result)
                     worker_input = WorkerInput(
-                        task=planner_output,
+                        task=plan_task,
                         feedback="tool result applied",
                         tool_result=tool_result,
                     )
 
-                # ----- Result branch → send numeric Result to critic
+                # ----- Result branch → send Worker result to critic
                 case WorkerOutput(result=result) if result is not None:
-                    critic_input = CriticInput(plan=planner_output, worker_answer=result)
+                    critic_input = CriticInput(plan=plan_task, worker_answer=result)
                     critic_output = self.dispatcher.critique(critic_input)
 
                     # Act on critic signal
@@ -53,7 +54,7 @@ class Supervisor:
                         case "ACCEPT":
                             logger.info(f"[supervisor] ACCEPT on {iter}")
                             return {
-                                "plan": planner_output,
+                                "plan": plan_task,
                                 "result": result,
                                 "decision": critic_output,
                                 "loops_used": iter,

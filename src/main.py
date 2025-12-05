@@ -2,33 +2,19 @@ from __future__ import annotations
 
 from openai import OpenAI
 from dotenv import load_dotenv
-from .agents import make_planner, make_worker, make_critic
 from .supervisor import Supervisor
 from .logging_config import get_logger
-from .tool_registry import ToolRegistry
-from .schemas import Compute
-from .tools import compute
-from .agent_dispatcher import AgentDispatcher
+from .problem.sentiment import make_agent_dispatcher, make_tool_registry
 
 load_dotenv(override=True)
-logger = get_logger("agentic.iteration6.main")
+logger = get_logger("agentic.main")
 
-tool_registry = ToolRegistry()
-tool_registry.register("compute", "A deterministic arithmetic tool.", compute, Compute)
 
 def run_demo(runs: int = 3) -> None:
     client = OpenAI()
 
-    planner = make_planner(client, model="gpt-4.1-mini")
-    worker = make_worker(client, model="gpt-4.1-mini")
-    critic = make_critic(client, model="gpt-4.1-mini")
-
-    dispatcher = AgentDispatcher(
-        max_retries=3,
-        planner=planner,
-        worker=worker,
-        critic=critic,
-    )
+    tool_registry = make_tool_registry()
+    dispatcher = make_agent_dispatcher(client, model="gpt-4.1-mini", max_retries=3)
 
     supervisor = Supervisor(
         dispatcher=dispatcher,
