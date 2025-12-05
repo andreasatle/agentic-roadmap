@@ -4,7 +4,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 from .supervisor import Supervisor
 from .logging_config import get_logger
-from .problem.sentiment import make_agent_dispatcher, make_tool_registry
+from .problem.arithmetic import make_agent_dispatcher, make_tool_registry
 
 load_dotenv(override=True)
 logger = get_logger("agentic.main")

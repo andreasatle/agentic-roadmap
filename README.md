@@ -1,121 +1,43 @@
-Perfect — **Option 4** is the smartest path.
-We’ll build the minimal loop in *three passes*, each one adding a layer of agentic capability:
+# Agentic Framework (Current State)
 
-1. **Iteration 1 → Conversational roles only**
-2. **Iteration 2 → Add strict JSON schemas**
-3. **Iteration 3 → Add real toolcalling**
+## Overview
+A small, domain-agnostic agentic framework with three LLM agents (Planner, Worker, Critic), a supervisor that orchestrates them, and a tool registry for deterministic functions. The framework is generic; domains bind their own task/result types and agent prompts.
 
-This builds an extremely solid foundation *without triggering your old derailment pattern*.
+## Architecture
+- Framework (generic, no domain coupling):
+  - `schemas.py`: Generic Pydantic models (`PlannerInput/Output`, `WorkerInput/Output`, `CriticInput`, `Decision`, `ToolRequest`, `ConstrainedXOROutput`).
+  - `protocols.py`: Agent and tool protocols.
+  - `agents.py`: Generic LLM Agent wrapper.
+  - `agent_dispatcher.py`: Safe agent caller with retries and JSON validation.
+  - `tool_registry.py`: Name → tool lookup and invocation with type checking.
+  - `supervisor.py`: Planner → Worker → Critic loop, executes tools via registry.
+  - `logging_config.py`: Logger setup.
+- Domains:
+  - `problem/arithmetic`: `Task`, `Result`, agent factories, dispatcher factory, tool registry (compute), prompts for arithmetic.
+  - `problem/sentiment`: `Task`, `Result`, agent factories, dispatcher factory, empty tool registry, prompts for sentiment classification.
 
-Now we begin **Iteration 1**.
+## How it runs
+1) `main.py` imports a domain’s factories (`make_agent_dispatcher`, `make_tool_registry`).
+2) Builds the dispatcher (planner, worker, critic) and a tool registry.
+3) Supervisor loops:
+   - Planner emits a `Task`.
+   - Worker either returns a `result` or a `tool_request`.
+   - On `tool_request`, supervisor calls the registry, feeds the result back to Worker.
+   - On `result`, Critic decides ACCEPT/REJECT. Reject reinjects feedback; Accept returns.
 
-This is the *smallest possible* version of an agentic system.
+## Switching domains
+Edit `src/main.py` import block to choose one:
+- Arithmetic: `from .problem.arithmetic import make_agent_dispatcher, make_tool_registry`
+- Sentiment: `from .problem.sentiment import make_agent_dispatcher, make_tool_registry`
 
-There are only three components:
-
-* **Planner** (decides what to do)
-* **Worker** (does it)
-* **Critic** (checks it)
-
-You will see exactly how the loop behaves in isolation — without JSON, tools, or complexity.
-
----
-
-# 🔥 **ITERATION 1 — Conversational Minimal Loop**
-
-## 🎯 Goal
-
-Teach the loop to:
-
-1. Generate a plan
-2. Execute the plan
-3. Evaluate the result
-4. Run multiple stable cycles
-
-This loop must behave **predictably**.
-
----
-
-# 📌 **The Task (simple on purpose)**
-
-We will use the simplest possible task:
-
-> *“The Planner chooses two integers (1–20) and asks the Worker to add them.
-> The Worker adds them.
-> The Critic checks correctness.”*
-
-The task doesn’t matter — the *loop* does.
-
----
-
-# 🧭 **Agent Prompts (Iteration 1)**
-
-Paste these into your notebook — they are reusable.
-
-## **PLANNER Prompt**
-
+## Run the demo
 ```
-You are the Planner. 
-Your job is to design a tiny arithmetic task for the Worker.
-Pick two integers between 1 and 20.
-State the task clearly in one sentence for the Worker.
-Do not solve it yourself.
-Example: "Add 7 and 12."
+uv run python -m src.main
 ```
+Requires OpenAI credentials (uses `gpt-4.1-mini` by default). No network → demo will fail to call the API.
 
-## **WORKER Prompt**
+## Key files
+- Framework: `src/schemas.py`, `src/protocols.py`, `src/agents.py`, `src/agent_dispatcher.py`, `src/supervisor.py`, `src/tool_registry.py`
+- Arithmetic domain: `src/problem/arithmetic/`
+- Sentiment domain: `src/problem/sentiment/`
 
-```
-You are the Worker.
-Your job is to perform the task exactly as the Planner stated it.
-Return only the final answer.
-Do not explain your reasoning.
-Do not change the task.
-```
-
-## **CRITIC Prompt**
-
-```
-You are the Critic.
-Your job is to check the Worker’s answer against the Planner's task.
-If correct, respond only: "ACCEPT".
-If incorrect, respond only: "REJECT".
-Do not try to solve the problem for them.
-Do not propose a new plan.
-```
-
----
-
-# 🧪 **Let’s run the loop (Cycle 1)**
-
-I will run all three roles for you *exactly as they would behave in the system*.
-
----
-
-## **PLANNER (Cycle 1)**
-
-“Add 9 and 14.”
-
-## **WORKER**
-
-23
-
-## **CRITIC**
-
-ACCEPT
-
----
-
-That's one successful iteration.
-
-We want 10 stable cycles — no drift, no hallucinations, no role bleed, no unexpected behavior.
-
-Let’s run cycles 2–10.
-
-### 👉 Before I run them — do you want me to:
-
-**A)** Run all cycles automatically (fast),
-**B)** Run them one-by-one with commentary (slow), or
-**C)** Let *you* play one of the roles (Planner or Critic) while I simulate the others?
-
-Choose A, B, or C.
