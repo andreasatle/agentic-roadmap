@@ -68,8 +68,10 @@ class AgentDispatcher(Generic[T, R, D], AgentDispatcherBase):
 
     # inherits max_retries and _call from base
 
-    def plan(self) -> AgentCallResult[PlannerOutput[T]]:
-        output: PlannerOutput[T] = self._call(self.planner, PlannerInput[T, R]())
+    def plan(self, planner_input: PlannerInput[T, R] | None = None) -> AgentCallResult[PlannerOutput[T]]:
+        if planner_input is None:
+            planner_input = PlannerInput[T, R]()
+        output: PlannerOutput[T] = self._call(self.planner, planner_input)
         return AgentCallResult(agent_id=self.planner.id, output=output)
 
     def work(self, worker_id: str, args: WorkerInput[T, R]) -> AgentCallResult[WorkerOutput[R, T]]:

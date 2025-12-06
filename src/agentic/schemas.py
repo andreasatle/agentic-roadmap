@@ -61,7 +61,12 @@ class ToolRequest(BaseModel, Generic[TR]):
     args: TR
 
 class PlannerInput(BaseModel, Generic[T, R]):
-    pass
+    """
+    Optional context passed to the Planner so it can correct previous mistakes.
+    """
+    feedback: str | None = None
+    previous_task: T | None = None
+    previous_worker_id: str | None = None
 
 class PlannerOutput(BaseModel, Generic[T]):
     task: T

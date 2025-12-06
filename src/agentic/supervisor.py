@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Callable
 
-from agentic.schemas import WorkerInput, CriticInput
+from agentic.schemas import WorkerInput, CriticInput, PlannerInput
 from agentic.tool_registry import ToolRegistry
 from agentic.logging_config import get_logger
 from agentic.agent_dispatcher import AgentDispatcher
@@ -58,14 +58,20 @@ class Supervisor:
         }
 
     def _handle_plan(self, context: SupervisorContext) -> State:
+        planner_input = PlannerInput(
+            feedback=context.planner_feedback,
+            previous_task=context.previous_plan,
+            previous_worker_id=context.previous_worker_id,
+        )
         try:
-            planner_response = self.dispatcher.plan()
+            planner_response = self.dispatcher.plan(planner_input)
         except RuntimeError as e:
             # Planner failed (e.g., invalid worker routing). Route through critic.
             context.feedback = str(e)
             context.plan = None
             context.worker_id = None
             context.worker_input = None
+            context.last_stage = "plan"
             context.trace.append(
                 {
                     "state": State.PLAN,
@@ -81,9 +87,14 @@ class Supervisor:
             return State.CRITIC
 
         logger.debug(f"[supervisor] PLAN call_id={planner_response.call_id}")
-        context.plan = planner_response.output.task
-        context.worker_id = planner_response.output.worker_id
+        planner_output = planner_response.output
+        context.plan = planner_output.task
+        context.worker_id = planner_output.worker_id
+        context.previous_plan = planner_output.task
+        context.previous_worker_id = planner_output.worker_id
+        context.planner_feedback = None
         context.worker_input = WorkerInput(task=context.plan)
+        context.last_stage = "plan"
         context.trace.append(
             {
                 "state": State.PLAN,
@@ -105,6 +116,7 @@ class Supervisor:
         worker_response = self.dispatcher.work(context.worker_id, context.worker_input)
         worker_output = worker_response.output
         context.worker_output = worker_output
+        context.last_stage = "work"
         context.trace.append(
             {
                 "state": State.WORK,
@@ -188,12 +200,13 @@ class Supervisor:
             return State.END
 
         if decision.decision == "REJECT":
-            context.feedback = decision.feedback
             prev_worker_input = context.worker_input
-            if prev_worker_input is None:
+            if context.last_stage == "plan" or context.plan is None or prev_worker_input is None:
+                context.planner_feedback = decision.feedback
                 # Planner failed, retry planning
                 logger.info(f"[supervisor] REJECT after {context.loops_used} transitions (replanning)")
                 return State.PLAN
+            context.feedback = decision.feedback
             context.worker_input = WorkerInput(
                 task=prev_worker_input.task,
                 previous_result=prev_worker_input.previous_result,

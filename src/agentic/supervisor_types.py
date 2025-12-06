@@ -1,6 +1,6 @@
 from enum import Enum, auto
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, Literal
 
 from agentic.schemas import WorkerInput, WorkerOutput, CriticInput
 
@@ -25,7 +25,11 @@ class SupervisorContext:
     tool_result: Any | None = None
     critic_input: CriticInput | None = None
     decision: Any | None = None
-    feedback: Any | None = None
+    feedback: str | None = None
+    planner_feedback: str | None = None
+    previous_plan: Any | None = None
+    previous_worker_id: str | None = None
     final_result: Any | None = None
+    last_stage: Literal["plan", "work"] | None = None
     loops_used: int = 0
     trace: list[Any] | None = None
