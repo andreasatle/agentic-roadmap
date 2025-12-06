@@ -65,6 +65,7 @@ class PlannerInput(BaseModel, Generic[T, R]):
 
 class PlannerOutput(BaseModel, Generic[T]):
     task: T
+    worker_id: str
 
 class WorkerInput(BaseModel, Generic[T, R]):
     task: T

@@ -21,7 +21,8 @@ OUTPUT (JSON ONLY, NO TEXT AROUND IT):
     "op": "ADD" | "SUB" | "MUL",
     "a": <int>,
     "b": <int>
-  }
+  },
+  "worker_id": "arithmetic-worker"
 }
 
 RULES:

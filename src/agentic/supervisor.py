@@ -23,7 +23,7 @@ class Supervisor:
         context = SupervisorContext(trace=[])
         state = State.PLAN
 
-        while state != State.END and context.loops_used < self.max_loops:
+        while state != State.END and context.loops_used <= self.max_loops:
             context.loops_used += 1
             if state is State.PLAN:
                 state = self._handle_plan(context)
@@ -58,6 +58,7 @@ class Supervisor:
         planner_response = self.dispatcher.plan()
         logger.debug(f"[supervisor] PLAN call_id={planner_response.call_id}")
         context.plan = planner_response.output.task
+        context.worker_id = planner_response.output.worker_id
         context.worker_input = WorkerInput(task=context.plan)
         context.trace.append(
             {
@@ -74,8 +75,10 @@ class Supervisor:
     def _handle_work(self, context: SupervisorContext) -> State:
         if context.worker_input is None:
             raise RuntimeError("WORK state reached without worker_input in context.")
+        if context.worker_id is None:
+            raise RuntimeError("WORK state reached without worker_id in context.")
 
-        worker_response = self.dispatcher.work(context.worker_input)
+        worker_response = self.dispatcher.work(context.worker_id, context.worker_input)
         worker_output = worker_response.output
         context.worker_output = worker_output
         context.trace.append(

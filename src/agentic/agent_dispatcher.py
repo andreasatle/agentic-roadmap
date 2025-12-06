@@ -63,7 +63,7 @@ class AgentDispatcher(Generic[T, R, D], AgentDispatcherBase):
     Concrete domains bind these at the domain layer.
     """
     planner: AgentProtocol[PlannerInput[T, R], PlannerOutput[T]]
-    worker: AgentProtocol[WorkerInput[T, R], WorkerOutput[R, T]]
+    workers: dict[str, AgentProtocol[WorkerInput[T, R], WorkerOutput[R, T]]]
     critic: AgentProtocol[CriticInput[T, R], D]
 
     # inherits max_retries and _call from base
@@ -72,9 +72,27 @@ class AgentDispatcher(Generic[T, R, D], AgentDispatcherBase):
         output: PlannerOutput[T] = self._call(self.planner, PlannerInput[T, R]())
         return AgentCallResult(agent_id=self.planner.id, output=output)
 
-    def work(self, args: WorkerInput[T, R]) -> AgentCallResult[WorkerOutput[R, T]]:
-        output: WorkerOutput[R, T] = self._call(self.worker, args)
-        return AgentCallResult(agent_id=self.worker.id, output=output)
+    def work(self, worker_id: str, args: WorkerInput[T, R]) -> AgentCallResult[WorkerOutput[R, T]]:
+        last_err: Exception | None = None
+        for attempt in range(1, self.max_retries + 1):
+            try:
+                worker_agent = self.workers.get(worker_id)
+                if worker_agent is None:
+                    raise ValueError(f"Unknown worker_id '{worker_id}'")
+                logger.debug(
+                    f"[dispatcher] worker attempt {attempt}/{self.max_retries} "
+                    f"routing_id={worker_id}"
+                )
+                output: WorkerOutput[R, T] = self._call(worker_agent, args)
+                return AgentCallResult(agent_id=worker_agent.id, output=output)
+            except Exception as e:
+                last_err = e
+                continue
+
+        raise RuntimeError(
+            f"Worker routing failed after {self.max_retries} retries. "
+            f"Last error: {last_err}"
+        )
 
     def critique(self, args: CriticInput[T, R]) -> AgentCallResult[D]:
         output: D = self._call(self.critic, args)

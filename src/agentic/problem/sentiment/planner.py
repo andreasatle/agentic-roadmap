@@ -21,7 +21,8 @@ OUTPUT (JSON ONLY, NO TEXT AROUND IT):
 {
   "task": {
     "text": "<short sentence to classify>"
-  }
+  },
+  "worker_id": "sentiment-worker"
 }
 
 RULES:

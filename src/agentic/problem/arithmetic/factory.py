@@ -19,7 +19,7 @@ def make_agent_dispatcher(
     return ArithmeticDispatcher(
         max_retries=max_retries,
         planner=planner,
-        worker=worker,
+        workers={"arithmetic-worker": worker},
         critic=critic,
     )
 

@@ -18,7 +18,7 @@ def make_agent_dispatcher(
     return SentimentDispatcher(
         max_retries=max_retries,
         planner=planner,
-        worker=worker,
+        workers={"sentiment-worker": worker},
         critic=critic,
     )
 

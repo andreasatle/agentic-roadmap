@@ -16,6 +16,7 @@ class SupervisorState(Enum):
 @dataclass
 class SupervisorContext:
     plan: Any | None = None
+    worker_id: str | None = None
     worker_input: WorkerInput | None = None
     worker_output: WorkerOutput | None = None
     worker_result: Any | None = None
