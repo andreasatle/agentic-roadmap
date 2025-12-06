@@ -20,3 +20,4 @@ class ContextKey(Enum):
     LOOPS_USED = auto()
     FINAL_RESULT = auto()
     FINAL_OUTPUT = auto()
+    TRACE = auto()

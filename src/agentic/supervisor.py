@@ -21,7 +21,7 @@ class Supervisor:
         Explicit FSM over PLAN → WORK → TOOL/CRITIC → END.
         Each agent/tool invocation is a state transition.
         """
-        context: dict[Ctx, Any] = {Ctx.LOOPS_USED: 0}
+        context: dict[Ctx, Any] = {Ctx.LOOPS_USED: 0, Ctx.TRACE: []}
         state = State.PLAN
 
         while state != State.END and context[Ctx.LOOPS_USED] < self.max_loops:
@@ -40,6 +40,14 @@ class Supervisor:
         if state != State.END:
             raise RuntimeError("Supervisor exited without reaching END state.")
 
+        context[Ctx.TRACE].append(
+            {
+                "state": State.END,
+                "result": context[Ctx.FINAL_RESULT],
+                "decision": context[Ctx.DECISION],
+                "loops_used": context[Ctx.LOOPS_USED],
+            }
+        )
         return {
             "plan": context[Ctx.PLAN],
             "result": context[Ctx.FINAL_RESULT],
@@ -52,6 +60,16 @@ class Supervisor:
         logger.debug(f"[supervisor] PLAN call_id={planner_response.call_id}")
         context[Ctx.PLAN] = planner_response.output.task
         context[Ctx.WORKER_INPUT] = WorkerInput(task=context[Ctx.PLAN])
+        context[Ctx.TRACE].append(
+            {
+                "state": State.PLAN,
+                "agent_id": planner_response.agent_id,
+                "call_id": planner_response.call_id,
+                "tool_name": None,
+                "input": None,
+                "output": planner_response.output,
+            }
+        )
         return State.WORK
 
     def _handle_work(self, context: dict[Ctx, Any]) -> State:
@@ -62,6 +80,16 @@ class Supervisor:
         worker_response = self.dispatcher.work(worker_input)
         worker_output = worker_response.output
         context[Ctx.WORKER_OUTPUT] = worker_output
+        context[Ctx.TRACE].append(
+            {
+                "state": State.WORK,
+                "agent_id": worker_response.agent_id,
+                "call_id": worker_response.call_id,
+                "tool_name": None,
+                "input": worker_input,
+                "output": worker_output,
+            }
+        )
 
         if worker_output.result is not None:
             context[Ctx.WORKER_RESULT] = worker_output.result
@@ -91,6 +119,16 @@ class Supervisor:
 
         logger.debug(f"[supervisor] TOOL call: {request.tool_name}")
         tool_result = func(request.args)
+        context[Ctx.TRACE].append(
+            {
+                "state": State.TOOL,
+                "agent_id": None,
+                "call_id": None,
+                "tool_name": request.tool_name,
+                "input": request.args,
+                "output": tool_result,
+            }
+        )
         context[Ctx.TOOL_RESULT] = tool_result
         context[Ctx.WORKER_INPUT] = WorkerInput(
             task=prev_worker_input.task,
@@ -108,6 +146,16 @@ class Supervisor:
         critic_response = self.dispatcher.critique(critic_input)
         decision = critic_response.output
         context[Ctx.DECISION] = decision
+        context[Ctx.TRACE].append(
+            {
+                "state": State.CRITIC,
+                "agent_id": critic_response.agent_id,
+                "call_id": critic_response.call_id,
+                "tool_name": None,
+                "input": critic_input,
+                "output": critic_response.output,
+            }
+        )
 
         if decision.decision == "ACCEPT":
             context[Ctx.FINAL_RESULT] = context[Ctx.WORKER_RESULT]
