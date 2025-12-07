@@ -13,7 +13,7 @@ from agentic.schemas import (
 
 
 class CodeTask(BaseModel):
-    """Small coding problem for the worker to implement."""
+    """Decomposed coding subtask derived from the user project."""
     language: Literal["python", "javascript"]
     specification: str = Field(..., max_length=300)
     requirements: list[str] = Field(..., min_length=1, max_length=5)
@@ -25,11 +25,25 @@ class CodeResult(BaseModel):
 
 
 # Bind generics to domain
-CoderPlannerInput = PlannerInput[CodeTask, CodeResult]
+class CoderPlannerInput(PlannerInput[CodeTask, CodeResult]):
+    """Planner context tied to a user-defined project."""
+    project_description: str
+    previous_task: CodeTask | None = None
+    feedback: str | None = None
+    previous_worker_id: str | None = None
+    random_seed: int | str | None = None
+
+
 CoderPlannerOutput = PlannerOutput[CodeTask]
 CoderWorkerInput = WorkerInput[CodeTask, CodeResult]
 CoderWorkerOutput = WorkerOutput[CodeResult]
-CoderCriticInput = CriticInput[CodeTask, CodeResult]
+
+
+class CoderCriticInput(CriticInput[CodeTask, CodeResult]):
+    """Critic sees the plan, worker answer, and the overarching project."""
+    project_description: str
+
+
 CoderCriticOutput = Decision
 
 # Dispatcher binding for this domain

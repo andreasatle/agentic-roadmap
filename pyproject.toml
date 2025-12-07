@@ -15,9 +15,17 @@ dependencies = [
 where = ["src"]
 include = ["agentic*"]
 
+[project.scripts]
+agentic = "agentic.main:main"
+agentic-arithmetic = "agentic.entrypoints.arithmetic_main:main"
+agentic-sentiment = "agentic.entrypoints.sentiment_main:main"
+agentic-coder = "agentic.entrypoints.coder_main:main"
+
+[tool.poetry.scripts]
+arithmetic = "agentic.entrypoints.arithmetic_main:main"
+sentiment = "agentic.entrypoints.sentiment_main:main"
+coder = "agentic.entrypoints.coder_main:main"
+
 [build-system]
 requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
-
-[project.scripts]
-agentic = "agentic.main:main"

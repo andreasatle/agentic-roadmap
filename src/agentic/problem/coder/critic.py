@@ -6,11 +6,11 @@ from agentic.problem.coder.types import CoderCriticInput, CoderCriticOutput
 
 def make_critic(client: OpenAI, model: str) -> Agent[CoderCriticInput, CoderCriticOutput]:
     """
-    Critic validates that the code meets the specification and requirements.
+    Critic validates that the code meets the project-aligned specification and requirements.
     """
     critic_prompt = """
 ROLE:
-You are the Coder Critic. Judge whether the worker's code satisfies the planned coding task.
+You are the Coder Critic. Judge whether the worker's code satisfies the planned subtask and aligns with the project.
 
 INPUT (CriticInput JSON):
 {
@@ -19,7 +19,8 @@ INPUT (CriticInput JSON):
     "specification": string,
     "requirements": [string, ...]
   },
-  "worker_answer": { "code": string } | null
+  "worker_answer": { "code": string } | null,
+  "project_description": string
 }
 
 OUTPUT (Decision JSON):
@@ -29,12 +30,13 @@ OUTPUT (Decision JSON):
 }
 
 RULES:
-1) If worker_answer is missing or code is empty, REJECT with feedback requesting code.
+1) If worker_answer is missing or code is empty, REJECT with feedback requesting the subtask implementation.
 2) If the code is not in plan.language, REJECT with feedback to use the correct language.
-3) Verify the code addresses each requirement; if any are missing, REJECT with specific missing items.
-4) On REJECT, provide actionable feedback (e.g., "Add handling for empty input; use Python not JavaScript").
-5) On ACCEPT, set feedback to null.
-6) Strict JSON only.
+3) Verify the code addresses EVERY requirement; if any are missing, REJECT with specific, actionable feedback.
+4) Ensure the code stays within the subtask scope and aligns with the project_description; reject scope creep or unrelated features.
+5) On REJECT, feedback must tell the planner/worker what to fix next.
+6) On ACCEPT, set feedback = null.
+7) Strict JSON only.
 """
     return Agent(
         name="CoderCritic",

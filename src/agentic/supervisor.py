@@ -1,9 +1,8 @@
 from __future__ import annotations
-from dataclasses import dataclass
-from uuid import uuid4
-from typing import Callable
+from dataclasses import dataclass, field
+from typing import Any, Callable
 
-from agentic.schemas import WorkerInput, PlannerInput, Decision, ArithmeticTask
+from agentic.schemas import WorkerInput, Decision, ArithmeticTask
 from agentic.tool_registry import ToolRegistry
 from agentic.logging_config import get_logger
 from agentic.agent_dispatcher import AgentDispatcher
@@ -17,6 +16,7 @@ class Supervisor:
     dispatcher: AgentDispatcher
     tool_registry: ToolRegistry
     max_loops: int = 5
+    planner_defaults: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self._handlers: dict[State, Callable[[SupervisorContext], State]] = {
@@ -60,12 +60,19 @@ class Supervisor:
         }
 
     def _handle_plan(self, context: SupervisorContext) -> State:
-        planner_input = PlannerInput(
+        planner_input_cls = self.dispatcher.planner.input_schema
+        planner_kwargs: dict[str, Any] = dict(self.planner_defaults or {})
+        planner_kwargs.update(
             feedback=context.planner_feedback,
             previous_task=context.previous_plan,
             previous_worker_id=context.previous_worker_id,
-            random_seed=str(uuid4()),
         )
+
+        required_fields = getattr(planner_input_cls, "model_fields", {})
+        if "project_description" in required_fields and not planner_kwargs.get("project_description"):
+            raise RuntimeError("Coder domain requires planner_defaults['project_description'] to be set.")
+
+        planner_input = planner_input_cls(**planner_kwargs)
         try:
             planner_response = self.dispatcher.plan(planner_input)
         except RuntimeError as e:
@@ -252,7 +259,6 @@ class Supervisor:
         model_fields = getattr(critic_input_cls, "model_fields", {})
         if "worker_id" in model_fields:
             critic_kwargs["worker_id"] = worker_id or ""
-        try:
-            return critic_input_cls(**critic_kwargs)
-        except Exception:
-            return critic_input_cls.model_construct(**critic_kwargs)
+        if "project_description" in model_fields:
+            critic_kwargs["project_description"] = self.planner_defaults.get("project_description", "")
+        return critic_input_cls(**critic_kwargs)
