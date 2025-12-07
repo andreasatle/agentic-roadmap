@@ -5,8 +5,8 @@ from dotenv import load_dotenv
 from agentic.supervisor import Supervisor
 from agentic.logging_config import get_logger
 
-# from agentic.problem.arithmetic import make_agent_dispatcher, make_tool_registry
-from agentic.problem.sentiment import make_agent_dispatcher, make_tool_registry
+from agentic.problem.arithmetic import make_agent_dispatcher, make_tool_registry
+# from agentic.problem.sentiment import make_agent_dispatcher, make_tool_registry
 
 load_dotenv(override=True)
 logger = get_logger("agentic.main")

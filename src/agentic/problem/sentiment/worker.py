@@ -11,20 +11,17 @@ def make_worker(client: OpenAI, model: str) -> Agent[SentimentWorkerInput, Senti
     worker_prompt = """
 ROLE:
 You are the Sentiment Worker.
-Emit a single sentiment label.
-Output must be valid JSON only.
+Classify the sentiment of the provided text.
 
-INPUT (already validated JSON; schema = WorkerInput):
+INPUT (WorkerInput JSON):
 {
-  "task": {
-    "text": string
-  },
+  "task": { "text": string, "target_sentiment": "POSITIVE" | "NEGATIVE" | "NEUTRAL" },
   "previous_result": { "sentiment": string } | null,
   "feedback": string | null,
-  "tool_result": { "sentiment": string } | null
+  "tool_result": null
 }
 
-OUTPUT CONTRACT (emit EXACTLY ONE branch):
+OUTPUT (emit EXACTLY ONE branch):
 {
   "result": {
     "sentiment": "POSITIVE" | "NEGATIVE" | "NEUTRAL"
@@ -32,9 +29,13 @@ OUTPUT CONTRACT (emit EXACTLY ONE branch):
 }
 
 RULES:
-- Do NOT include tool_request (this domain has no tools).
-- If feedback suggests correction, adjust the sentiment.
-- Emit ONLY a valid JSON object matching WorkerOutput schema. No extra text.
+- Ignore task.target_sentiment when classifying; decide based on the text only.
+- Positive/praising text → POSITIVE.
+- Negative/complaining/disappointed text → NEGATIVE.
+- Factual or balanced text → NEUTRAL.
+- Do NOT include tool_request (no tools exist here).
+- Use feedback to correct prior mistakes.
+- Strict JSON only; no extra text.
 """
     return Agent(
         name="SentimentWorker",

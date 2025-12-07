@@ -63,7 +63,7 @@ class AgentDispatcher(Generic[T, R, D], AgentDispatcherBase):
     Concrete domains bind these at the domain layer.
     """
     planner: AgentProtocol[PlannerInput[T, R], PlannerOutput[T]]
-    workers: dict[str, AgentProtocol[WorkerInput[T, R], WorkerOutput[R, T]]]
+    workers: dict[str, AgentProtocol[WorkerInput[T, R], WorkerOutput[R]]]
     critic: AgentProtocol[CriticInput[T, R], D]
 
     # inherits max_retries and _call from base
@@ -74,7 +74,7 @@ class AgentDispatcher(Generic[T, R, D], AgentDispatcherBase):
         output: PlannerOutput[T] = self._call(self.planner, planner_input)
         return AgentCallResult(agent_id=self.planner.id, output=output)
 
-    def work(self, worker_id: str, args: WorkerInput[T, R]) -> AgentCallResult[WorkerOutput[R, T]]:
+    def work(self, worker_id: str, args: WorkerInput[T, R]) -> AgentCallResult[WorkerOutput[R]]:
         last_err: Exception | None = None
         for attempt in range(1, self.max_retries + 1):
             try:
@@ -85,7 +85,7 @@ class AgentDispatcher(Generic[T, R, D], AgentDispatcherBase):
                     f"[dispatcher] worker attempt {attempt}/{self.max_retries} "
                     f"routing_id={worker_id}"
                 )
-                output: WorkerOutput[R, T] = self._call(worker_agent, args)
+                output: WorkerOutput[R] = self._call(worker_agent, args)
                 return AgentCallResult(agent_id=worker_agent.id, output=output)
             except Exception as e:
                 last_err = e

@@ -16,6 +16,7 @@ from agentic.schemas import (
 class Task(BaseModel):
     """Sentiment classification task."""
     text: str = Field(..., max_length=280)
+    target_sentiment: Literal["POSITIVE", "NEGATIVE", "NEUTRAL"]
 
 
 class Result(BaseModel):
@@ -27,7 +28,7 @@ class Result(BaseModel):
 SentimentPlannerInput = PlannerInput[Task, Result]
 SentimentPlannerOutput = PlannerOutput[Task]
 SentimentWorkerInput = WorkerInput[Task, Result]
-SentimentWorkerOutput = WorkerOutput[Result, Task]
+SentimentWorkerOutput = WorkerOutput[Result]
 SentimentCriticInput = CriticInput[Task, Result]
 SentimentCriticOutput = Decision
 

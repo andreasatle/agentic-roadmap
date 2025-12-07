@@ -1,12 +1,14 @@
 from __future__ import annotations
 from dataclasses import dataclass
+from uuid import uuid4
 from typing import Callable
 
-from agentic.schemas import WorkerInput, CriticInput, PlannerInput
+from agentic.schemas import WorkerInput, PlannerInput, Decision, ArithmeticTask
 from agentic.tool_registry import ToolRegistry
 from agentic.logging_config import get_logger
 from agentic.agent_dispatcher import AgentDispatcher
 from agentic.supervisor_types import SupervisorState as State, SupervisorContext
+from agentic.problem.arithmetic.types import WORKER_CAPABILITIES
 logger = get_logger("agentic.supervisor")
 
 
@@ -62,6 +64,7 @@ class Supervisor:
             feedback=context.planner_feedback,
             previous_task=context.previous_plan,
             previous_worker_id=context.previous_worker_id,
+            random_seed=str(uuid4()),
         )
         try:
             planner_response = self.dispatcher.plan(planner_input)
@@ -83,7 +86,11 @@ class Supervisor:
                     "error": str(e),
                 }
             )
-            context.critic_input = CriticInput(plan={}, worker_answer=None)  # minimal critic input
+            context.critic_input = self._build_critic_input(
+                plan={},
+                worker_answer=None,
+                worker_id=None,
+            )
             return State.CRITIC
 
         logger.debug(f"[supervisor] PLAN call_id={planner_response.call_id}")
@@ -112,6 +119,25 @@ class Supervisor:
             raise RuntimeError("WORK state reached without worker_input in context.")
         if context.worker_id is None:
             raise RuntimeError("WORK state reached without worker_id in context.")
+        if context.plan is None:
+            raise RuntimeError("WORK state reached without plan in context.")
+
+        task = context.plan
+        worker_id = context.worker_id
+        if isinstance(task, ArithmeticTask):
+            spec = WORKER_CAPABILITIES.get(worker_id)
+
+            if spec is None or task.op not in spec.supported_ops:
+                context.critic_input = self._build_critic_input(
+                    plan=task,
+                    worker_answer=None,
+                    worker_id=worker_id,
+                )
+                context.decision = Decision(
+                    decision="REJECT",
+                    feedback=f"Worker '{worker_id}' does not support op '{task.op}'",
+                )
+                return State.CRITIC
 
         worker_response = self.dispatcher.work(context.worker_id, context.worker_input)
         worker_output = worker_response.output
@@ -130,8 +156,10 @@ class Supervisor:
 
         if worker_output.result is not None:
             context.worker_result = worker_output.result
-            context.critic_input = CriticInput(
-                plan=context.plan, worker_answer=worker_output.result
+            context.critic_input = self._build_critic_input(
+                plan=context.plan,
+                worker_answer=worker_output.result,
+                worker_id=context.worker_id,
             )
             return State.CRITIC
 
@@ -217,3 +245,14 @@ class Supervisor:
             return State.WORK
 
         raise RuntimeError("Critic decision must be ACCEPT or REJECT.")
+
+    def _build_critic_input(self, plan, worker_answer, worker_id):
+        critic_input_cls = self.dispatcher.critic.input_schema
+        critic_kwargs = {"plan": plan, "worker_answer": worker_answer}
+        model_fields = getattr(critic_input_cls, "model_fields", {})
+        if "worker_id" in model_fields:
+            critic_kwargs["worker_id"] = worker_id or ""
+        try:
+            return critic_input_cls(**critic_kwargs)
+        except Exception:
+            return critic_input_cls.model_construct(**critic_kwargs)

@@ -13,51 +13,46 @@ def make_worker(client: OpenAI, model: str) -> Agent[ArithmeticWorkerInput, Arit
     worker_prompt = """
 ROLE:
 You are the Worker.
-You may either:
-- request a deterministic arithmetic tool, or
-- emit a final numeric result.
+Your job is to execute the ArithmeticTask or request a tool to do so.
 
-INPUT (already validated JSON; schema = WorkerInput):
+INPUT:
 {
-  "task": {
-    "op": "ADD" | "SUB" | "MUL",
-    "a": int,
-    "b": int
-  },
-  "previous_result": { "value": int } | null,
+  "task": { "op": "...", "a": X, "b": Y },
+  "previous_result": ArithmeticResult | null,
   "feedback": string | null,
-  "tool_result": { "value": int } | null
+  "tool_result": ArithmeticResult | null
 }
 
-OUTPUT CONTRACT (emit EXACTLY ONE of the branches below):
-
-1) Request a tool:
-{
-  "tool_request": {
-    "tool_name": "compute",
-    "args": {
-      "op": "ADD" | "SUB" | "MUL",
-      "a": int,
-      "b": int
-    }
-  }
-}
-
-2) Emit numeric result:
-{
-  "result": {
-    "value": int
-  }
-}
+OUTPUT:
+Either:
+  {"result": { "value": int }}
+or:
+  {"tool_request": { "tool_name": "...", "args": {...} }}
 
 RULES:
-- NEVER execute the tool yourself; you only request it.
-- On the FIRST turn (tool_result == null), you are encouraged to request the "compute" tool.
-- When tool_result is non-null, you should normally emit a numeric result based on it.
-- You may use previous_result and feedback to correct prior mistakes, but NEVER include them in output.
-- Do NOT include both result and tool_request.
-- Do NOT change op/a/b compared to the input task when requesting the tool.
-- Output ONLY a valid JSON object matching WorkerOutput schema. No extra text.
+
+1. DO NOT GUESS worker_id. Only Planner chooses worker_id.
+
+2. TOOL CHOICE:
+   For each op:
+     ADD → tool_name = "add"
+     SUB → tool_name = "sub"
+     MUL → tool_name = "mul"
+
+3. CONSISTENCY:
+   Use the correct args and field names:
+     ADD → {"tool_name": "add", "args": {"a": task.a, "b": task.b}}
+     SUB → {"tool_name": "sub", "args": {"a": task.a, "b": task.b}}
+     MUL → {"tool_name": "mul", "args": {"a": task.a, "b": task.b}}
+   No extra keys (do NOT use x/y or other fields).
+
+4. TOOL RESULT HANDLING:
+   If tool_result is NOT null, emit {"result": tool_result} and do NOT request another tool.
+
+5. FEEDBACK HANDLING:
+   If feedback exists, correct mistakes from prior iterations.
+
+6. OUTPUT STRICT JSON ONLY.
 """
     return Agent(
         name="worker",

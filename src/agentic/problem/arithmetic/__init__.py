@@ -1,6 +1,10 @@
 from agentic.problem.arithmetic.types import (
-    Task,
-    Result,
+    ArithmeticTask,
+    ArithmeticResult,
+    AddArgs,
+    SubArgs,
+    MulArgs,
+    WORKER_CAPABILITIES,
     ArithmeticPlannerInput,
     ArithmeticPlannerOutput,
     ArithmeticWorkerInput,
@@ -15,8 +19,12 @@ from agentic.problem.arithmetic.critic import make_critic
 from agentic.problem.arithmetic.factory import make_agent_dispatcher, make_tool_registry
 
 __all__ = [
-    "Task",
-    "Result",
+    "ArithmeticTask",
+    "ArithmeticResult",
+    "AddArgs",
+    "SubArgs",
+    "MulArgs",
+    "WORKER_CAPABILITIES",
     "ArithmeticPlannerInput",
     "ArithmeticPlannerOutput",
     "ArithmeticWorkerInput",

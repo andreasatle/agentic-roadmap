@@ -1,8 +1,12 @@
-from typing import Literal
-from pydantic import BaseModel, Field
-
+from pydantic import model_validator
 from agentic.schemas import (
     Decision,
+    ArithmeticTask,
+    ArithmeticResult,
+    AddArgs,
+    SubArgs,
+    MulArgs,
+    WorkerSpec,
     PlannerInput,
     PlannerOutput,
     WorkerInput,
@@ -11,23 +15,54 @@ from agentic.schemas import (
 )
 from agentic.agent_dispatcher import AgentDispatcher
 
-class Task(BaseModel):
-    """A well-bounded arithmetic task."""
-    op: Literal["ADD", "SUB", "MUL"]
-    a: int = Field(..., ge=1, le=20)
-    b: int = Field(..., ge=1, le=20)
 
-class Result(BaseModel):
-    """A numeric answer produced by Worker."""
-    value: int = Field(..., ge=-10_000, le=10_000)
+WORKER_CAPABILITIES: dict[str, WorkerSpec] = {
+    "worker_addsub": WorkerSpec(
+        worker_id="worker_addsub",
+        supported_ops={"ADD", "SUB"},
+    ),
+    "worker_mul": WorkerSpec(
+        worker_id="worker_mul",
+        supported_ops={"MUL"},
+    ),
+}
+
+ArithmeticToolArgs = AddArgs | SubArgs | MulArgs
+TOOL_ARG_BY_NAME = {
+    "add": AddArgs,
+    "sub": SubArgs,
+    "mul": MulArgs,
+}
 
 # Bind generics to domain
-ArithmeticPlannerInput = PlannerInput[Task, Result]
-ArithmeticPlannerOutput = PlannerOutput[Task]
-ArithmeticWorkerInput = WorkerInput[Task, Result]
-ArithmeticWorkerOutput = WorkerOutput[Result, Task]
-ArithmeticCriticInput = CriticInput[Task, Result]
+ArithmeticPlannerInput = PlannerInput[ArithmeticTask, ArithmeticResult]
+ArithmeticPlannerOutput = PlannerOutput[ArithmeticTask]
+ArithmeticWorkerInput = WorkerInput[ArithmeticTask, ArithmeticResult]
+
+
+class ArithmeticWorkerOutput(WorkerOutput[ArithmeticResult]):
+    @model_validator(mode="after")
+    def coerce_tool_args(self) -> "ArithmeticWorkerOutput":
+        if self.tool_request is None:
+            return self
+
+        target_type = TOOL_ARG_BY_NAME.get(self.tool_request.tool_name)
+        if target_type is None:
+            return self
+
+        if isinstance(self.tool_request.args, target_type):
+            return self
+
+        self.tool_request.args = target_type.model_validate(self.tool_request.args)
+        return self
+
+
+class ArithmeticCriticInput(CriticInput[ArithmeticTask, ArithmeticResult]):
+    worker_id: str
+    worker_answer: ArithmeticResult | None = None
+
+
 ArithmeticCriticOutput = Decision
 
 # Dispatcher binding for this domain
-ArithmeticDispatcher = AgentDispatcher[Task, Result, Decision]
+ArithmeticDispatcher = AgentDispatcher[ArithmeticTask, ArithmeticResult, Decision]

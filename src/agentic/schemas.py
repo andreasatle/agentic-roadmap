@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Literal, TypeVar, Generic, Final
+from typing import Literal, TypeVar, Generic, Final, Union, Any
 from pydantic import BaseModel, Field, model_validator
 from dataclasses import dataclass, field
 from uuid import uuid4
@@ -25,6 +25,39 @@ class Decision(BaseModel):
             if not (self.feedback and self.feedback.strip()):
                 raise ValueError("feedback is required when decision == 'REJECT'")
         return self
+
+
+class ArithmeticTask(BaseModel):
+    """Domain task schema shared by planner/worker/critic."""
+    op: Literal["ADD", "SUB", "MUL"]
+    a: int
+    b: int
+
+
+class AddArgs(BaseModel):
+    a: int
+    b: int
+
+
+class SubArgs(BaseModel):
+    a: int
+    b: int
+
+
+class MulArgs(BaseModel):
+    a: int
+    b: int
+
+
+class ArithmeticResult(BaseModel):
+    value: int
+
+
+class WorkerSpec(BaseModel):
+    worker_id: str
+    supported_ops: set[Literal["ADD", "SUB", "MUL"]]
+
+ArithmeticArgs = Union[AddArgs, SubArgs, MulArgs]
 
 
 # ---------------------------------------------------------
@@ -55,10 +88,10 @@ R = TypeVar("R")  # Result
 D = TypeVar("D")  # Decision
 TR = TypeVar("TR")  # Tool Request Args
 
-class ToolRequest(BaseModel, Generic[TR]):
+class ToolRequest(BaseModel):
     """A side-effect request to invoke a registered tool."""
     tool_name: str = Field(..., max_length=64)
-    args: TR
+    args: Any
 
 class PlannerInput(BaseModel, Generic[T, R]):
     """
@@ -67,6 +100,7 @@ class PlannerInput(BaseModel, Generic[T, R]):
     feedback: str | None = None
     previous_task: T | None = None
     previous_worker_id: str | None = None
+    random_seed: str | None = None
 
 class PlannerOutput(BaseModel, Generic[T]):
     task: T
@@ -78,9 +112,9 @@ class WorkerInput(BaseModel, Generic[T, R]):
     feedback: str | None = None
     tool_result: R | None = None
 
-class WorkerOutput(ConstrainedXOROutput, Generic[R, TR]):
+class WorkerOutput(ConstrainedXOROutput, Generic[R]):
     result: R | None = None
-    tool_request: ToolRequest[TR] | None = None
+    tool_request: ToolRequest | None = None
 
 class CriticInput(BaseModel, Generic[T, R]):
     """Critic sees the original plan and the Worker’s answer."""

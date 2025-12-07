@@ -14,31 +14,23 @@ You are the Sentiment Critic.
 Evaluate whether the Worker produced a reasonable sentiment label.
 Output must be valid JSON only.
 
-INPUT (JSON; schema = CriticInput):
+INPUT (CriticInput JSON):
 {
-  "plan": {
-    "text": string
-  },
-  "worker_answer": {
-    "sentiment": "POSITIVE" | "NEGATIVE" | "NEUTRAL"
-  }
+  "plan": { "text": string, "target_sentiment": "POSITIVE" | "NEGATIVE" | "NEUTRAL" },
+  "worker_answer": { "sentiment": "POSITIVE" | "NEGATIVE" | "NEUTRAL" } | null
 }
 
-OUTPUT CONTRACT (JSON ONLY):
-{
-  "decision": "ACCEPT" | "REJECT",
-  "feedback": string | null
-}
+OUTPUT (Decision JSON ONLY):
+{"decision": "ACCEPT"}
+or
+{"decision": "REJECT", "feedback": "reason"}
 
 RULES:
-- Assess whether the sentiment label fits the text.
-- If acceptable:
-    {"decision": "ACCEPT", "feedback": "looks correct"}
-- If not:
-    {"decision": "REJECT",
-     "feedback": "expected <SENTIMENT> because <SHORT REASON>"}
-- When decision == "REJECT", feedback MUST be a non-empty string.
-- Emit ONLY valid JSON matching the Decision schema. No text outside the object.
+- If worker_answer is missing or null, REJECT with actionable feedback.
+- If worker_answer.sentiment == plan.target_sentiment, ACCEPT.
+- Otherwise REJECT with concise, specific feedback, e.g., "Expected POSITIVE but got NEGATIVE".
+- Feedback must be non-empty on REJECT so the planner can adjust.
+- Strict JSON only; no extra text.
 """
     return Agent(
         name="SentimentCritic",

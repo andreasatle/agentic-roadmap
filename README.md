@@ -1,43 +1,36 @@
-# Agentic Framework (Current State)
+# Agentic Framework
 
 ## Overview
-A small, domain-agnostic agentic framework with three LLM agents (Planner, Worker, Critic), a supervisor that orchestrates them, and a tool registry for deterministic functions. The framework is generic; domains bind their own task/result types and agent prompts.
+A small, domain-agnostic agent framework with three LLM agents (Planner, Worker, Critic) coordinated by a finite-state Supervisor and a tool registry for deterministic functions. The framework is generic; domains bind their own task/result types, prompts, and tools.
 
-## Architecture
-- Framework (generic, no domain coupling):
-  - `schemas.py`: Generic Pydantic models (`PlannerInput/Output`, `WorkerInput/Output`, `CriticInput`, `Decision`, `ToolRequest`, `ConstrainedXOROutput`).
-  - `protocols.py`: Agent and tool protocols.
-  - `agents.py`: Generic LLM Agent wrapper.
-  - `agent_dispatcher.py`: Safe agent caller with retries and JSON validation.
-  - `tool_registry.py`: Name → tool lookup and invocation with type checking.
-  - `supervisor.py`: Planner → Worker → Critic loop, executes tools via registry.
-  - `logging_config.py`: Logger setup.
-- Domains:
-  - `problem/arithmetic`: `Task`, `Result`, agent factories, dispatcher factory, tool registry (compute), prompts for arithmetic.
-  - `problem/sentiment`: `Task`, `Result`, agent factories, dispatcher factory, empty tool registry, prompts for sentiment classification.
+## Architecture (framework)
+- `agentic/schemas.py`: Generic Pydantic models (`PlannerInput/Output`, `WorkerInput/Output`, `CriticInput`, `Decision`, `ToolRequest`, `ConstrainedXOROutput`).
+- `agentic/protocols.py`: Agent and tool protocols.
+- `agentic/agents.py`: Thin OpenAI LLM wrapper with typed I/O.
+- `agentic/agent_dispatcher.py`: Safe agent caller with retries and JSON validation; `plan` now accepts optional planner context.
+- `agentic/supervisor_types.py`: FSM state enum + `SupervisorContext` (stores current/previous plan, planner feedback, worker inputs/outputs, trace).
+- `agentic/supervisor.py`: PLAN → WORK → TOOL/CRITIC → END loop; CRITIC REJECT can route back to PLAN with planner_feedback, making the planner self-correct.
+- `agentic/tool_registry.py`: Name → tool lookup and invocation with type checking.
+- `agentic/logging_config.py`: Logger setup.
 
-## How it runs
-1) `main.py` imports a domain’s factories (`make_agent_dispatcher`, `make_tool_registry`).
-2) Builds the dispatcher (planner, worker, critic) and a tool registry.
-3) Supervisor loops:
-   - Planner emits a `Task`.
-   - Worker either returns a `result` or a `tool_request`.
-   - On `tool_request`, supervisor calls the registry, feeds the result back to Worker.
-   - On `result`, Critic decides ACCEPT/REJECT. Reject reinjects feedback; Accept returns.
+## Domains
+- `agentic/problem/arithmetic`: Task/Result schemas, agent factories, dispatcher factory, tool registry (compute), prompts for arithmetic.
+- `agentic/problem/sentiment`: Task/Result schemas, agent factories, dispatcher factory, empty tool registry, prompts for sentiment classification.
+
+## Control flow
+1. Planner produces a `PlannerOutput` (`task`, `worker_id`). On failures/critic rejection, planner receives `PlannerInput(feedback, previous_task, previous_worker_id)` for self-correction.
+2. Worker runs on the chosen `worker_id`, returning either a `result` or `tool_request`.
+3. TOOL: supervisor invokes the requested deterministic tool and feeds the `tool_result` back into Worker.
+4. CRITIC judges `plan` + `worker_answer` as ACCEPT/REJECT. REJECT routes feedback to Worker or, when planning failed, back to Planner.
+5. Supervisor records a trace of each transition and stops at END.
+
+## Running the demo
+```
+uv run python -m agentic.main
+```
+Requires `OPENAI_API_KEY` (uses `gpt-4.1-mini` by default). Without network access, calls to the API will fail.
 
 ## Switching domains
-Edit `src/main.py` import block to choose one:
-- Arithmetic: `from .problem.arithmetic import make_agent_dispatcher, make_tool_registry`
-- Sentiment: `from .problem.sentiment import make_agent_dispatcher, make_tool_registry`
-
-## Run the demo
-```
-uv run python -m src.main
-```
-Requires OpenAI credentials (uses `gpt-4.1-mini` by default). No network → demo will fail to call the API.
-
-## Key files
-- Framework: `src/schemas.py`, `src/protocols.py`, `src/agents.py`, `src/agent_dispatcher.py`, `src/supervisor.py`, `src/tool_registry.py`
-- Arithmetic domain: `src/problem/arithmetic/`
-- Sentiment domain: `src/problem/sentiment/`
-
+Edit the import block in `agentic/main.py`:
+- Arithmetic (default): `from agentic.problem.arithmetic import make_agent_dispatcher, make_tool_registry`
+- Sentiment: `from agentic.problem.sentiment import make_agent_dispatcher, make_tool_registry`
