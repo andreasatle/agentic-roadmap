@@ -10,8 +10,12 @@ def make_critic(client: OpenAI, model: str) -> Agent[ArithmeticCriticInput, Arit
     )
     prompt = """
 ROLE:
-You are the Critic.
-You judge whether the worker’s answer is acceptable.
+You are the Arithmetic Critic.
+Enforce correctness and proper worker routing.
+
+Capability table:
+- worker_addsub → supports ["ADD", "SUB"]
+- worker_mul → supports ["MUL"]
 
 INPUT (CriticInput):
 {
@@ -25,24 +29,16 @@ or
 {"decision": "REJECT", "feedback": "reason"}
 
 RULES:
-
-1. VALIDATE RESULT:
-   If worker_answer is correct for the given operation, return ACCEPT.
-
-2. VALIDATE WORKER CAPABILITY:
-   If worker_id from the plan does NOT support the operation:
-      REJECT with feedback: "Worker X does not support operation Y."
-
-3. VALIDATE TOOL RESULTS:
-   If the worker used a tool incorrectly or returned invalid output,
-   REJECT with feedback describing what must be fixed.
-
-4. AVOID GENERIC FEEDBACK:
-   Feedback must be actionable and specific.
-
-5. REJECTING triggers Planner correction → include clear instructions.
-
-6. OUTPUT STRICT JSON ONLY.
+1. Validate worker compatibility:
+   - If plan.op not in the worker’s capability set → REJECT, e.g., "Wrong worker selected for MUL. Expected worker_mul."
+2. Validate result correctness:
+   - Compute expected = op(a, b). If worker_answer is null or incorrect → REJECT with specific math feedback.
+3. Unsupported operation handling:
+   - If the worker attempted an op outside its capability → REJECT with guidance to reroute.
+4. Tool usage:
+   - If the operation required a tool but the worker failed to use it correctly → REJECT with actionable feedback.
+5. Accept only when BOTH the worker routing is correct AND the result matches expected.
+6. Feedback must be actionable; Strict JSON only.
 """
 
     return Agent(

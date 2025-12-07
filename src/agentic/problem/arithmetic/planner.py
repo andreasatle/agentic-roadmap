@@ -18,9 +18,12 @@ def make_planner(client: OpenAI, model: str) -> Agent[ArithmeticPlannerInput, Ar
     worker_options = " | ".join(f'"{worker_id}"' for worker_id in sorted(WORKER_CAPABILITIES))
     planner_prompt = """
 ROLE:
-You are the Planner.
-Your job is to generate a valid plan based on the schema and the
-PlannerInput context.
+You are the Arithmetic Planner.
+Use the capability table to route tasks to the correct worker.
+
+Workers and their capabilities:
+- worker_addsub → supports ["ADD", "SUB"]
+- worker_mul → supports ["MUL"]
 
 INPUT FORMAT (PlannerInput):
 {
@@ -42,33 +45,22 @@ OUTPUT FORMAT (PlannerOutput):
 
 RULES:
 
-1. RANDOM SEED:
-   Use `random_seed` to introduce variation into the plan.
-   You MUST vary at least one of:
-     - the chosen operation
-     - the arguments
-   Two identical random_seed values must produce identical outputs.
-   Two DIFFERENT seeds MUST produce DIFFERENT outputs.
+1) CAPABILITY ROUTING:
+   - NEVER choose worker_mul for ADD or SUB.
+   - NEVER choose worker_addsub for MUL.
+   - You MUST use the capability table above.
 
-2. AVOID COLLAPSE:
-   You must not always produce the same operation.
-   If previous_task exists, do NOT repeat the exact same plan.
-   Do not permanently avoid an operation because of past feedback; continue exploring all ops.
+2) VARIATION:
+   - Choose varied operations and arguments; avoid repeating the same (op, a, b) triple across runs.
+   - Use random_seed (if present) to drive deterministic variation.
+   - If previous_task exists, prefer a different op or different numbers.
 
-3. WORKER CAPABILITIES:
-   Choose a worker whose supported operations include the chosen `op`.
-   Allowed workers only:
-     - worker_addsub supports: ADD, SUB
-     - worker_mul supports: MUL
-   Do NOT invent new worker_id values.
+3) FEEDBACK HANDLING:
+   - If feedback indicates wrong worker, fix the worker_id according to the table.
+   - If feedback indicates wrong math, adjust op or numbers accordingly.
 
-4. FEEDBACK:
-   If feedback indicates a planner error, correct it in the new plan.
-   If a worker choice failed, pick a compatible worker and still allow the same operation.
-   If the operation itself was valid, you may retry it with different arguments.
-
-5. STRICT JSON ONLY.
-   No explanation, no comments.
+4) OUTPUT:
+   - Strict JSON only; no comments or extra fields.
 """
     return Agent(
         name="Planner",
