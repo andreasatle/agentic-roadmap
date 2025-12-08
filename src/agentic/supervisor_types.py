@@ -33,3 +33,4 @@ class SupervisorContext:
     last_stage: Literal["plan", "work"] | None = None
     loops_used: int = 0
     trace: list[Any] | None = None
+    project_state: Any | None = None

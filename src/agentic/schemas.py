@@ -82,6 +82,17 @@ class ConstrainedXOROutput(BaseModel):
     
 
 
+class ProjectState(BaseModel):
+    """
+    A persistent per-run state object that accumulates metadata across supervisor cycles.
+    This is domain-agnostic, and fields are intentionally minimal.
+    """
+    cycle: int = 0
+    history: list[dict] = Field(default_factory=list)
+    last_plan: dict | None = None
+    last_result: dict | None = None
+    last_decision: dict | None = None
+
 
 T = TypeVar("T")  # Task
 R = TypeVar("R")  # Result
@@ -101,6 +112,7 @@ class PlannerInput(BaseModel, Generic[T, R]):
     previous_task: T | None = None
     previous_worker_id: str | None = None
     random_seed: str | None = None
+    project_state: ProjectState | None = None
 
 class PlannerOutput(BaseModel, Generic[T]):
     task: T
@@ -120,6 +132,7 @@ class CriticInput(BaseModel, Generic[T, R]):
     """Critic sees the original plan and the Worker’s answer."""
     plan: T
     worker_answer: R
+    project_state: ProjectState | None = None
 
 class CriticOutput(BaseModel, Generic[D]):
     """Critic output wrapper for decision payloads."""
