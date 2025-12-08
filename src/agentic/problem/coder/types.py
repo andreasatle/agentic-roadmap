@@ -9,6 +9,7 @@ from agentic.schemas import (
     WorkerInput,
     WorkerOutput,
     CriticInput,
+    ProjectState,
 )
 
 
@@ -32,6 +33,7 @@ class CoderPlannerInput(PlannerInput[CodeTask, CodeResult]):
     feedback: str | None = None
     previous_worker_id: str | None = None
     random_seed: int | str | None = None
+    project_state: ProjectState | None = None
 
 
 CoderPlannerOutput = PlannerOutput[CodeTask]
@@ -42,6 +44,7 @@ CoderWorkerOutput = WorkerOutput[CodeResult]
 class CoderCriticInput(CriticInput[CodeTask, CodeResult]):
     """Critic sees the plan, worker answer, and the overarching project."""
     project_description: str
+    project_state: ProjectState | None = None
 
 
 CoderCriticOutput = Decision

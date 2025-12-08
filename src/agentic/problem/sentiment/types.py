@@ -10,6 +10,7 @@ from agentic.schemas import (
     WorkerInput,
     WorkerOutput,
     CriticInput,
+    ProjectState,
 )
 
 
@@ -29,13 +30,19 @@ class SentimentPlannerInput(PlannerInput[SentimentTask, Result]):
     previous_task: SentimentTask | None = None
     feedback: str | None = None
     random_seed: int | str | None = None
+    project_state: ProjectState | None = None
 
 
 # Bind generics to domain
 SentimentPlannerOutput = PlannerOutput[SentimentTask]
 SentimentWorkerInput = WorkerInput[SentimentTask, Result]
 SentimentWorkerOutput = WorkerOutput[Result]
-SentimentCriticInput = CriticInput[SentimentTask, Result]
+
+
+class SentimentCriticInput(CriticInput[SentimentTask, Result]):
+    project_state: ProjectState | None = None
+
+
 SentimentCriticOutput = Decision
 
 # Dispatcher binding for this domain

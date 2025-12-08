@@ -101,4 +101,8 @@ class AgentDispatcher(Generic[T, R, D], AgentDispatcherBase):
         return AgentCallResult(agent_id=self.critic.id, output=output)
 
     def validate_worker_routing(self, task: T, worker_id: str) -> bool:
+        """
+        Domain-specific dispatchers MUST override this.
+        The base dispatcher always returns True.
+        """
         return True

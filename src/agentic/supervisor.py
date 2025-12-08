@@ -71,7 +71,8 @@ class Supervisor:
             previous_task=context.previous_plan,
             previous_worker_id=context.previous_worker_id,
         )
-        if "project_state" in planner_input_cls.model_fields:
+        planner_fields = planner_input_cls.model_fields
+        if "project_state" in planner_fields:
             planner_kwargs["project_state"] = context.project_state
 
         required_fields = getattr(planner_input_cls, "model_fields", {})
@@ -222,7 +223,7 @@ class Supervisor:
                     "state": State.WORK.name,
                     "worker_id": context.worker_id,
                     "plan": context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
-                    "result": context.worker_result.model_dump() if hasattr(context.worker_result, "model_dump") else context.worker_result,
+                    "result": None,
                     "decision": None,
                 }
             )
@@ -337,5 +338,5 @@ class Supervisor:
         if "project_description" in fields:
             critic_kwargs["project_description"] = self.planner_defaults.get("project_description", "")
         if "project_state" in fields:
-            critic_kwargs["project_state"] = getattr(self, "_current_project_state", None)
+            critic_kwargs["project_state"] = self._current_project_state
         return critic_input_cls(**critic_kwargs)

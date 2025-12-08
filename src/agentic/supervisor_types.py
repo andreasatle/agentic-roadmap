@@ -2,7 +2,7 @@ from enum import Enum, auto
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from agentic.schemas import WorkerInput, WorkerOutput, CriticInput
+from agentic.schemas import WorkerInput, WorkerOutput, CriticInput, ProjectState
 
 
 class SupervisorState(Enum):
@@ -33,4 +33,4 @@ class SupervisorContext:
     last_stage: Literal["plan", "work"] | None = None
     loops_used: int = 0
     trace: list[Any] | None = None
-    project_state: Any | None = None
+    project_state: ProjectState | None = None
