@@ -9,7 +9,8 @@ from agentic.schemas import (
     WorkerInput,
     WorkerOutput,
 )
-from .types import WriterResult, WriterTask
+from agentic.problem.writer.types import WriterResult, WriterTask
+from agentic.problem.writer.state import WriterState
 
 
 class WriterPlannerInput(PlannerInput[WriterTask, WriterResult]):
@@ -17,6 +18,7 @@ class WriterPlannerInput(PlannerInput[WriterTask, WriterResult]):
 
     topic: str | None = None
     project_state: ProjectState | None = None
+    writer_state: WriterState | None = None
 
 
 class WriterPlannerOutput(PlannerOutput[WriterTask]):
@@ -34,6 +36,7 @@ class WriterWorkerInput(WorkerInput[WriterTask, WriterResult]):
     model_config = ConfigDict(populate_by_name=True)
 
     previous_text: str | None = None
+    writer_state: WriterState | None = None
 
     @model_validator(mode="after")
     def sync_previous_fields(self) -> "WriterWorkerInput":
@@ -62,6 +65,7 @@ class WriterCriticInput(CriticInput[WriterTask, WriterResult]):
 
     plan: WriterTask = Field(..., alias="task")
     worker_answer: WriterResult = Field(..., alias="candidate")
+    writer_state: WriterState | None = None
 
 
 class WriterCriticOutput(Decision):

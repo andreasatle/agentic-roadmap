@@ -63,6 +63,7 @@ class ProjectState(BaseModel):
     """
     cycle: int = 0
     history: list[HistoryEntry] = Field(default_factory=list)
+    domain_state: dict[str, BaseModel] = Field(default_factory=dict)
     last_plan: dict | None = None
     last_result: dict | None = None
     last_decision: dict | None = None

@@ -15,3 +15,14 @@ class WriterResult(BaseModel):
     """Text produced by the worker for a single writing task."""
 
     text: str = Field(..., description="Completed prose for the section.")
+
+
+class WriterState(BaseModel):
+    """
+    Domain-specific state for the writer problem.
+
+    Step 1 MVP:
+    - tracks completed sections
+    - no behavior or validation yet
+    """
+    sections: dict[str, str] = Field(default_factory=dict)
