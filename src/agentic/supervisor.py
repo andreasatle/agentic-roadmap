@@ -2,7 +2,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable
 
-from agentic.schemas import WorkerInput, Decision, ProjectState
+from agentic.schemas import WorkerInput, Decision, ProjectState, HistoryEntry
 from agentic.tool_registry import ToolRegistry
 from agentic.logging_config import get_logger
 from agentic.agent_dispatcher import AgentDispatcher
@@ -101,13 +101,13 @@ class Supervisor:
                 }
             )
             context.project_state.history.append(
-                {
-                    "state": State.PLAN.name,
-                    "worker_id": context.worker_id,
-                    "plan": context.plan,
-                    "result": None,
-                    "decision": None,
-                }
+                HistoryEntry(
+                    state=State.PLAN.name,
+                    worker_id=context.worker_id,
+                    plan=context.plan,
+                    result=None,
+                    decision=None,
+                )
             )
             context.critic_input = self._build_critic_input(
                 plan={},
@@ -139,13 +139,13 @@ class Supervisor:
             }
         )
         context.project_state.history.append(
-            {
-                "state": State.PLAN.name,
-                "worker_id": context.worker_id,
-                "plan": context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
-                "result": None,
-                "decision": None,
-            }
+            HistoryEntry(
+                state=State.PLAN.name,
+                worker_id=context.worker_id,
+                plan=context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
+                result=None,
+                decision=None,
+            )
         )
         return State.WORK
 
@@ -170,13 +170,13 @@ class Supervisor:
                 feedback=f"Worker '{worker_id}' is not valid for the proposed plan",
             )
             context.project_state.history.append(
-                {
-                    "state": State.WORK.name,
-                    "worker_id": context.worker_id,
-                    "plan": context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
-                    "result": None,
-                    "decision": context.decision.model_dump() if hasattr(context.decision, "model_dump") else context.decision,
-                }
+                HistoryEntry(
+                    state=State.WORK.name,
+                    worker_id=context.worker_id,
+                    plan=context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
+                    result=None,
+                    decision=context.decision.model_dump() if hasattr(context.decision, "model_dump") else context.decision,
+                )
             )
             return State.CRITIC
 
@@ -206,26 +206,26 @@ class Supervisor:
                 worker_id=context.worker_id,
             )
             context.project_state.history.append(
-                {
-                    "state": State.WORK.name,
-                    "worker_id": context.worker_id,
-                    "plan": context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
-                    "result": context.worker_result.model_dump() if hasattr(context.worker_result, "model_dump") else context.worker_result,
-                    "decision": None,
-                }
+                HistoryEntry(
+                    state=State.WORK.name,
+                    worker_id=context.worker_id,
+                    plan=context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
+                    result=context.worker_result.model_dump() if hasattr(context.worker_result, "model_dump") else context.worker_result,
+                    decision=None,
+                )
             )
             return State.CRITIC
 
         if worker_output.tool_request is not None:
             context.tool_request = worker_output.tool_request
             context.project_state.history.append(
-                {
-                    "state": State.WORK.name,
-                    "worker_id": context.worker_id,
-                    "plan": context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
-                    "result": None,
-                    "decision": None,
-                }
+                HistoryEntry(
+                    state=State.WORK.name,
+                    worker_id=context.worker_id,
+                    plan=context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
+                    result=None,
+                    decision=None,
+                )
             )
             return State.TOOL
 
@@ -264,13 +264,13 @@ class Supervisor:
             tool_result=tool_result,
         )
         context.project_state.history.append(
-            {
-                "state": State.TOOL.name,
-                "worker_id": context.worker_id,
-                "plan": context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
-                "result": context.worker_result.model_dump() if hasattr(context.worker_result, "model_dump") else context.worker_result,
-                "decision": None,
-            }
+            HistoryEntry(
+                state=State.TOOL.name,
+                worker_id=context.worker_id,
+                plan=context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
+                result=context.worker_result.model_dump() if hasattr(context.worker_result, "model_dump") else context.worker_result,
+                decision=None,
+            )
         )
         return State.WORK
 
@@ -295,13 +295,13 @@ class Supervisor:
             }
         )
         context.project_state.history.append(
-            {
-                "state": State.CRITIC.name,
-                "worker_id": context.worker_id,
-                "plan": context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
-                "result": context.worker_result.model_dump() if hasattr(context.worker_result, "model_dump") else context.worker_result,
-                "decision": context.decision.model_dump() if hasattr(context.decision, "model_dump") else context.decision,
-            }
+            HistoryEntry(
+                state=State.CRITIC.name,
+                worker_id=context.worker_id,
+                plan=context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
+                result=context.worker_result.model_dump() if hasattr(context.worker_result, "model_dump") else context.worker_result,
+                decision=context.decision.model_dump() if hasattr(context.decision, "model_dump") else context.decision,
+            )
         )
 
         if decision.decision == "ACCEPT":

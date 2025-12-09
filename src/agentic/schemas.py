@@ -48,13 +48,21 @@ class ConstrainedXOROutput(BaseModel):
     
 
 
+class HistoryEntry(BaseModel):
+    state: str
+    worker_id: str | None = None
+    plan: dict | None = None
+    result: dict | None = None
+    decision: dict | None = None
+
+
 class ProjectState(BaseModel):
     """
     A persistent per-run state object that accumulates metadata across supervisor cycles.
     This is domain-agnostic, and fields are intentionally minimal.
     """
     cycle: int = 0
-    history: list[dict] = Field(default_factory=list)
+    history: list[HistoryEntry] = Field(default_factory=list)
     last_plan: dict | None = None
     last_result: dict | None = None
     last_decision: dict | None = None
