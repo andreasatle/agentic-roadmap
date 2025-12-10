@@ -5,6 +5,29 @@ from pydantic import BaseModel, Field, model_validator
 from dataclasses import dataclass, field
 from uuid import uuid4
 
+def _normalize_for_json(value):
+    result = None
+
+    match value:
+        case BaseModel():
+            dumped = value.model_dump()
+            result = {k: _normalize_for_json(v) for k, v in dumped.items()}
+
+        case dict():
+            result = {k: _normalize_for_json(v) for k, v in value.items()}
+
+        case list():
+            result = [_normalize_for_json(v) for v in value]
+
+        case tuple():
+            result = tuple(_normalize_for_json(v) for v in value)
+
+        case _:
+            # primitive: str, int, float, bool, None
+            result = value
+
+    return result
+
 # ---------------------------------------------------------
 # Core atomic semantic types
 # ---------------------------------------------------------
@@ -90,6 +113,11 @@ class PlannerInput(BaseModel, Generic[T, R]):
     random_seed: str | None = None
     project_state: ProjectState | None = None
 
+    def to_llm(self) -> dict:
+        raw = self.model_dump()
+        normalized = _normalize_for_json(raw)
+        return normalized
+
 class PlannerOutput(BaseModel, Generic[T]):
     task: T
     worker_id: str
@@ -101,6 +129,11 @@ class WorkerInput(BaseModel, Generic[T, R]):
     tool_result: R | None = None
     project_state: ProjectState | None = None
 
+    def to_llm(self) -> dict:
+        raw = self.model_dump()
+        normalized = _normalize_for_json(raw)
+        return normalized
+
 class WorkerOutput(ConstrainedXOROutput, Generic[R]):
     result: R | None = None
     tool_request: ToolRequest | None = None
@@ -110,6 +143,11 @@ class CriticInput(BaseModel, Generic[T, R]):
     plan: T
     worker_answer: R
     project_state: ProjectState | None = None
+
+    def to_llm(self) -> dict:
+        raw = self.model_dump()
+        normalized = _normalize_for_json(raw)
+        return normalized
 
 class CriticOutput(BaseModel, Generic[D]):
     """Critic output wrapper for decision payloads."""

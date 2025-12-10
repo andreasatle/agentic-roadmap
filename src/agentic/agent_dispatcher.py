@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+import json
 from typing import Generic, TypeVar
 
 from agentic.schemas import (
@@ -36,7 +37,7 @@ class AgentDispatcherBase:
         last_raw: str | None = None
 
         for attempt in range(1, self.max_retries + 1):
-            raw = agent(input.model_dump_json())
+            raw = agent(json.dumps(input.to_llm()))
             last_raw = raw
             logger.debug(
                 f"[dispatcher] {agent.name} attempt {attempt}/{self.max_retries} "
