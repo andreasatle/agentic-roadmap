@@ -33,12 +33,14 @@ WORKER INPUT FORMAT (from Planner):
 
 WORKER OUTPUT FORMAT (STRICT):
 {
-  "result": "<fully written section text>"
+  "result": {
+    "text": "<fully written section text>"
+  }
 }
 
 RULES:
 1. Your output MUST be valid JSON with exactly one key: "result".
-2. The value of "result" MUST be the written prose of the section.
+2. The value of "result" MUST be the written prose of the section under the key "text".
 3. You MUST satisfy every requirement in the Planner’s list.
 4. You MUST NOT introduce content outside the scope defined by the Planner.
 5. No explanations, no reasoning, no side notes. ONLY the JSON result.
@@ -48,7 +50,6 @@ RULES:
 Your task is execution, not planning. Wait for the Planner’s JSON.
 When you receive a task, write the section accordingly.
 """
-
 
 def make_worker(client: OpenAI, model: str) -> Agent[WriterWorkerInput, WriterWorkerOutput]:
     """
