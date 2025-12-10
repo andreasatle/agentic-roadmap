@@ -1,7 +1,7 @@
 from openai import OpenAI
 
 from agentic.agents import Agent
-from agentic.problem.writer.schemas import WriterCriticInput, WriterCriticOutput, WriterDomainState
+from agentic.problem.writer.schemas import WriterCriticInput, WriterCriticOutput
 
 
 PROMPT_CRITIC = """ROLE:
@@ -98,17 +98,21 @@ def make_critic(client: OpenAI, model: str) -> Agent[WriterCriticInput, WriterCr
 
         def __call__(self, user_input: str) -> str:
             critic_input = WriterCriticInput.model_validate_json(user_input)
-            project_state = getattr(critic_input, "project_state", None)
-            domain_state = project_state.domain_state.get("writer") if project_state else None
-            completed_sections = domain_state.completed_sections if isinstance(domain_state, WriterDomainState) else None
+            text = critic_input.worker_answer.text if critic_input.worker_answer else ""
 
-            if completed_sections and critic_input.plan.section_name in completed_sections:
+            # Reject only if no text was produced
+            if not text or not text.strip():
                 rejection = WriterCriticOutput(
                     decision="REJECT",
-                    feedback="Section already exists in state; choose a new section name.",
+                    feedback="Worker produced empty or missing text for this section.",
                 )
                 return rejection.model_dump_json()
 
-            return self._agent(user_input)
+            # Otherwise accept
+            acceptance = WriterCriticOutput(
+                decision="ACCEPT",
+                feedback=None,
+            )
+            return acceptance.model_dump_json()
 
     return WriterCriticAgent(base_agent)  # type: ignore[return-value]

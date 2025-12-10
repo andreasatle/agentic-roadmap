@@ -90,16 +90,30 @@ def make_worker(client: OpenAI, model: str) -> Agent[WriterWorkerInput, WriterWo
                 return raw_output
 
             project_state = getattr(worker_input, "project_state", None) if worker_input else None
-            section_name = getattr(worker_input.task, "section_name", None) if worker_input else None
+            operation = getattr(worker_input.task, "operation", None) if worker_input else None
+            if not operation:
+                operation = "initial_draft"
             if project_state is not None:
                 previous_state = project_state.domain_state.get("writer")
-                outline = previous_state.outline if isinstance(previous_state, WriterDomainState) else None
-                completed_sections = list(previous_state.completed_sections or []) if isinstance(previous_state, WriterDomainState) else []
-                if section_name and section_name not in completed_sections:
-                    completed_sections.append(section_name)
+                match previous_state:
+                    case WriterDomainState():
+                        refinement_steps = previous_state.refinement_steps
+                        previous_text = previous_state.draft_text
+                    case _:
+                        refinement_steps = 0
+                        previous_text = None
+
+                if operation == "refine_draft" and previous_text:
+                    output_model.result.text = f"{previous_text}\n\nRefined:\n{output_model.result.text}"
+                if operation == "finalize_draft" and previous_text:
+                    if output_model.result.text.strip():
+                        output_model.result.text = f"{previous_text}\n\nFinalized:\n{output_model.result.text}"
+                    else:
+                        output_model.result.text = previous_text
+
                 project_state.domain_state["writer"] = WriterDomainState(
-                    outline=outline,
-                    completed_sections=completed_sections or None,
+                    draft_text=output_model.result.text,
+                    refinement_steps=refinement_steps + 1,
                 )
 
             return output_model.model_dump_json()

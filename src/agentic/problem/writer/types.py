@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from typing import Literal
 from pydantic import BaseModel, Field
 
 
@@ -8,6 +9,7 @@ class WriterTask(BaseModel):
 
     section_name: str = Field(..., description="Human-readable label for the section.")
     purpose: str = Field(..., description="Brief intent for the section.")
+    operation: Literal["initial_draft", "refine_draft", "finalize_draft"]
     requirements: list[str] = Field(
         ..., description="Specific constraints or bullets the worker must satisfy."
     )

@@ -3,6 +3,8 @@ from openai import OpenAI
 
 from agentic.agents import Agent
 from agentic.problem.writer.schemas import WriterPlannerInput, WriterPlannerOutput
+from agentic.problem.writer.types import WriterTask
+from agentic.problem.writer.state import WriterState
 
 
 PROMPT_PLANNER = """ROLE:
@@ -93,34 +95,73 @@ def make_planner(client: OpenAI, model: str) -> Agent[WriterPlannerInput, Writer
             self.id = agent.id
 
         def __call__(self, user_input: str) -> str:
+            planner_input = WriterPlannerInput.model_validate_json(user_input)
             try:
                 raw_payload = json.loads(user_input)
             except Exception:
                 raw_payload = {}
-            project_state_snapshot = raw_payload.get("project_state")
-            domain_snapshot = (
-                project_state_snapshot.get("domain")
-                if isinstance(project_state_snapshot, dict)
-                else None
-            )
-            completed_sections = []
-            if isinstance(domain_snapshot, dict):
-                completed_sections = list(domain_snapshot.get("completed_sections") or [])
             raw = self._agent(user_input)
+            try:
+                payload = json.loads(raw)
+            except Exception:
+                return raw
+            task_obj = None
+            match payload:
+                case dict():
+                    match payload.get("task"), payload.get("next_task"):
+                        case dict() as t, _:
+                            task_obj = t
+                            task_key = "task"
+                        case _, dict() as nt:
+                            task_obj = nt
+                            task_key = "next_task"
+                        case _:
+                            task_key = None
+                    if task_obj is not None and "operation" not in task_obj:
+                        task_obj["operation"] = "initial_draft"
+                        if task_key:
+                            payload[task_key] = task_obj
+                    raw = json.dumps(payload)
+                case _:
+                    pass
             try:
                 output_model = self.output_schema.model_validate_json(raw)
             except Exception:
                 return raw
 
-            if completed_sections:
-                section_name = output_model.task.section_name
-                taken_sections = set(completed_sections)
-                if section_name in taken_sections:
-                    alt_candidate = f"{section_name} (continued)"
-                    if alt_candidate in taken_sections:
-                        alt_candidate = f"{section_name} Part 2"
-                    alt_name = alt_candidate
-                    output_model.task.section_name = alt_name
+            state = getattr(planner_input, "project_state", None)
+            completed_sections: list[str] = []
+            match state:
+                case WriterState():
+                    if getattr(state, "sections", None):
+                        completed_sections = list(state.sections)
+                case _:
+                    domain_state = None
+                    if state is not None:
+                        domain_state = state.domain_state.get("writer")
+                    if domain_state and getattr(domain_state, "completed_sections", None):
+                        completed_sections = list(domain_state.completed_sections)
+
+            base_task = getattr(planner_input, "task", None) or getattr(output_model, "task", None)
+            if base_task is None:
+                return raw
+            section_name = base_task.section_name
+            attempts = completed_sections.count(section_name)
+
+            if attempts == 0:
+                operation = "initial_draft"
+            elif attempts == 1:
+                operation = "refine_draft"
+            else:
+                operation = "finalize_draft"
+
+            new_task = WriterTask(
+                section_name=section_name,
+                purpose=base_task.purpose,
+                requirements=base_task.requirements,
+                operation=operation,
+            )
+            output_model.task = new_task
 
             return output_model.model_dump_json()
 

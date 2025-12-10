@@ -13,19 +13,11 @@ from agentic.problem.writer.state import WriterState
 
 
 class WriterDomainState(BaseModel):
-    outline: list[str] | None = None
-    completed_sections: list[str] | None = None
-
-    def update(self, task, result):
-        completed = list(self.completed_sections or [])
-        section_name = getattr(task, "section_name", None)
-        if section_name and section_name not in completed:
-            completed.append(section_name)
-        return WriterDomainState(outline=self.outline, completed_sections=completed or None)
+    draft_text: str | None = None
+    refinement_steps: int = 0
 
     def snapshot_for_llm(self) -> dict:
         return self.model_dump(exclude_none=True)
-
 
 class WriterPlannerInput(PlannerInput[WriterTask, WriterResult]):
     """Supervisor context for the writer planner."""
@@ -63,10 +55,11 @@ class WriterWorkerInput(WorkerInput[WriterTask, WriterResult]):
             self.previous_result = WriterResult(text=self.previous_text)
 
         if self.previous_result is not None and self.previous_text is None:
-            if isinstance(self.previous_result, WriterResult):
-                self.previous_text = self.previous_result.text
-            else:
-                self.previous_text = str(self.previous_result)
+            match self.previous_result:
+                case WriterResult():
+                    self.previous_text = self.previous_result.text
+                case _:
+                    self.previous_text = str(self.previous_result)
         return self
 
 
@@ -90,11 +83,13 @@ class WriterCriticOutput(Decision):
     @model_validator(mode="before")
     @classmethod
     def derive_decision_from_bool(cls, values: dict) -> dict:
-        if isinstance(values, dict) and "accepted" in values and "decision" not in values:
-            values = dict(values)
-            accepted = values.get("accepted")
-            if accepted is not None:
-                values["decision"] = "ACCEPT" if accepted else "REJECT"
+        match values:
+            case dict():
+                if "accepted" in values and "decision" not in values:
+                    values = dict(values)
+                    accepted = values.get("accepted")
+                    if accepted is not None:
+                        values["decision"] = "ACCEPT" if accepted else "REJECT"
         return values
 
     @model_validator(mode="after")
