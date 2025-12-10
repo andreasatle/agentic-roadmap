@@ -1,7 +1,7 @@
 from typing import Literal, Union
 
 from pydantic import BaseModel, ConfigDict, model_validator
-from agentic.schemas import Decision, PlannerInput, PlannerOutput, WorkerInput, WorkerOutput, CriticInput, ProjectState
+from agentic.schemas import Decision, PlannerOutput, WorkerInput, WorkerOutput
 from agentic.agent_dispatcher import AgentDispatcher
 
 
@@ -58,10 +58,13 @@ TOOL_ARG_BY_NAME = {
 }
 
 # Bind generics to domain
-class ArithmeticPlannerInput(PlannerInput[ArithmeticTask, ArithmeticResult]):
+class ArithmeticPlannerInput(BaseModel):
     model_config = ConfigDict(extra="allow")
 
-    project_state: ProjectState | None = None
+    feedback: str | None = None
+    previous_task: ArithmeticTask | None = None
+    previous_worker_id: str | None = None
+    random_seed: str | None = None
 
 ArithmeticPlannerOutput = PlannerOutput[ArithmeticTask]
 ArithmeticWorkerInput = WorkerInput[ArithmeticTask, ArithmeticResult]
@@ -84,12 +87,12 @@ class ArithmeticWorkerOutput(WorkerOutput[ArithmeticResult]):
         return self
 
 
-class ArithmeticCriticInput(CriticInput[ArithmeticTask, ArithmeticResult]):
+class ArithmeticCriticInput(BaseModel):
     model_config = ConfigDict(extra="allow")
 
+    plan: ArithmeticTask
     worker_id: str
     worker_answer: ArithmeticResult | None
-    project_state: ProjectState | None = None
 
 
 ArithmeticCriticOutput = Decision

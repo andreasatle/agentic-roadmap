@@ -5,7 +5,6 @@ from agentic.schemas import (
     Decision,
     PlannerInput,
     PlannerOutput,
-    ProjectState,
     WorkerInput,
     WorkerOutput,
 )
@@ -19,7 +18,7 @@ class WriterPlannerInput(PlannerInput[WriterTask, WriterResult]):
     model_config = ConfigDict(extra="allow")
 
     topic: str | None = None
-    project_state: ProjectState | None = None
+    project_state: WriterState | None = None
 
 
 class WriterPlannerOutput(PlannerOutput[WriterTask]):

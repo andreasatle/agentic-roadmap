@@ -80,7 +80,7 @@ class Supervisor:
         planner_kwargs["problem_state"] = context.project_state.domain_state.get(self.dispatcher.domain_name)
         planner_fields = planner_input_cls.model_fields
         if "project_state" in planner_fields:
-            planner_kwargs["project_state"] = context.project_state
+            planner_kwargs["project_state"] = context.project_state.domain_state.get(self.dispatcher.domain_name)
 
         required_fields = getattr(planner_input_cls, "model_fields", {})
         if "project_description" in required_fields and not planner_kwargs.get("project_description"):
