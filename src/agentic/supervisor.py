@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 from pydantic import BaseModel
 
-from agentic.schemas import WorkerInput, WorkerOutput, Decision, ProjectState, HistoryEntry
+from agentic.schemas import WorkerInput, Decision, ProjectState, HistoryEntry
 from agentic.tool_registry import ToolRegistry
 from agentic.logging_config import get_logger
 from agentic.agent_dispatcher import AgentDispatcher
