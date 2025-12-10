@@ -5,7 +5,7 @@ from uuid import uuid4
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from agentic.problem.arithmetic import (
+from domain.arithmetic import (
     ArithmeticPlannerInput,
     make_agent_dispatcher,
     make_tool_registry,

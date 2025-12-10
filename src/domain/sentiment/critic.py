@@ -1,7 +1,7 @@
 from openai import OpenAI
 
 from agentic.agents import Agent
-from agentic.problem.sentiment.types import SentimentCriticInput, SentimentCriticOutput
+from domain.sentiment.types import SentimentCriticInput, SentimentCriticOutput
 
 
 PROMPT_CRITIC = """ROLE:

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from agentic.problem.arithmetic.types import AddArgs, SubArgs, MulArgs, ArithmeticResult
+from domain.arithmetic.types import AddArgs, SubArgs, MulArgs, ArithmeticResult
 
 
 def add(args: AddArgs) -> ArithmeticResult:

@@ -8,8 +8,8 @@ from agentic.schemas import (
     WorkerInput,
     WorkerOutput,
 )
-from agentic.problem.writer.types import WriterResult, WriterTask
-from agentic.problem.writer.state import WriterState
+from domain.writer.types import WriterResult, WriterTask
+from domain.writer.state import WriterState
 
 
 class WriterDomainState(BaseModel):

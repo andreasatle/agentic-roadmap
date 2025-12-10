@@ -3,7 +3,7 @@ from __future__ import annotations
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from agentic.problem.sentiment import make_agent_dispatcher, make_tool_registry, problem_state_cls
+from domain.sentiment import make_agent_dispatcher, make_tool_registry, problem_state_cls
 from agentic.supervisor import Supervisor
 
 

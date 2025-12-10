@@ -1,4 +1,4 @@
-from agentic.problem.coder.types import (
+from domain.coder.types import (
     CodeTask,
     CodeResult,
     CoderPlannerInput,
@@ -9,10 +9,10 @@ from agentic.problem.coder.types import (
     CoderCriticOutput,
     CoderDispatcher,
 )
-from agentic.problem.coder.planner import make_planner
-from agentic.problem.coder.worker import make_worker
-from agentic.problem.coder.critic import make_critic
-from agentic.problem.coder.factory import make_agent_dispatcher, make_tool_registry, problem_state_cls
+from domain.coder.planner import make_planner
+from domain.coder.worker import make_worker
+from domain.coder.critic import make_critic
+from domain.coder.factory import make_agent_dispatcher, make_tool_registry, problem_state_cls
 
 
 __all__ = [

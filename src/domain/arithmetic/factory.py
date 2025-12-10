@@ -2,17 +2,17 @@ from openai import OpenAI
 from pydantic import BaseModel
 
 from agentic.tool_registry import ToolRegistry
-from agentic.problem.arithmetic.types import (
+from domain.arithmetic.types import (
     ArithmeticDispatcher,
     WORKER_CAPABILITIES,
     AddArgs,
     SubArgs,
     MulArgs,
 )
-from agentic.problem.arithmetic.planner import make_planner
-from agentic.problem.arithmetic.worker import make_worker
-from agentic.problem.arithmetic.critic import make_critic
-from agentic.problem.arithmetic.tools import add, sub, mul
+from domain.arithmetic.planner import make_planner
+from domain.arithmetic.worker import make_worker
+from domain.arithmetic.critic import make_critic
+from domain.arithmetic.tools import add, sub, mul
 from agentic.common.state import StatelessProblemState
 
 def make_agent_dispatcher(

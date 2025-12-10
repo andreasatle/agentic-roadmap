@@ -2,9 +2,9 @@ import json
 from openai import OpenAI
 
 from agentic.agents import Agent
-from agentic.problem.writer.schemas import WriterPlannerInput, WriterPlannerOutput
-from agentic.problem.writer.types import WriterTask
-from agentic.problem.writer.state import WriterState
+from domain.writer.schemas import WriterPlannerInput, WriterPlannerOutput
+from domain.writer.types import WriterTask
+from domain.writer.state import WriterState
 
 
 PROMPT_PLANNER = """ROLE:

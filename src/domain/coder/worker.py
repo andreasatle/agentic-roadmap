@@ -1,7 +1,7 @@
 from openai import OpenAI
 
 from agentic.agents import Agent
-from agentic.problem.coder.types import CoderWorkerInput, CoderWorkerOutput
+from domain.coder.types import CoderWorkerInput, CoderWorkerOutput
 
 
 PROMPT_WORKER = """ROLE:

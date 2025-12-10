@@ -13,7 +13,7 @@ dependencies = [
 
 [tool.setuptools.packages.find]
 where = ["src"]
-include = ["agentic*"]
+include = ["agentic*", "domain*"]
 
 [project.scripts]
 agentic = "agentic.main:main"

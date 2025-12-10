@@ -3,7 +3,7 @@ from __future__ import annotations
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from agentic.problem.coder import (
+from domain.coder import (
     CoderPlannerInput,
     make_agent_dispatcher,
     make_tool_registry,

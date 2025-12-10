@@ -1,22 +1,8 @@
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
-from agentic.problem.writer.types import WriterResult, WriterTask
-
-
-class WriterState(BaseModel):
-    sections: dict[str, str] = Field(default_factory=dict)
-
-    def update(self, task: WriterTask, result: WriterResult) -> "WriterState":
-        return self
-
-    def snapshot_for_llm(self) -> dict:
-        """
-        Return a small, JSON-serializable dictionary containing ONLY the state
-        that the LLM should see. Expose section names only.
-        """
-        return {}
+from domain.coder.types import CodeResult, CodeTask
 
 
 class ProblemState(BaseModel):
@@ -27,7 +13,7 @@ class ProblemState(BaseModel):
 
     content: str = ""
 
-    def update(self, task: WriterTask, result: WriterResult) -> ProblemState:
+    def update(self, task: CodeTask, result: CodeResult) -> ProblemState:
         """
         Return a NEW ProblemState instance updated with accepted worker result.
         Default behavior: no change.

@@ -1,7 +1,7 @@
 from openai import OpenAI
 
 from agentic.agents import Agent
-from agentic.problem.writer.schemas import (
+from domain.writer.schemas import (
     WriterDomainState,
     WriterWorkerInput,
     WriterWorkerOutput,

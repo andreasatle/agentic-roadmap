@@ -1,7 +1,7 @@
 from openai import OpenAI
 
 from agentic.agents import Agent
-from agentic.problem.coder.types import CoderPlannerInput, CoderPlannerOutput
+from domain.coder.types import CoderPlannerInput, CoderPlannerOutput
 
 
 PROMPT_PLANNER = """ROLE:

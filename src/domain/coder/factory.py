@@ -2,11 +2,11 @@ from openai import OpenAI
 from pydantic import BaseModel
 
 from agentic.tool_registry import ToolRegistry
-from agentic.problem.coder.types import CoderDispatcher
-from agentic.problem.coder.planner import make_planner
-from agentic.problem.coder.worker import make_worker
-from agentic.problem.coder.critic import make_critic
-from agentic.problem.coder.state import ProblemState
+from domain.coder.types import CoderDispatcher
+from domain.coder.planner import make_planner
+from domain.coder.worker import make_worker
+from domain.coder.critic import make_critic
+from domain.coder.state import ProblemState
 
 
 def make_agent_dispatcher(

@@ -1,6 +1,6 @@
 from openai import OpenAI
 from agentic.agents import Agent
-from agentic.problem.arithmetic.types import (
+from domain.arithmetic.types import (
     ArithmeticPlannerInput,
     ArithmeticPlannerOutput,
 )

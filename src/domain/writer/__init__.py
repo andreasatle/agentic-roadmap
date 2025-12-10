@@ -1,5 +1,5 @@
-from agentic.problem.writer.types import WriterResult, WriterTask
-from agentic.problem.writer.schemas import (
+from domain.writer.types import WriterResult, WriterTask
+from domain.writer.schemas import (
     WriterPlannerInput,
     WriterPlannerOutput,
     WriterWorkerInput,
@@ -7,11 +7,11 @@ from agentic.problem.writer.schemas import (
     WriterCriticInput,
     WriterCriticOutput,
 )
-from agentic.problem.writer.dispatcher import WriterDispatcher
-from agentic.problem.writer.planner import make_planner
-from agentic.problem.writer.worker import make_worker
-from agentic.problem.writer.critic import make_critic
-from agentic.problem.writer.factory import make_agent_dispatcher, make_tool_registry, problem_state_cls
+from domain.writer.dispatcher import WriterDispatcher
+from domain.writer.planner import make_planner
+from domain.writer.worker import make_worker
+from domain.writer.critic import make_critic
+from domain.writer.factory import make_agent_dispatcher, make_tool_registry, problem_state_cls
 
 __all__ = [
     "WriterTask",
