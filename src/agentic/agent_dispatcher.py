@@ -40,7 +40,7 @@ class AgentDispatcherBase:
         for attempt in range(1, self.max_retries + 1):
             payload = input.model_dump()
             if snapshot:
-                payload["state"] = snapshot
+                payload["project_state"] = snapshot
             raw = agent(json.dumps(payload))
             last_raw = raw
             logger.debug(

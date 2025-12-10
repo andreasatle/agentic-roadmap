@@ -20,6 +20,12 @@ INPUT FORMAT:
     "requirements": ["...", "..."]
   },
   "worker_answer": "<text the Worker wrote>"
+
+  Optional:
+  "project_state": {
+    "project": { ... },
+    "domain": { ... }
+  } | null
 }
 
 OUTPUT FORMAT (STRICT JSON):
@@ -56,6 +62,9 @@ EVALUATION RULES:
 
 7. **Strict JSON only**.
    No analysis, no commentary, no Markdown, no prose outside the JSON.
+
+STATE USAGE:
+- You may consider project_state to improve evaluation, but must operate correctly when it is null or missing.
 
 Your job is deterministic evaluation. Nothing more.
 """

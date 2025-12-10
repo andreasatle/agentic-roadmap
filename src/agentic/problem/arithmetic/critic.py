@@ -15,6 +15,12 @@ INPUT (CriticInput):
 {
   "plan": ArithmeticTask,
   "worker_answer": ArithmeticResult | null
+
+  Optional:
+  "project_state": {
+    "project": { ... },
+    "domain": { ... }
+  } | null
 }
 
 OUTPUT (CriticOutput):
@@ -33,6 +39,9 @@ RULES:
    - If the operation required a tool but the worker failed to use it correctly → REJECT with actionable feedback.
 5. Accept only when BOTH the worker routing is correct AND the result matches expected.
 6. Feedback must be actionable; Strict JSON only.
+
+STATE USAGE:
+- You may consider project_state to improve evaluation, but must operate correctly when it is null or missing.
 """
 
 

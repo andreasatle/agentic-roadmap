@@ -16,6 +16,12 @@ INPUT (CriticInput JSON):
   },
   "worker_answer": { "code": string } | null,
   "project_description": string
+
+  Optional:
+  "project_state": {
+    "project": { ... },
+    "domain": { ... }
+  } | null
 }
 
 OUTPUT (Decision JSON):
@@ -32,6 +38,9 @@ RULES:
 5) On REJECT, feedback must tell the planner/worker what to fix next.
 6) On ACCEPT, set feedback = null.
 7) Strict JSON only.
+
+STATE USAGE:
+- You may consider project_state to improve evaluation, but must operate correctly when it is null or missing.
 """
 
 

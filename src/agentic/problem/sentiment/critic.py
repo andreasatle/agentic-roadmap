@@ -11,6 +11,12 @@ INPUT (CriticInput JSON):
 {
   "plan": { "text": string, "target_sentiment": "POSITIVE" | "NEGATIVE" | "NEUTRAL" },
   "worker_answer": { "sentiment": "POSITIVE" | "NEGATIVE" | "NEUTRAL" } | null
+
+  Optional:
+  "project_state": {
+    "project": { ... },
+    "domain": { ... }
+  } | null
 }
 
 OUTPUT (Decision JSON ONLY):
@@ -25,6 +31,9 @@ RULES:
 3. Otherwise: decision = "REJECT" and feedback must explain the mismatch, e.g., "Expected POSITIVE but got NEGATIVE. Choose a different sentiment in the next plan."
 4. Feedback must be actionable so the planner can adjust the next task.
 5. Strict JSON only; no extra text.
+
+STATE USAGE:
+- You may consider project_state to improve evaluation, but must operate correctly when it is null or missing.
 """
 
 

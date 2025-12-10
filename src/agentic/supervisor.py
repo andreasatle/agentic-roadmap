@@ -204,8 +204,7 @@ class Supervisor:
             )
             return State.CRITIC
 
-        domain_state = context.project_state.domain_state.get(self.dispatcher.domain_name)
-        snapshot = domain_state.snapshot_for_llm() if domain_state else {}
+        snapshot = self._make_snapshot(context)
         worker_response = self.dispatcher.work(context.worker_id, context.worker_input, snapshot=snapshot)
         worker_output = worker_response.output
         context.worker_output = worker_output

@@ -18,6 +18,12 @@ INPUT (PlannerInput JSON):
   "feedback": string | null,
   "random_seed": int | string | null,
   "previous_worker_id": string | null
+
+  Optional field:
+  "project_state": {
+    "project": { ... },   // global ProjectState snapshot
+    "domain": { ... }     // domain-specific snapshot
+  } | null
 }
 
 OUTPUT (PlannerOutput JSON):
@@ -43,6 +49,11 @@ NEUTRAL: "I walked to the store yesterday and bought some groceries."
 
 STRICT FORMAT:
 Return only the JSON object described in OUTPUT with no extra text.
+
+STATE USAGE:
+- If project_state is provided, you MAY use it to improve decisions.
+- If project_state is absent or null, behave exactly as before.
+- Never require state fields. Never fail if they are missing.
 """
 
 

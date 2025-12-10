@@ -17,6 +17,12 @@ emerged during the development of an agentic coding system, including the
 meta-realization that the same framework was used to build itself, and the transition 
 to a meta-meta collaborative workflow.
 
+OPTIONAL INPUT FIELD:
+"project_state": {
+  "project": { ... },   // global ProjectState snapshot
+  "domain": { ... }     // domain-specific snapshot
+} | null
+
 THE ARTICLE MUST:
 - be structured, coherent, and academically toned
 - include the origin story: coding project → request for codex prompts → 
@@ -50,6 +56,11 @@ PLANNER RULES:
 4. Avoid specifying content; specify only structure and constraints.
 5. Avoid creativity beyond task decomposition.
 6. No commentary outside the JSON.
+
+STATE USAGE:
+- If project_state is provided, you MAY use it to improve decisions.
+- If project_state is absent or null, behave exactly as before.
+- Never require state fields. Never fail if they are missing.
 
 Generate the first plan now.
 """

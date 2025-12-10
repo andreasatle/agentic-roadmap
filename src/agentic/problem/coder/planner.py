@@ -14,6 +14,12 @@ INPUT (PlannerInput JSON):
   "previous_task": { "language": "python" | "javascript", "specification": string, "requirements": [string, ...] } | null,
   "previous_worker_id": string | null,
   "random_seed": string | int | null
+
+  Optional field:
+  "project_state": {
+    "project": { ... },   // global ProjectState snapshot
+    "domain": { ... }     // domain-specific snapshot
+  } | null
 }
 
 OUTPUT (PlannerOutput JSON):
@@ -35,6 +41,11 @@ GUIDELINES:
 - Always route worker_id = "coder-worker".
 - No randomness: variation comes only from project_description, previous_task, and feedback.
 - Strict JSON only; no explanation or extra fields.
+
+STATE USAGE:
+- If project_state is provided, you MAY use it to improve decisions.
+- If project_state is absent or null, behave exactly as before.
+- Never require state fields. Never fail if they are missing.
 """
 
 
