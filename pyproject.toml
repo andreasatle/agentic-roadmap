@@ -17,16 +17,16 @@ include = ["agentic*", "domain*"]
 
 [project.scripts]
 agentic = "agentic.main:main"
-agentic-arithmetic = "agentic.entrypoints.arithmetic_main:main"
-agentic-sentiment = "agentic.entrypoints.sentiment_main:main"
-agentic-coder = "agentic.entrypoints.coder_main:main"
-agentic-writer = "agentic.entrypoints.writer_main:main"
+agentic-arithmetic = "domain.arithmetic.main:main"
+agentic-sentiment = "domain.sentiment.main:main"
+agentic-coder = "domain.coder.main:main"
+agentic-writer = "domain.writer.main:main"
 
 [tool.poetry.scripts]
-arithmetic = "agentic.entrypoints.arithmetic_main:main"
-sentiment = "agentic.entrypoints.sentiment_main:main"
-coder = "agentic.entrypoints.coder_main:main"
-writer = "agentic.entrypoints.writer_main:main"
+arithmetic = "domain.arithmetic.main:main"
+sentiment = "domain.sentiment.main:main"
+coder = "domain.coder.main:main"
+writer = "domain.writer.main:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]
