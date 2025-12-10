@@ -12,8 +12,7 @@ from agentic.problem.arithmetic.planner import make_planner
 from agentic.problem.arithmetic.worker import make_worker
 from agentic.problem.arithmetic.critic import make_critic
 from agentic.problem.arithmetic.tools import add, sub, mul
-from agentic.problem.arithmetic.state import ProblemState
-
+from agentic.common.state import StatelessProblemState
 
 def make_agent_dispatcher(
     client: OpenAI,
@@ -39,4 +38,4 @@ def make_tool_registry() -> ToolRegistry:
     tool_registry.register("mul", "Deterministic multiplication tool.", mul, MulArgs)
     return tool_registry
 
-problem_state_cls = ProblemState
+problem_state_cls = StatelessProblemState
