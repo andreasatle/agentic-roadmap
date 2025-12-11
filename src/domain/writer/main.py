@@ -50,6 +50,9 @@ def main() -> None:
         problem_state_cls=problem_state_cls,
     )
     run = supervisor()
+    updated_state = run.get("project_state").state if run.get("project_state") else None
+    if updated_state is not None:
+        updated_state.save()
     _pretty_print_run(run)
 
 
