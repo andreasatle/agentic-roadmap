@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from typing import Literal, TypeVar, Generic, Final, Any
 from pydantic import BaseModel, Field, ConfigDict, model_validator
+from pydantic.generics import GenericModel
 from dataclasses import dataclass, field
 from uuid import uuid4
 def _normalize_for_json(value):
@@ -71,43 +72,31 @@ class ConstrainedXOROutput(BaseModel):
     
 
 
-class HistoryEntry(BaseModel):
-    state: str
-    worker_id: str | None = None
-    plan: dict | None = None
-    result: dict | None = None
-    decision: dict | None = None
+TState = TypeVar("TState")
 
 
-class ProjectState(BaseModel):
-    """
-    A persistent per-run state object that accumulates metadata across supervisor cycles.
-    This is domain-agnostic, and fields are intentionally minimal.
-    """
+class ProjectState(GenericModel, Generic[TState]):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
-    problem_state: BaseModel | None = None
     cycle: int = 0
-    history: list[HistoryEntry] = Field(default_factory=list)
-    domain_state: dict[str, BaseModel] | None = None
-    last_plan: BaseModel | None = None
-    last_result: BaseModel | None = None
-    last_decision: BaseModel | None = None
+    state: TState | None = None
+    last_plan: dict | None = None
+    last_result: dict | None = None
+    last_decision: dict | None = None
 
     def snapshot_for_llm(self) -> dict:
-        """
-        Return a compact JSON-serializable summary of global project state.
-        Include only:
-        - cycle
-        - last_plan
-        - last_result
-        - last_decision
-        Omit fields that are None.
-        """
-        return self.model_dump(
-            include={"cycle", "last_plan", "last_result", "last_decision"},
-            exclude_none=True,
-        )
+        snap: dict = {}
+        if self.state is not None:
+            state_snap = getattr(self.state, "snapshot_for_llm", lambda: {})()
+            if state_snap:
+                snap["domain"] = state_snap
+        if self.last_plan is not None:
+            snap["last_plan"] = self.last_plan
+        if self.last_result is not None:
+            snap["last_result"] = self.last_result
+        if self.last_decision is not None:
+            snap["last_decision"] = self.last_decision
+        return snap
 
 
 T = TypeVar("T")  # Task

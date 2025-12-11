@@ -136,9 +136,7 @@ def make_planner(client: OpenAI, model: str) -> Agent[WriterPlannerInput, Writer
                     if getattr(state, "sections", None):
                         completed_sections = list(state.sections)
                 case _:
-                    domain_state = None
-                    if state is not None:
-                        domain_state = state.domain_state
+                    domain_state = getattr(state, "state", None) if state is not None else None
                     if domain_state and getattr(domain_state, "completed_sections", None):
                         completed_sections = list(domain_state.completed_sections)
 

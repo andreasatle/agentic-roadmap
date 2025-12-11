@@ -94,7 +94,7 @@ def make_worker(client: OpenAI, model: str) -> Agent[WriterWorkerInput, WriterWo
             if not operation:
                 operation = "initial_draft"
             if project_state is not None:
-                previous_state = project_state.domain_state
+                previous_state = getattr(project_state, "state", None)
                 match previous_state:
                     case WriterDomainState():
                         refinement_steps = previous_state.refinement_steps
@@ -111,7 +111,7 @@ def make_worker(client: OpenAI, model: str) -> Agent[WriterWorkerInput, WriterWo
                     else:
                         output_model.result.text = previous_text
 
-                project_state.domain_state = WriterDomainState(
+                project_state.state = WriterDomainState(
                     draft_text=output_model.result.text,
                     refinement_steps=refinement_steps + 1,
                     completed_sections=getattr(previous_state, "completed_sections", None),

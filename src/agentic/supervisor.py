@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 from pydantic import BaseModel
 
-from agentic.schemas import WorkerInput, Decision, ProjectState, HistoryEntry
+from agentic.schemas import WorkerInput, Decision, ProjectState
 from agentic.tool_registry import ToolRegistry
 from agentic.logging_config import get_logger
 from agentic.agent_dispatcher import AgentDispatcher
@@ -35,9 +35,9 @@ class Supervisor:
         context = SupervisorContext(trace=[])
         context.project_state = ProjectState()
         domain = self.dispatcher.domain_name
-        if context.project_state.domain_state is None:
+        if context.project_state.state is None:
             state_cls = self.problem_state_cls()
-            context.project_state.domain_state = state_cls()
+            context.project_state.state = state_cls()
         self._current_project_state = context.project_state
         state = State.PLAN
 
@@ -75,14 +75,7 @@ class Supervisor:
         # Global project summary
         project_snapshot = context.project_state.snapshot_for_llm()
         if project_snapshot:
-            snapshot["project"] = project_snapshot
-
-        # Domain summary
-        ds = context.project_state.domain_state
-        if ds is not None:
-            domain_snapshot = ds.snapshot_for_llm()
-            if domain_snapshot:
-                snapshot["domain"] = domain_snapshot
+            snapshot.update(project_snapshot)
 
         # Return None if no information is present
         return snapshot or None
@@ -122,15 +115,6 @@ class Supervisor:
                     "error": str(e),
                 }
             )
-            context.project_state.history.append(
-                HistoryEntry(
-                    state=State.PLAN.name,
-                    worker_id=context.worker_id,
-                    plan=context.plan,
-                    result=None,
-                    decision=None,
-                )
-            )
             context.critic_input = self._build_critic_input(
                 plan={},
                 worker_answer=None,
@@ -162,15 +146,6 @@ class Supervisor:
                 "output": planner_response.output,
             }
         )
-        context.project_state.history.append(
-            HistoryEntry(
-                state=State.PLAN.name,
-                worker_id=context.worker_id,
-                plan=context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
-                result=None,
-                decision=None,
-            )
-        )
         return State.WORK
 
     def _handle_work(self, context: SupervisorContext) -> State:
@@ -192,15 +167,6 @@ class Supervisor:
             context.decision = Decision(
                 decision="REJECT",
                 feedback=f"Worker '{worker_id}' is not valid for the proposed plan",
-            )
-            context.project_state.history.append(
-                HistoryEntry(
-                    state=State.WORK.name,
-                    worker_id=context.worker_id,
-                    plan=context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
-                    result=None,
-                    decision=context.decision.model_dump() if hasattr(context.decision, "model_dump") else context.decision,
-                )
             )
             return State.CRITIC
 
@@ -230,28 +196,10 @@ class Supervisor:
                 worker_answer=worker_output.result,
                 worker_id=context.worker_id,
             )
-            context.project_state.history.append(
-                HistoryEntry(
-                    state=State.WORK.name,
-                    worker_id=context.worker_id,
-                    plan=context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
-                    result=context.worker_result.model_dump() if hasattr(context.worker_result, "model_dump") else context.worker_result,
-                    decision=None,
-                )
-            )
             return State.CRITIC
 
         if worker_output.tool_request is not None:
             context.tool_request = worker_output.tool_request
-            context.project_state.history.append(
-                HistoryEntry(
-                    state=State.WORK.name,
-                    worker_id=context.worker_id,
-                    plan=context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
-                    result=None,
-                    decision=None,
-                )
-            )
             return State.TOOL
 
         raise RuntimeError("WorkerOutput violated 'exactly one branch' invariant.")
@@ -288,15 +236,6 @@ class Supervisor:
             feedback=prev_worker_input.feedback,
             tool_result=tool_result,
         )
-        context.project_state.history.append(
-            HistoryEntry(
-                state=State.TOOL.name,
-                worker_id=context.worker_id,
-                plan=context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
-                result=context.worker_result.model_dump() if hasattr(context.worker_result, "model_dump") else context.worker_result,
-                decision=None,
-            )
-        )
         return State.WORK
 
     def _handle_critic(self, context: SupervisorContext) -> State:
@@ -320,25 +259,15 @@ class Supervisor:
                 "output": critic_response.output,
             }
         )
-        context.project_state.history.append(
-            HistoryEntry(
-                state=State.CRITIC.name,
-                worker_id=context.worker_id,
-                plan=context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan,
-                result=context.worker_result.model_dump() if hasattr(context.worker_result, "model_dump") else context.worker_result,
-                decision=context.decision.model_dump() if hasattr(context.decision, "model_dump") else context.decision,
-            )
-        )
-
         if decision.decision == "ACCEPT":
             context.final_result = context.worker_result
             context.final_output = context.worker_output
-            prev_state = context.project_state.domain_state
+            prev_state = context.project_state.state
             if prev_state is None:
                 state_cls = self.problem_state_cls()
                 prev_state = state_cls()
             new_state = prev_state.update(context.plan, context.worker_result)
-            context.project_state.domain_state = new_state
+            context.project_state.state = new_state
             logger.info(f"[supervisor] ACCEPT after {context.loops_used} transitions")
             return State.END
 
