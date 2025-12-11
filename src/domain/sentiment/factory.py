@@ -8,6 +8,9 @@ from domain.sentiment.worker import make_worker
 from domain.sentiment.critic import make_critic
 from agentic.common.state import StatelessProblemState
 
+class SentimentState(StatelessProblemState):
+    pass
+
 def make_agent_dispatcher(
     client: OpenAI,
     model: str = "gpt-4.1-mini",
@@ -31,4 +34,4 @@ def make_tool_registry() -> ToolRegistry:
 
 
 def problem_state_cls() -> type[BaseModel]:
-    return StatelessProblemState
+    return SentimentState

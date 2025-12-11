@@ -35,9 +35,9 @@ class Supervisor:
         context = SupervisorContext(trace=[])
         context.project_state = ProjectState()
         domain = self.dispatcher.domain_name
-        if domain not in context.project_state.domain_state:
+        if context.project_state.domain_state is None:
             state_cls = self.problem_state_cls()
-            context.project_state.domain_state[domain] = state_cls()
+            context.project_state.domain_state = state_cls()
         self._current_project_state = context.project_state
         state = State.PLAN
 
@@ -78,9 +78,9 @@ class Supervisor:
             snapshot["project"] = project_snapshot
 
         # Domain summary
-        domain_state = context.project_state.domain_state.get(self.dispatcher.domain_name)
-        if domain_state:
-            domain_snapshot = domain_state.snapshot_for_llm()
+        ds = context.project_state.domain_state
+        if ds is not None:
+            domain_snapshot = ds.snapshot_for_llm()
             if domain_snapshot:
                 snapshot["domain"] = domain_snapshot
 
@@ -333,13 +333,12 @@ class Supervisor:
         if decision.decision == "ACCEPT":
             context.final_result = context.worker_result
             context.final_output = context.worker_output
-            domain = self.dispatcher.domain_name
-            prev_state = context.project_state.domain_state.get(domain)
+            prev_state = context.project_state.domain_state
             if prev_state is None:
                 state_cls = self.problem_state_cls()
                 prev_state = state_cls()
             new_state = prev_state.update(context.plan, context.worker_result)
-            context.project_state.domain_state[domain] = new_state
+            context.project_state.domain_state = new_state
             logger.info(f"[supervisor] ACCEPT after {context.loops_used} transitions")
             return State.END
 

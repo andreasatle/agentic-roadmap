@@ -1,5 +1,15 @@
 from __future__ import annotations
+from typing import Protocol, runtime_checkable
 from pydantic import BaseModel
+
+
+@runtime_checkable
+class DomainStateProtocol(Protocol):
+    def update(self, task, result):
+        ...
+
+    def snapshot_for_llm(self) -> dict:
+        ...
 
 
 class StatelessProblemState(BaseModel):

@@ -15,6 +15,18 @@ from domain.writer.state import WriterState
 class WriterDomainState(BaseModel):
     draft_text: str | None = None
     refinement_steps: int = 0
+    completed_sections: list[str] | None = None
+
+    def update(self, task, result):
+        completed = list(self.completed_sections or [])
+        name = getattr(task, "section_name", None)
+        if name and name not in completed:
+            completed.append(name)
+        return WriterDomainState(
+            draft_text=getattr(result, "text", self.draft_text),
+            refinement_steps=self.refinement_steps,
+            completed_sections=completed or None,
+        )
 
     def snapshot_for_llm(self) -> dict:
         return self.model_dump(exclude_none=True)

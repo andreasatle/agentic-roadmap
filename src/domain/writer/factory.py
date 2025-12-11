@@ -6,7 +6,7 @@ from domain.writer.dispatcher import WriterDispatcher
 from domain.writer.planner import make_planner
 from domain.writer.worker import make_worker
 from domain.writer.critic import make_critic
-from domain.writer.state import WriterState
+from domain.writer.schemas import WriterDomainState
 
 
 def make_agent_dispatcher(
@@ -32,4 +32,4 @@ def make_tool_registry() -> ToolRegistry:
 
 
 def problem_state_cls() -> type[BaseModel]:
-    return WriterState
+    return WriterDomainState

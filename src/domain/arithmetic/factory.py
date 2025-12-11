@@ -15,6 +15,9 @@ from domain.arithmetic.critic import make_critic
 from domain.arithmetic.tools import add, sub, mul
 from agentic.common.state import StatelessProblemState
 
+class ArithmeticState(StatelessProblemState):
+    pass
+
 def make_agent_dispatcher(
     client: OpenAI,
     model: str = "gpt-4.1-mini",
@@ -41,4 +44,4 @@ def make_tool_registry() -> ToolRegistry:
 
 
 def problem_state_cls() -> type[BaseModel]:
-    return StatelessProblemState
+    return ArithmeticState

@@ -1,10 +1,9 @@
 from __future__ import annotations
 
 from typing import Literal, TypeVar, Generic, Final, Any
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, ConfigDict, model_validator
 from dataclasses import dataclass, field
 from uuid import uuid4
-
 def _normalize_for_json(value):
     result = None
 
@@ -85,12 +84,15 @@ class ProjectState(BaseModel):
     A persistent per-run state object that accumulates metadata across supervisor cycles.
     This is domain-agnostic, and fields are intentionally minimal.
     """
+    model_config = ConfigDict(arbitrary_types_allowed=True)
+
+    problem_state: BaseModel | None = None
     cycle: int = 0
     history: list[HistoryEntry] = Field(default_factory=list)
-    domain_state: dict[str, BaseModel] = Field(default_factory=dict)
-    last_plan: dict | None = None
-    last_result: dict | None = None
-    last_decision: dict | None = None
+    domain_state: dict[str, BaseModel] | None = None
+    last_plan: BaseModel | None = None
+    last_result: BaseModel | None = None
+    last_decision: BaseModel | None = None
 
     def snapshot_for_llm(self) -> dict:
         """
