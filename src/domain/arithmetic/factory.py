@@ -13,7 +13,7 @@ from domain.arithmetic.planner import make_planner
 from domain.arithmetic.worker import make_worker
 from domain.arithmetic.critic import make_critic
 from domain.arithmetic.tools import add, sub, mul
-from agentic.common.state import StatelessProblemState
+from agentic.common.domain_state import StatelessProblemState
 
 class ArithmeticState(StatelessProblemState):
     pass

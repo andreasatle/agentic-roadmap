@@ -6,7 +6,7 @@ from domain.sentiment.types import SentimentDispatcher
 from domain.sentiment.planner import make_planner
 from domain.sentiment.worker import make_worker
 from domain.sentiment.critic import make_critic
-from agentic.common.state import StatelessProblemState
+from agentic.common.domain_state import StatelessProblemState
 
 class SentimentState(StatelessProblemState):
     pass
