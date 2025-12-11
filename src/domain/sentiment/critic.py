@@ -22,15 +22,17 @@ INPUT (CriticInput JSON):
 OUTPUT (Decision JSON ONLY):
 {
   "decision": "ACCEPT" | "REJECT",
-  "feedback": string | null
+  "feedback": null | {
+    "kind": "EMPTY_RESULT" | "MISMATCH" | "OTHER",
+    "message": string
+  }
 }
 
 RULES:
-1. If worker_answer is null or missing, set decision = "REJECT" with feedback explaining the missing result.
+1. If worker_answer is null or missing, set decision = "REJECT" with feedback.kind="EMPTY_RESULT" and a short message.
 2. If worker_answer.sentiment == plan.target_sentiment: decision = "ACCEPT" and feedback = null.
-3. Otherwise: decision = "REJECT" and feedback must explain the mismatch, e.g., "Expected POSITIVE but got NEGATIVE. Choose a different sentiment in the next plan."
-4. Feedback must be actionable so the planner can adjust the next task.
-5. Strict JSON only; no extra text.
+3. Otherwise: decision = "REJECT" with feedback.kind="MISMATCH" and feedback.message explaining the expected vs. actual sentiment so the planner can adjust.
+4. Feedback must be actionable so the planner can adjust the next task. Strict JSON only; no extra text.
 
 STATE USAGE:
 - You may consider project_state to improve evaluation, but must operate correctly when it is null or missing.

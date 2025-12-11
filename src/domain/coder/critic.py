@@ -27,17 +27,19 @@ INPUT (CriticInput JSON):
 OUTPUT (Decision JSON):
 {
   "decision": "ACCEPT" | "REJECT",
-  "feedback": string | null
+  "feedback": null | {
+    "kind": "EMPTY_RESULT" | "LANGUAGE_MISMATCH" | "TASK_INCOMPLETE" | "SCOPE_ERROR" | "OTHER",
+    "message": string
+  }
 }
 
 RULES:
-1) If worker_answer is missing or code is empty, REJECT with feedback requesting the subtask implementation.
-2) If the code is not in plan.language, REJECT with feedback to use the correct language.
-3) Verify the code addresses EVERY requirement; if any are missing, REJECT with specific, actionable feedback.
-4) Ensure the code stays within the subtask scope and aligns with the project_description; reject scope creep or unrelated features.
-5) On REJECT, feedback must tell the planner/worker what to fix next.
-6) On ACCEPT, set feedback = null.
-7) Strict JSON only.
+1) If worker_answer is missing or code is empty, REJECT with feedback.kind="EMPTY_RESULT" and an actionable message requesting the subtask implementation.
+2) If the code is not in plan.language, REJECT with feedback.kind="LANGUAGE_MISMATCH" and guidance to use the correct language.
+3) Verify the code addresses EVERY requirement; if any are missing, REJECT with feedback.kind="TASK_INCOMPLETE" and specific, actionable feedback.
+4) Ensure the code stays within the subtask scope and aligns with the project_description; reject scope creep or unrelated features with feedback.kind="SCOPE_ERROR".
+5) On REJECT, feedback must be an object with both kind and message; provide actionable guidance. On ACCEPT, feedback = null.
+6) Strict JSON only.
 
 STATE USAGE:
 - You may consider project_state to improve evaluation, but must operate correctly when it is null or missing.

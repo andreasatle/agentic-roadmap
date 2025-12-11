@@ -33,10 +33,15 @@ def _normalize_for_json(value):
 # ---------------------------------------------------------
 
 
+class Feedback(BaseModel):
+    kind: str
+    message: str
+
+
 class Decision(BaseModel):
     """A judgment from Critic."""
     decision: Literal["ACCEPT", "REJECT"]
-    feedback: str | None = None
+    feedback: Feedback | None = None
 
     @model_validator(mode="after")
     def require_feedback_on_reject(self) -> Decision:
@@ -45,7 +50,7 @@ class Decision(BaseModel):
         Keeps ACCEPT decisions lightweight while preserving traceability on failures.
         """
         if self.decision == "REJECT":
-            if not (self.feedback and self.feedback.strip()):
+            if self.feedback is None:
                 raise ValueError("feedback is required when decision == 'REJECT'")
         return self
 
@@ -113,7 +118,7 @@ class PlannerInput(BaseModel, Generic[T, R]):
     """
     Optional context passed to the Planner so it can correct previous mistakes.
     """
-    feedback: str | None = None
+    feedback: Feedback | None = None
     previous_task: T | None = None
     previous_worker_id: str | None = None
     random_seed: str | None = None
@@ -131,7 +136,7 @@ class PlannerOutput(BaseModel, Generic[T]):
 class WorkerInput(BaseModel, Generic[T, R]):
     task: T
     previous_result: R | None = None
-    feedback: str | None = None
+    feedback: Feedback | None = None
     tool_result: R | None = None
     project_state: ProjectState | None = None
 

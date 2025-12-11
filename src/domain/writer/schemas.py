@@ -92,18 +92,6 @@ class WriterCriticOutput(Decision):
 
     accepted: bool | None = None
 
-    @model_validator(mode="before")
-    @classmethod
-    def derive_decision_from_bool(cls, values: dict) -> dict:
-        match values:
-            case dict():
-                if "accepted" in values and "decision" not in values:
-                    values = dict(values)
-                    accepted = values.get("accepted")
-                    if accepted is not None:
-                        values["decision"] = "ACCEPT" if accepted else "REJECT"
-        return values
-
     @model_validator(mode="after")
     def backfill_accepted(self) -> "WriterCriticOutput":
         self.accepted = self.decision == "ACCEPT"

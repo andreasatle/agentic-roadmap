@@ -30,7 +30,10 @@ INPUT FORMAT:
 OUTPUT FORMAT (STRICT JSON):
 {
   "decision": "ACCEPT" | "REJECT",
-  "feedback": "<actionable, minimal feedback or null>"
+  "feedback": null | {
+    "kind": "<EMPTY_RESULT | TASK_INCOMPLETE | SCOPE_ERROR | OTHER>",
+    "message": "<actionable, minimal feedback>"
+  }
 }
 
 EVALUATION RULES:
@@ -54,9 +57,10 @@ EVALUATION RULES:
    - Worker must NOT anticipate future sections unless required by the task.
 
 6. **Feedback policy**:
-   - ACCEPT → "feedback": null.
-   - REJECT → "feedback": a short, actionable correction list.
-   - Feedback MUST be specific: “Expand requirement #2 with an example”,
+   - ACCEPT → feedback = null.
+   - REJECT → feedback must be an object with kind and message.
+   - Use kind="EMPTY_RESULT" for missing/empty text, "TASK_INCOMPLETE" for unmet requirements, "SCOPE_ERROR" for off-topic content, "OTHER" otherwise.
+   - Feedback.message MUST be specific: “Expand requirement #2 with an example”,
      “Remove meta commentary”, “Clarify motivation”, etc.
 
 7. **Strict JSON only**.
@@ -104,7 +108,7 @@ def make_critic(client: OpenAI, model: str) -> Agent[WriterCriticInput, WriterCr
             if not text or not text.strip():
                 rejection = WriterCriticOutput(
                     decision="REJECT",
-                    feedback="Worker produced empty or missing text for this section.",
+                    feedback={"kind": "EMPTY_RESULT", "message": "Worker produced empty or missing text for this section."},
                 )
                 return rejection.model_dump_json()
 

@@ -3,7 +3,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field
 
 from agentic.agent_dispatcher import AgentDispatcher
-from agentic.schemas import Decision, PlannerOutput, WorkerInput, WorkerOutput, _normalize_for_json
+from agentic.schemas import Decision, PlannerOutput, WorkerInput, WorkerOutput, _normalize_for_json, Feedback
 
 
 class SentimentTask(BaseModel):
@@ -22,7 +22,7 @@ class SentimentPlannerInput(BaseModel):
     model_config = ConfigDict(extra="allow")
 
     previous_task: SentimentTask | None = None
-    feedback: str | None = None
+    feedback: Feedback | None = None
     random_seed: int | str | None = None
     previous_worker_id: str | None = None
 

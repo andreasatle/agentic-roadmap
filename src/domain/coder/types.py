@@ -2,7 +2,7 @@ from pydantic import BaseModel, ConfigDict, Field
 from typing import Literal
 
 from agentic.agent_dispatcher import AgentDispatcher
-from agentic.schemas import Decision, PlannerOutput, WorkerInput, WorkerOutput, _normalize_for_json
+from agentic.schemas import Decision, PlannerOutput, WorkerInput, WorkerOutput, _normalize_for_json, Feedback
 
 
 class CodeTask(BaseModel):
@@ -24,7 +24,7 @@ class CoderPlannerInput(BaseModel):
 
     project_description: str
     previous_task: CodeTask | None = None
-    feedback: str | None = None
+    feedback: Feedback | None = None
     previous_worker_id: str | None = None
     random_seed: int | str | None = None
 
