@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -32,7 +33,10 @@ def _pretty_print_run(run: dict) -> None:
 
 def main() -> None:
     load_dotenv(override=True)
-    project_description = input("Describe your coding project: ").strip()
+    parser = argparse.ArgumentParser(description="Run the coder supervisor.")
+    parser.add_argument("--description", type=str, default="", help="Project description.")
+    args = parser.parse_args()
+    project_description = args.description.strip()
     if not project_description:
         raise SystemExit("A project description is required to start the coder supervisor.")
 

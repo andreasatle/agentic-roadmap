@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -33,8 +34,11 @@ def _pretty_print_run(run: dict) -> None:
 def main() -> None:
     load_dotenv(override=True)
     client = OpenAI()
+    parser = argparse.ArgumentParser(description="Run the writer supervisor.")
+    parser.add_argument("--topic", type=str, default="", help="Optional writing topic.")
+    args = parser.parse_args()
 
-    topic = input("Optional: provide a writing topic (press enter to skip): ").strip()
+    topic = args.topic.strip()
     initial_planner_input = WriterPlannerInput(topic=topic or None)
 
     tool_registry = make_tool_registry()
