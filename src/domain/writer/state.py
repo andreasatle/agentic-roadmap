@@ -19,8 +19,12 @@ class WriterState(LoadSaveMixin):
     ) -> "WriterState":
         # Copy sections immutably
         new_sections = dict(self.sections)
-        if task.section_name:
-            new_sections[task.section_name] = result.text
+        section_name = getattr(task, "section_name", None)
+        operation = getattr(task, "operation", None)
+        if section_name:
+            existing_text = new_sections.get(section_name)
+            if existing_text is None or operation == "refine_draft":
+                new_sections[section_name] = result.text
 
         # Determine updated section_order
         new_order = self.section_order
