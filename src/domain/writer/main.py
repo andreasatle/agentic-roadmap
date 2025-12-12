@@ -36,70 +36,78 @@ def main() -> None:
     client = OpenAI()
     parser = argparse.ArgumentParser(description="Run the writer supervisor.")
     parser.add_argument("--topic", type=str, default="", help="Optional writing topic.")
+    parser.add_argument("--max-iterations", type=int, default=1, help="Maximum supervisor iterations (capped at 10).")
     args = parser.parse_args()
 
     topic = args.topic.strip()
+    max_iterations = max(1, min(args.max_iterations, 10))
     initial_planner_input = WriterPlannerInput(topic=topic or None)
 
     tool_registry = make_tool_registry()
-    dispatcher = make_agent_dispatcher(client, model="gpt-4.1-mini", max_retries=3)
     state = WriterDomainState.load()
 
-    supervisor = Supervisor(
-        dispatcher=dispatcher,
-        tool_registry=tool_registry,
-        domain_state=state,
-        max_loops=5,
-        planner_defaults=initial_planner_input.model_dump(),
-        problem_state_cls=problem_state_cls,
-    )
-    run = supervisor()
-    updated_state = run.project_state.domain_state if run.project_state else None
-
-    section_order = None
-    for entry in run.trace or []:
-        state = entry.get("state") if isinstance(entry, dict) else None
-        if getattr(state, "name", None) != "PLAN":
-            continue
-        output = entry.get("output") if isinstance(entry, dict) else None
-        if output is None:
-            continue
-        section_order = getattr(output, "section_order", None)
-        if section_order is None and isinstance(output, dict):
-            section_order = output.get("section_order")
-        if section_order:
-            break
-
-    if (
-        updated_state is not None
-        and hasattr(updated_state, "section_order")
-        and not getattr(updated_state, "section_order", None)
-        and section_order
-        and run.plan is not None
-        and run.result is not None
-    ):
-        updated_state = updated_state.update(
-            task=run.plan,
-            result=run.result,
-            section_order=section_order,
+    for i in range(max_iterations):
+        print(f"[writer] iteration {i + 1} / {max_iterations}")
+        dispatcher = make_agent_dispatcher(client, model="gpt-4.1-mini", max_retries=3)
+        supervisor = Supervisor(
+            dispatcher=dispatcher,
+            tool_registry=tool_registry,
+            domain_state=state,
+            max_loops=5,
+            planner_defaults=initial_planner_input.model_dump(),
+            problem_state_cls=problem_state_cls,
         )
+        run = supervisor()
+        updated_state = run.project_state.domain_state if run.project_state else None
 
-    if updated_state is not None:
-        updated_state.save()
+        section_order = None
+        for entry in run.trace or []:
+            entry_state = entry.get("state") if isinstance(entry, dict) else None
+            if getattr(entry_state, "name", None) != "PLAN":
+                continue
+            output = entry.get("output") if isinstance(entry, dict) else None
+            if output is None:
+                continue
+            section_order = getattr(output, "section_order", None)
+            if section_order is None and isinstance(output, dict):
+                section_order = output.get("section_order")
+            if section_order:
+                break
 
-        sections = updated_state.completed_sections or {}
+        if (
+            updated_state is not None
+            and hasattr(updated_state, "section_order")
+            and not getattr(updated_state, "section_order", None)
+            and section_order
+            and run.plan is not None
+            and run.result is not None
+        ):
+            updated_state = updated_state.update(
+                task=run.plan,
+                result=run.result,
+                section_order=section_order,
+            )
 
-        if isinstance(sections, dict):
-            order = updated_state.section_order or sections.keys()
-            article = "\n\n".join(sections[name] for name in order if name in sections)
-        elif isinstance(sections, list):
-            # fallback: list already represents ordered content or titles
-            article = "\n\n".join(sections)
-        else:
-            article = ""
+        if updated_state is not None:
+            updated_state.save()
+            state = updated_state
 
-        print(article)
-    _pretty_print_run(run)
+        _pretty_print_run(run)
+
+    if max_iterations > 1:
+        print("[writer] stopped after max_iterations without completion")
+
+    sections = state.completed_sections or {}
+
+    if isinstance(sections, dict):
+        order = state.section_order or sections.keys()
+        article = "\n\n".join(sections[name] for name in order if name in sections)
+    elif isinstance(sections, list):
+        article = "\n\n".join(sections)
+    else:
+        article = ""
+
+    print(article)
 
 
 if __name__ == "__main__":
