@@ -4,7 +4,7 @@ from openai import OpenAI
 from agentic.agents import Agent
 from domain.writer.schemas import WriterPlannerInput, WriterPlannerOutput
 from domain.writer.types import WriterTask
-from domain.writer.state import WriterContextState
+from domain.writer.state import WriterContentState
 
 
 PROMPT_PLANNER = """ROLE:
@@ -139,7 +139,7 @@ def make_planner(client: OpenAI, model: str) -> Agent[WriterPlannerInput, Writer
             completed_sections: list[str] = []
             domain_state = None
             match state:
-                case WriterContextState():
+                case WriterContentState():
                     if getattr(state, "sections", None):
                         completed_sections = list(state.sections)
                 case dict() as state_dict:
@@ -173,14 +173,7 @@ def make_planner(client: OpenAI, model: str) -> Agent[WriterPlannerInput, Writer
             section_name = base_task.section_name
             attempts = completed_sections.count(section_name)
 
-            sections_map = {}
-            match domain_state:
-                case dict() as domain_dict:
-                    sections_map = domain_dict.get("sections") or {}
-                case _:
-                    if domain_state and getattr(domain_state, "sections", None):
-                        sections_map = domain_state.sections
-            operation = "draft" if section_name not in sections_map else "refine"
+            operation = "draft" if section_name not in completed_sections else "refine"
 
             default_section_order = [
                 "Introduction",

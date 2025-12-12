@@ -88,8 +88,8 @@ def main() -> None:
 
         if (
             updated_state is not None
-            and hasattr(updated_state, "section_order")
-            and not getattr(updated_state, "section_order", None)
+            and updated_state.content is not None
+            and not updated_state.content.section_order
             and section_order
             and run.plan is not None
             and run.result is not None
@@ -109,15 +109,9 @@ def main() -> None:
     if max_iterations > 1:
         print("[writer] stopped after max_iterations without completion")
 
-    sections = state.completed_sections or {}
-
-    if isinstance(sections, dict):
-        order = state.section_order or sections.keys()
-        article = "\n\n".join(sections[name] for name in order if name in sections)
-    elif isinstance(sections, list):
-        article = "\n\n".join(sections)
-    else:
-        article = ""
+    sections = state.content.sections
+    order = state.content.section_order or sections.keys()
+    article = "\n\n".join(sections[name] for name in order if name in sections)
 
     print(article)
 

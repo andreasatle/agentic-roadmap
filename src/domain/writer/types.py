@@ -19,10 +19,3 @@ class WriterResult(BaseModel):
     """Text produced by the worker for a single writing task."""
 
     text: str = Field(..., description="Completed prose for the section.")
-
-
-class WriterContextState(BaseModel):
-    sections: dict[str, str] = Field(default_factory=dict)
-
-    def update(self, task: WriterTask, result: WriterResult) -> WriterContextState:
-        return self

@@ -14,15 +14,15 @@ from agentic.schemas import (
 )
 
 from domain.writer.types import WriterResult, WriterTask
-from domain.writer.state import WriterContextState
+from domain.writer.state import WriterContentState
 
 
 class WriterDomainState(LoadSaveMixin):
     draft_text: str | None = None
     refinement_steps: int = 0
     completed_sections: list[str] | None = None
-    section_order: list[str] | None = None
     topic: str | None = None
+    content: WriterContentState = Field(default_factory=WriterContentState)
 
     @classmethod
     def topic_key(cls, topic: str | None) -> str:
@@ -54,11 +54,13 @@ class WriterDomainState(LoadSaveMixin):
         name = getattr(task, "section_name", None)
         if name and name not in completed:
             completed.append(name)
+        new_content = self.content.update(task, result, section_order=section_order)
         return WriterDomainState(
             draft_text=getattr(result, "text", self.draft_text),
             refinement_steps=self.refinement_steps,
             completed_sections=completed or None,
-            section_order=section_order if section_order is not None else self.section_order,
+            topic=self.topic,
+            content=new_content,
         )
 
     def snapshot_for_llm(self) -> dict:
@@ -67,8 +69,8 @@ class WriterDomainState(LoadSaveMixin):
             data["refinement_steps"] = self.refinement_steps
         if self.completed_sections:
             data["completed_sections"] = self.completed_sections
-        if self.section_order:
-            data["section_order"] = self.section_order
+        if self.content.section_order:
+            data["section_order"] = self.content.section_order
         return data
 
 class WriterPlannerInput(PlannerInput[WriterTask, WriterResult]):
@@ -99,7 +101,7 @@ class WriterWorkerInput(WorkerInput[WriterTask, WriterResult]):
     model_config = ConfigDict(populate_by_name=True)
 
     previous_text: str | None = None
-    writer_state: WriterContextState | None = None
+    writer_state: WriterContentState | None = None
 
     @model_validator(mode="after")
     def sync_previous_fields(self) -> "WriterWorkerInput":
