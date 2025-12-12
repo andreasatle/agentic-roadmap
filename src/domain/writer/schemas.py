@@ -100,25 +100,7 @@ class WriterWorkerInput(WorkerInput[WriterTask, WriterResult]):
 
     model_config = ConfigDict(populate_by_name=True)
 
-    previous_text: str | None = None
     writer_state: WriterContentState | None = None
-
-    @model_validator(mode="after")
-    def sync_previous_fields(self) -> "WriterWorkerInput":
-        """
-        Keep previous_text and previous_result aligned so supervisors relying on
-        previous_result remain compatible.
-        """
-        if self.previous_text and self.previous_result is None:
-            self.previous_result = WriterResult(text=self.previous_text)
-
-        if self.previous_result is not None and self.previous_text is None:
-            match self.previous_result:
-                case WriterResult():
-                    self.previous_text = self.previous_result.text
-                case _:
-                    self.previous_text = str(self.previous_result)
-        return self
 
 
 WriterWorkerOutput = WorkerOutput[WriterResult]
