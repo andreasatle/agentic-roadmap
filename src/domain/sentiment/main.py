@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 from dotenv import load_dotenv
 from openai import OpenAI
 
@@ -27,6 +28,8 @@ def _pretty_print_run(run: dict) -> None:
 
 def main() -> None:
     load_dotenv(override=True)
+    parser = argparse.ArgumentParser(description="Run the sentiment supervisor.")
+    parser.parse_args()
     client = OpenAI()
 
     tool_registry = make_tool_registry()

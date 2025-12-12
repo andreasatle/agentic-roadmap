@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import argparse
 from uuid import uuid4
 
 from dotenv import load_dotenv
@@ -34,6 +35,8 @@ def _pretty_print_run(run: dict) -> None:
 
 def main() -> None:
     load_dotenv(override=True)
+    parser = argparse.ArgumentParser(description="Run the arithmetic supervisor.")
+    parser.parse_args()
     client = OpenAI()
 
     initial_planner_input = ArithmeticPlannerInput(random_seed=str(uuid4()))
