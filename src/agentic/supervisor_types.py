@@ -25,8 +25,8 @@ class SupervisorContext:
     tool_result: Any | None = None
     critic_input: CriticInput | None = None
     decision: Any | None = None
-    feedback: str | None = None
-    planner_feedback: str | None = None
+    feedback: Feedback | None = None
+    planner_feedback: Feedback | None = None
     previous_plan: Any | None = None
     previous_worker_id: str | None = None
     final_result: Any | None = None

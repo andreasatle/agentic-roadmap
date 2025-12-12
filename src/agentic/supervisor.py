@@ -3,7 +3,7 @@ from dataclasses import dataclass, field
 from typing import Any, Callable
 from pydantic import BaseModel
 
-from agentic.schemas import WorkerInput, Decision, ProjectState
+from agentic.schemas import WorkerInput, Decision, ProjectState, Feedback
 from agentic.tool_registry import ToolRegistry
 from agentic.logging_config import get_logger
 from agentic.agent_dispatcher import AgentDispatcher
@@ -90,8 +90,11 @@ class Supervisor:
     def _handle_plan(self, context: SupervisorContext) -> State:
         planner_input_cls = self.dispatcher.planner.input_schema
         planner_kwargs: dict[str, Any] = dict(self.planner_defaults or {})
+        planner_feedback = context.planner_feedback
+        if isinstance(planner_feedback, str):
+            planner_feedback = Feedback(kind="OTHER", message=planner_feedback)
         planner_kwargs.update(
-            feedback=context.planner_feedback,
+            feedback=planner_feedback,
             previous_task=context.previous_plan,
             previous_worker_id=context.previous_worker_id,
         )
@@ -105,8 +108,7 @@ class Supervisor:
         try:
             planner_response = self.dispatcher.plan(planner_input, snapshot=snapshot)
         except RuntimeError as e:
-            # Planner failed (e.g., invalid worker routing). Route through critic.
-            context.feedback = str(e)
+            context.planner_feedback = Feedback(kind="OTHER", message=str(e))
             context.plan = None
             context.worker_id = None
             context.worker_input = None
@@ -122,12 +124,7 @@ class Supervisor:
                     "error": str(e),
                 }
             )
-            context.critic_input = self._build_critic_input(
-                plan={},
-                worker_answer=None,
-                worker_id=None,
-            )
-            return State.CRITIC
+            return State.PLAN
 
         logger.debug(f"[supervisor] PLAN call_id={planner_response.call_id}")
         planner_output = planner_response.output
@@ -170,10 +167,6 @@ class Supervisor:
                 plan=task,
                 worker_answer=None,
                 worker_id=worker_id,
-            )
-            context.decision = Decision(
-                decision="REJECT",
-                feedback=f"Worker '{worker_id}' is not valid for the proposed plan",
             )
             return State.CRITIC
 

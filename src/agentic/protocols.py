@@ -34,5 +34,5 @@ ToolOutput = TypeVar("ToolOutput", bound=BaseModel)
 @runtime_checkable
 class ToolProtocol(Protocol[ToolArgs, ToolOutput]):
     """Deterministic tool with strongly typed boundary."""
-    def __call__(self, ToolArgs) -> ToolOutput:
+    def __call__(self, args: ToolArgs) -> ToolOutput:
         ...
