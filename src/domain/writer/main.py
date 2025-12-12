@@ -81,8 +81,6 @@ def main() -> None:
             if output is None:
                 continue
             section_order = getattr(output, "section_order", None)
-            if section_order is None and isinstance(output, dict):
-                section_order = output.get("section_order")
             if section_order:
                 break
 

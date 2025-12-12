@@ -2,7 +2,6 @@ from openai import OpenAI
 
 from agentic.agents import Agent
 from domain.writer.schemas import (
-    WriterDomainState,
     WriterWorkerInput,
     WriterWorkerOutput,
 )
@@ -90,27 +89,14 @@ def make_worker(client: OpenAI, model: str) -> Agent[WriterWorkerInput, WriterWo
             except Exception:
                 raise
 
-            project_state = getattr(worker_input, "project_state", None) if worker_input else None
             operation = worker_input.task.operation if worker_input else None
 
             previous_text = getattr(worker_input, "previous_text", None) if worker_input else None
-            if project_state is not None:
-                previous_state = None
-                if isinstance(project_state, dict):
-                    domain_snap = project_state.get("domain_state") or project_state.get("domain")
-                    if domain_snap:
-                        try:
-                            previous_state = WriterDomainState.model_validate(domain_snap)
-                        except Exception:
-                            previous_state = None
-                elif isinstance(project_state, WriterDomainState):
-                    previous_state = project_state
+            if previous_text is None and worker_input and worker_input.writer_state is not None:
+                previous_text = worker_input.writer_state.sections.get(worker_input.task.section_name)
 
-                if previous_text is None:
-                    previous_text = previous_state.draft_text if previous_state else None
-
-                if operation == "refine" and previous_text:
-                    output_model.result.text = f"{previous_text}\n\n{output_model.result.text}"
+            if operation == "refine" and previous_text:
+                output_model.result.text = f"{previous_text}\n\n{output_model.result.text}"
 
             return output_model.model_dump_json()
 
