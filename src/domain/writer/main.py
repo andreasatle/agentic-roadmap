@@ -56,6 +56,34 @@ def main() -> None:
     run = supervisor()
     updated_state = run.project_state.domain_state if run.project_state else None
 
+    section_order = None
+    for entry in run.trace or []:
+        state = entry.get("state") if isinstance(entry, dict) else None
+        if getattr(state, "name", None) != "PLAN":
+            continue
+        output = entry.get("output") if isinstance(entry, dict) else None
+        if output is None:
+            continue
+        section_order = getattr(output, "section_order", None)
+        if section_order is None and isinstance(output, dict):
+            section_order = output.get("section_order")
+        if section_order:
+            break
+
+    if (
+        updated_state is not None
+        and hasattr(updated_state, "section_order")
+        and not getattr(updated_state, "section_order", None)
+        and section_order
+        and run.plan is not None
+        and run.result is not None
+    ):
+        updated_state = updated_state.update(
+            task=run.plan,
+            result=run.result,
+            section_order=section_order,
+        )
+
     if updated_state is not None:
         updated_state.save()
     _pretty_print_run(run)
