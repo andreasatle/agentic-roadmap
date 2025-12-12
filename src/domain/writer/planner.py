@@ -64,7 +64,8 @@ RULES:
 2. Do not write content or examples.
 3. Do not mention specific frameworks unless implied by the topic.
 4. Requirements must be testable and minimal.
-5. Output JSON only. No commentary.
+5. If content does not directly follow from the provided topic, it must not be introduced.
+6. Output JSON only. No commentary.
 
 STATE USAGE:
 - If project_state.domain contains completed sections, do not repeat them.
