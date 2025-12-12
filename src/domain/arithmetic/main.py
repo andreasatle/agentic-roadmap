@@ -13,7 +13,7 @@ from domain.arithmetic import (
     problem_state_cls,
 )
 from agentic.supervisor import Supervisor
-from domain.arithmetic.factory import ArithmeticState
+from domain.arithmetic.factory import ArithmeticContextState
 
 
 def _pretty_print_run(run: dict) -> None:
@@ -42,7 +42,7 @@ def main() -> None:
     initial_planner_input = ArithmeticPlannerInput(random_seed=str(uuid4()))
     tool_registry = make_tool_registry()
     dispatcher = make_agent_dispatcher(client, model="gpt-4.1-mini", max_retries=3)
-    state = ArithmeticState()
+    state = ArithmeticContextState()
 
     supervisor = Supervisor(
         dispatcher=dispatcher,

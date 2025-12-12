@@ -11,7 +11,7 @@ from agentic.schemas import (
 )
 
 from domain.writer.types import WriterResult, WriterTask
-from domain.writer.state import WriterState
+from domain.writer.state import WriterContextState
 
 
 class WriterDomainState(LoadSaveMixin):
@@ -67,7 +67,7 @@ class WriterWorkerInput(WorkerInput[WriterTask, WriterResult]):
     model_config = ConfigDict(populate_by_name=True)
 
     previous_text: str | None = None
-    writer_state: WriterState | None = None
+    writer_state: WriterContextState | None = None
 
     @model_validator(mode="after")
     def sync_previous_fields(self) -> "WriterWorkerInput":

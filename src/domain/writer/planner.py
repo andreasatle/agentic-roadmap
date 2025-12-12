@@ -4,7 +4,7 @@ from openai import OpenAI
 from agentic.agents import Agent
 from domain.writer.schemas import WriterPlannerInput, WriterPlannerOutput
 from domain.writer.types import WriterTask
-from domain.writer.state import WriterState
+from domain.writer.state import WriterContextState
 
 
 PROMPT_PLANNER = """ROLE:
@@ -135,7 +135,7 @@ def make_planner(client: OpenAI, model: str) -> Agent[WriterPlannerInput, Writer
             completed_sections: list[str] = []
             domain_state = None
             match state:
-                case WriterState():
+                case WriterContextState():
                     if getattr(state, "sections", None):
                         completed_sections = list(state.sections)
                 case dict() as state_dict:

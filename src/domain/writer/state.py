@@ -6,7 +6,7 @@ from agentic.common.load_save_mixin import LoadSaveMixin
 from domain.writer.types import WriterResult, WriterTask
 
 
-class WriterState(LoadSaveMixin):
+class WriterContextState(LoadSaveMixin):
     sections: dict[str, str] = Field(default_factory=dict)
     section_order: list[str] | None = None
 
@@ -16,7 +16,7 @@ class WriterState(LoadSaveMixin):
         result: WriterResult,
         *,
         section_order: list[str] | None = None,
-    ) -> "WriterState":
+    ) -> "WriterContextState":
         # Copy sections immutably
         new_sections = dict(self.sections)
         section_name = getattr(task, "section_name", None)

@@ -21,8 +21,8 @@ class WriterResult(BaseModel):
     text: str = Field(..., description="Completed prose for the section.")
 
 
-class WriterState(BaseModel):
+class WriterContextState(BaseModel):
     sections: dict[str, str] = Field(default_factory=dict)
 
-    def update(self, task: WriterTask, result: WriterResult) -> WriterState:
+    def update(self, task: WriterTask, result: WriterResult) -> WriterContextState:
         return self

@@ -6,7 +6,7 @@ from openai import OpenAI
 
 from domain.sentiment import make_agent_dispatcher, make_tool_registry, problem_state_cls
 from agentic.supervisor import Supervisor
-from domain.sentiment.factory import SentimentState
+from domain.sentiment.factory import SentimentContextState
 
 
 def _pretty_print_run(run: dict) -> None:
@@ -34,7 +34,7 @@ def main() -> None:
 
     tool_registry = make_tool_registry()
     dispatcher = make_agent_dispatcher(client, model="gpt-4.1-mini", max_retries=3)
-    state = SentimentState()
+    state = SentimentContextState()
 
     supervisor = Supervisor(
         dispatcher=dispatcher,

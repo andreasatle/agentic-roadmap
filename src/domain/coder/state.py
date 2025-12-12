@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-from pydantic import BaseModel
-
 from agentic.common.load_save_mixin import LoadSaveMixin
 from domain.coder.types import CodeResult, CodeTask
 

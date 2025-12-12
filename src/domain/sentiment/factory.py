@@ -8,7 +8,7 @@ from domain.sentiment.worker import make_worker
 from domain.sentiment.critic import make_critic
 from agentic.common.domain_state import StatelessProblemState
 
-class SentimentState(StatelessProblemState):
+class SentimentContextState(StatelessProblemState):
     pass
 
 def make_agent_dispatcher(
@@ -34,4 +34,4 @@ def make_tool_registry() -> ToolRegistry:
 
 
 def problem_state_cls() -> type[BaseModel]:
-    return SentimentState
+    return SentimentContextState

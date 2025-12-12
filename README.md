@@ -1,36 +1,165 @@
-# Agentic Framework
+# Root README.md
 
-## Overview
-A small, domain-agnostic agent framework with three LLM agents (Planner, Worker, Critic) coordinated by a finite-state Supervisor and a tool registry for deterministic functions. The framework is generic; domains bind their own task/result types, prompts, and tools.
+## AgenticRoadmap
 
-## Architecture (framework)
-- `agentic/schemas.py`: Generic Pydantic models (`PlannerInput/Output`, `WorkerInput/Output`, `CriticInput`, `Decision`, `ToolRequest`, `ConstrainedXOROutput`).
-- `agentic/protocols.py`: Agent and tool protocols.
-- `agentic/agents.py`: Thin OpenAI LLM wrapper with typed I/O.
-- `agentic/agent_dispatcher.py`: Safe agent caller with retries and JSON validation; `plan` now accepts optional planner context.
-- `agentic/supervisor_types.py`: FSM state enum + `SupervisorContext` (stores current/previous plan, planner feedback, worker inputs/outputs, trace).
-- `agentic/supervisor.py`: PLAN → WORK → TOOL/CRITIC → END loop; CRITIC REJECT can route back to PLAN with planner_feedback, making the planner self-correct.
-- `agentic/tool_registry.py`: Name → tool lookup and invocation with type checking.
-- `agentic/logging_config.py`: Logger setup.
+This repository contains an experimental, **state-machine–driven agentic framework** built around a strict Planner–Worker–Critic (PWC) loop. The system is designed to explore how structured supervision, typed state, and explicit control flow can be used to build reliable multi-step LLM-driven programs.
 
-## Domains
-- `agentic/problem/arithmetic`: Task/Result schemas, agent factories, dispatcher factory, tool registry (compute), prompts for arithmetic.
-- `agentic/problem/sentiment`: Task/Result schemas, agent factories, dispatcher factory, empty tool registry, prompts for sentiment classification.
+### Core Principles
 
-## Control flow
-1. Planner produces a `PlannerOutput` (`task`, `worker_id`). On failures/critic rejection, planner receives `PlannerInput(feedback, previous_task, previous_worker_id)` for self-correction.
-2. Worker runs on the chosen `worker_id`, returning either a `result` or `tool_request`.
-3. TOOL: supervisor invokes the requested deterministic tool and feeds the `tool_result` back into Worker.
-4. CRITIC judges `plan` + `worker_answer` as ACCEPT/REJECT. REJECT routes feedback to Worker or, when planning failed, back to Planner.
-5. Supervisor records a trace of each transition and stops at END.
+* **Supervisor-driven execution** (explicit state machine, no hidden loops)
+* **Strict schemas everywhere** (Pydantic validation at boundaries)
+* **Domain independence** (Supervisor has no domain knowledge)
+* **Restartable, persistent state** (no infinite loops, no silent retries)
 
-## Running the demo
+### Repository Structure
+
 ```
-uv run python -m agentic.main
+root/
+├─ src/agentic/        # Supervisor, dispatcher, tool registry
+├─ src/domain/         # Domain-specific planners/workers/critics
+│  ├─ writer/
+│  ├─ coder/
+│  ├─ arithmetic/
+│  └─ sentiment/
 ```
-Requires `OPENAI_API_KEY` (uses `gpt-4.1-mini` by default). Without network access, calls to the API will fail.
 
-## Switching domains
-Edit the import block in `agentic/main.py`:
-- Arithmetic (default): `from agentic.problem.arithmetic import make_agent_dispatcher, make_tool_registry`
-- Sentiment: `from agentic.problem.sentiment import make_agent_dispatcher, make_tool_registry`
+Each domain is a thin specialization layered on top of the same agentic core.
+
+---
+
+# src/agentic/README.md
+
+## Agentic Core
+
+The `agentic` package implements the **domain-agnostic execution engine**.
+
+### Key Components
+
+* **Supervisor**
+
+  * Explicit state machine (PLAN → WORK → TOOL → CRITIC → END)
+  * Enforces loop bounds and termination
+  * Owns retry and acceptance logic
+
+* **AgentDispatcher**
+
+  * Handles agent invocation
+  * Validates JSON output against schemas
+  * Retries only at schema boundaries
+
+* **ToolRegistry**
+
+  * Strongly typed tool invocation
+  * Enforces argument schemas
+
+### Design Constraints
+
+* Supervisor never mutates domain state directly
+* No domain-specific branching
+* No implicit recursion or infinite loops
+
+This layer should remain stable while domains evolve.
+
+---
+
+# src/domain/writer/README.md
+
+## Writer Domain
+
+The Writer domain implements a **multi-section article generator** using the agentic framework.
+
+### State Model
+
+* **WriterDomainState**
+
+  * Persistent, load/save capable
+  * Owns high-level progression metadata
+
+* **WriterContextState**
+
+  * Holds generated section content
+  * Tracks `sections` and `section_order`
+
+### Planner Responsibilities
+
+* Select next section
+* Decide operation (`draft` vs `refine`)
+* Optionally emit `section_order`
+
+### Worker Responsibilities
+
+* Produce JSON-only output
+* Merge text only in `refine` mode
+* Never invent structure
+
+### Critic Responsibilities
+
+* Single-section validation only
+* Reject empty output
+* Accept everything else (MVP)
+
+The Writer is designed to become **topic-agnostic** once prompt cleanup is complete.
+
+---
+
+# src/domain/coder/README.md
+
+## Coder Domain
+
+The Coder domain generates and refines code artifacts.
+
+### Current State (Intentional)
+
+* Uses a single `ProblemState`
+* State currently mixes **context** and **content**
+
+This is **known technical debt** and will be addressed in a future refactor by splitting:
+
+* `CoderContextState`
+* `CodebaseState` (or equivalent)
+
+### Why It Exists
+
+Coder was implemented earlier in the project before the context/content distinction was formalized. It remains functional but architecturally asymmetric by design.
+
+---
+
+# src/domain/arithmetic/README.md
+
+## Arithmetic Domain
+
+A minimal, stateless example domain.
+
+### Characteristics
+
+* Uses `ArithmeticContextState` (stateless)
+* Demonstrates tool invocation and validation
+* Useful as a reference for minimal domain integration
+
+This domain is intentionally simple and stable.
+
+---
+
+# src/domain/sentiment/README.md
+
+## Sentiment Domain
+
+A lightweight sentiment-analysis example.
+
+### Characteristics
+
+* Stateless execution
+* No persistent artifacts
+* Demonstrates planner → worker → critic flow without content accumulation
+
+Primarily used to validate Supervisor behavior under trivial state.
+
+---
+
+## Notes on Architecture
+
+* `ContextState` names indicate **control and progression**, not payloads
+* Content-heavy domains should separate content from context
+* `isinstance` checks are temporary and tracked as explicit debt
+
+The project favors **explicitness over cleverness** and **correctness over convenience**.

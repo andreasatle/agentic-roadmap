@@ -15,7 +15,7 @@ from domain.arithmetic.critic import make_critic
 from domain.arithmetic.tools import add, sub, mul
 from agentic.common.domain_state import StatelessProblemState
 
-class ArithmeticState(StatelessProblemState):
+class ArithmeticContextState(StatelessProblemState):
     pass
 
 def make_agent_dispatcher(
@@ -44,4 +44,4 @@ def make_tool_registry() -> ToolRegistry:
 
 
 def problem_state_cls() -> type[BaseModel]:
-    return ArithmeticState
+    return ArithmeticContextState
