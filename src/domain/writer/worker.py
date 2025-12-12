@@ -93,9 +93,8 @@ def make_worker(client: OpenAI, model: str) -> Agent[WriterWorkerInput, WriterWo
                 return fallback.model_dump_json()
 
             project_state = getattr(worker_input, "project_state", None) if worker_input else None
-            operation = getattr(worker_input.task, "operation", None) if worker_input else None
-            if not operation:
-                operation = "initial_draft"
+            operation = worker_input.task.operation if worker_input else None
+
             if project_state is not None:
                 previous_state = None
                 if isinstance(project_state, dict):
@@ -108,16 +107,10 @@ def make_worker(client: OpenAI, model: str) -> Agent[WriterWorkerInput, WriterWo
                 elif isinstance(project_state, WriterDomainState):
                     previous_state = project_state
 
-                refinement_steps = previous_state.refinement_steps if previous_state else 0
                 previous_text = previous_state.draft_text if previous_state else None
 
-                if operation == "refine_draft" and previous_text:
-                    output_model.result.text = f"{previous_text}\n\nRefined:\n{output_model.result.text}"
-                if operation == "finalize_draft" and previous_text:
-                    if output_model.result.text.strip():
-                        output_model.result.text = f"{previous_text}\n\nFinalized:\n{output_model.result.text}"
-                    else:
-                        output_model.result.text = previous_text
+                if operation == "refine" and previous_text:
+                    output_model.result.text = f"{previous_text}\n\n{output_model.result.text}"
 
             return output_model.model_dump_json()
 

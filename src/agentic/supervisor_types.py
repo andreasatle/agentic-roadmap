@@ -2,7 +2,7 @@ from enum import Enum, auto
 from dataclasses import dataclass
 from typing import Any, Literal
 
-from agentic.schemas import WorkerInput, WorkerOutput, CriticInput, ProjectState
+from agentic.schemas import WorkerInput, WorkerOutput, CriticInput, ProjectState, Feedback
 
 
 class SupervisorState(Enum):

@@ -1,4 +1,4 @@
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
 from agentic.common.load_save_mixin import LoadSaveMixin
 from agentic.schemas import (
@@ -9,6 +9,7 @@ from agentic.schemas import (
     WorkerInput,
     WorkerOutput,
 )
+
 from domain.writer.types import WriterResult, WriterTask
 from domain.writer.state import WriterState
 
