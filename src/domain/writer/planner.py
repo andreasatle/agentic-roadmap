@@ -106,6 +106,7 @@ def make_planner(client: OpenAI, model: str) -> Agent[WriterPlannerInput, Writer
             except Exception:
                 return raw
             task_obj = None
+            section_order = None
             match payload:
                 case dict():
                     match payload.get("task"), payload.get("next_task"):
@@ -121,6 +122,7 @@ def make_planner(client: OpenAI, model: str) -> Agent[WriterPlannerInput, Writer
                         task_obj["operation"] = "initial_draft"
                         if task_key:
                             payload[task_key] = task_obj
+                    section_order = payload.get("section_order")
                     raw = json.dumps(payload)
                 case _:
                     pass
@@ -131,14 +133,35 @@ def make_planner(client: OpenAI, model: str) -> Agent[WriterPlannerInput, Writer
 
             state = getattr(planner_input, "project_state", None)
             completed_sections: list[str] = []
+            domain_state = None
             match state:
                 case WriterState():
                     if getattr(state, "sections", None):
                         completed_sections = list(state.sections)
+                case dict() as state_dict:
+                    domain_state = state_dict.get("domain_state") or state_dict.get("domain")
+                    match domain_state:
+                        case dict() as domain_dict:
+                            if domain_dict.get("completed_sections"):
+                                completed_sections = list(domain_dict["completed_sections"])
+                        case _:
+                            if domain_state and getattr(domain_state, "completed_sections", None):
+                                completed_sections = list(domain_state.completed_sections)
                 case _:
                     domain_state = getattr(state, "state", None) if state is not None else None
                     if domain_state and getattr(domain_state, "completed_sections", None):
                         completed_sections = list(domain_state.completed_sections)
+
+            preserved_section_order = None
+            match domain_state:
+                case dict() as domain_dict:
+                    preserved_section_order = domain_dict.get("section_order")
+                case _:
+                    if domain_state:
+                        preserved_section_order = getattr(domain_state, "section_order", None)
+
+            if section_order is None:
+                section_order = getattr(output_model, "section_order", None)
 
             base_task = getattr(planner_input, "task", None) or getattr(output_model, "task", None)
             if base_task is None:
@@ -153,6 +176,38 @@ def make_planner(client: OpenAI, model: str) -> Agent[WriterPlannerInput, Writer
             else:
                 operation = "finalize_draft"
 
+            def _is_empty_domain_state(ds) -> bool:
+                if ds is None:
+                    return True
+                if isinstance(ds, dict):
+                    return not (
+                        ds.get("draft_text")
+                        or ds.get("completed_sections")
+                        or ds.get("section_order")
+                        or ds.get("refinement_steps")
+                    )
+                return (
+                    not getattr(ds, "draft_text", None)
+                    and not getattr(ds, "completed_sections", None)
+                    and not getattr(ds, "section_order", None)
+                    and getattr(ds, "refinement_steps", 0) == 0
+                )
+
+            is_first_call = state is None or _is_empty_domain_state(domain_state)
+            default_section_order = [
+                "Introduction",
+                "Origin Story",
+                "Architecture",
+                "Meta-Reflection",
+                "Conclusion",
+            ]
+
+            if section_order is None:
+                if is_first_call:
+                    section_order = default_section_order
+                elif preserved_section_order:
+                    section_order = preserved_section_order
+
             new_task = WriterTask(
                 section_name=section_name,
                 purpose=base_task.purpose,
@@ -160,6 +215,7 @@ def make_planner(client: OpenAI, model: str) -> Agent[WriterPlannerInput, Writer
                 operation=operation,
             )
             output_model.task = new_task
+            output_model.section_order = section_order
 
             return output_model.model_dump_json()
 

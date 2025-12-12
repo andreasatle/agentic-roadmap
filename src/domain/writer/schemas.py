@@ -56,6 +56,7 @@ class WriterPlannerOutput(PlannerOutput[WriterTask]):
 
     task: WriterTask = Field(..., alias="next_task")
     worker_id: str = "writer-worker"
+    section_order: list[str] | None = None
 
 
 class WriterWorkerInput(WorkerInput[WriterTask, WriterResult]):
