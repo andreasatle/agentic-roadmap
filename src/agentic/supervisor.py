@@ -126,12 +126,13 @@ class Supervisor:
 
     def __call__(self) -> SupervisorRunResult:
         response = self.handle(self._legacy_request_adapter())
+        project_state = ProjectState.model_validate(response.project_state)
         return SupervisorRunResult(
             plan=response.plan,
             result=response.result,
             decision=response.decision,
             loops_used=response.loops_used,
-            project_state=response.project_state,
+            project_state=project_state,
             trace=response.trace,
         )
 
