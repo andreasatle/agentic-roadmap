@@ -55,8 +55,11 @@ class Supervisor:
         Each agent/tool invocation is a state transition.
         Returns a structured SupervisorRunResult.
         """
+        initial_domain_state = getattr(self.project_state, "domain_state", None)
+        domain_snapshot = initial_domain_state.snapshot_for_llm() if initial_domain_state is not None else None
         context = SupervisorContext(trace=[])
         context.project_state = self.project_state
+        context.domain_snapshot = domain_snapshot
         self._current_project_state = context.project_state
         state = State.PLAN
 
@@ -69,6 +72,10 @@ class Supervisor:
 
         if state != State.END:
             raise RuntimeError("Supervisor exited without reaching END state.")
+
+        if context.pending_state_update and initial_domain_state is not None:
+            plan, worker_result = context.pending_state_update
+            self.project_state.domain_state = initial_domain_state.update(plan, worker_result)
 
         context.trace.append(
             {
@@ -92,8 +99,7 @@ class Supervisor:
         snapshot = {}
 
         # Global project summary
-        domain_state_obj = getattr(context.project_state, "domain_state", None)
-        domain_snapshot = domain_state_obj.snapshot_for_llm() if domain_state_obj is not None else None
+        domain_snapshot = getattr(context, "domain_snapshot", None)
         project_snapshot = {
             "domain_state": domain_snapshot,
             "last_plan": context.project_state.last_plan,
@@ -281,11 +287,7 @@ class Supervisor:
         if decision.decision == "ACCEPT":
             context.final_result = context.worker_result
             context.final_output = context.worker_output
-            prev_state = context.project_state.domain_state
-            if prev_state is None:
-                raise RuntimeError("Domain state must be provided to Supervisor.")
-            new_state = prev_state.update(context.plan, context.worker_result)
-            context.project_state.domain_state = new_state
+            context.pending_state_update = (context.plan, context.worker_result)
             logger.info(f"[supervisor] ACCEPT after {context.loops_used} transitions")
             return State.END
 
