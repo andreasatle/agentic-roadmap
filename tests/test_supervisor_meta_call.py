@@ -63,7 +63,15 @@ def test_supervisor_output_is_immutable_and_serializable():
         problem_state_cls=lambda: ArithmeticContentState,
     )
 
-    output = supervisor()
+    output = supervisor.handle(
+        SupervisorRequest(
+            control=SupervisorControlInput(max_loops=3),
+            domain=SupervisorDomainInput(
+                domain_state=project_state.domain_state,
+                planner_defaults={},
+            ),
+        )
+    )
 
     summary_before = output.model_dump()
 

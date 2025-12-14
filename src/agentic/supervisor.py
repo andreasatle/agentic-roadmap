@@ -9,7 +9,6 @@ from agentic.tool_registry import ToolRegistry
 from agentic.logging_config import get_logger
 from agentic.agent_dispatcher import AgentDispatcher
 from agentic.supervisor_types import SupervisorState as State, SupervisorContext
-from agentic.supervisor_result import SupervisorRunResult
 logger = get_logger("agentic.supervisor")
 
 
@@ -131,27 +130,6 @@ class Supervisor:
             trace=[_to_event(entry) for entry in (context.trace or [])],
         )
 
-    def __call__(self) -> SupervisorRunResult:
-        response = self.handle(self._legacy_request_adapter())
-        project_state = ProjectState.model_validate(response.project_state)
-        return SupervisorRunResult(
-            plan=self._current_project_state.last_plan if hasattr(self, "_current_project_state") else response.plan,
-            result=self._current_project_state.last_result if hasattr(self, "_current_project_state") else response.result,
-            decision=self._current_project_state.last_decision if hasattr(self, "_current_project_state") else response.decision,
-            loops_used=response.loops_used,
-            project_state=project_state,
-            trace=response.trace,
-        )
-
-    def _legacy_request_adapter(self) -> SupervisorRequest:
-        return SupervisorRequest(
-            control=SupervisorControlInput(max_loops=self.max_loops),
-            domain=SupervisorDomainInput(
-                domain_state=getattr(self.project_state, "domain_state", None),
-                planner_defaults=self.planner_defaults,
-            ),
-        )
-
     def _make_snapshot(self, context):
         snapshot = {}
 
@@ -218,9 +196,14 @@ class Supervisor:
         context.previous_plan = planner_output.task
         context.previous_worker_id = planner_output.worker_id
         context.planner_feedback = None
-        context.worker_input = WorkerInput(
-            task=context.plan,
-        )
+        worker_agent = self.dispatcher.workers.get(context.worker_id)
+        worker_input_cls = worker_agent.input_schema if worker_agent else WorkerInput
+        domain_state_obj = getattr(context.project_state, "domain_state", None)
+        worker_kwargs = {"task": context.plan}
+        if hasattr(worker_input_cls, "model_fields") and "writer_state" in worker_input_cls.model_fields:
+            writer_state = getattr(domain_state_obj, "content", None)
+            worker_kwargs["writer_state"] = writer_state
+        context.worker_input = worker_input_cls(**worker_kwargs)
         context.last_stage = "plan"
         context.trace.append(
             {
@@ -319,12 +302,19 @@ class Supervisor:
             }
         )
         context.tool_result = tool_result
-        context.worker_input = WorkerInput(
-            task=prev_worker_input.task,
-            previous_result=prev_worker_input.previous_result,
-            feedback=prev_worker_input.feedback,
-            tool_result=tool_result,
-        )
+        worker_agent = self.dispatcher.workers.get(context.worker_id)
+        worker_input_cls = worker_agent.input_schema if worker_agent else WorkerInput
+        worker_kwargs = {
+            "task": prev_worker_input.task,
+            "previous_result": prev_worker_input.previous_result,
+            "feedback": prev_worker_input.feedback,
+            "tool_result": tool_result,
+        }
+        domain_state_obj = getattr(context.project_state, "domain_state", None)
+        if hasattr(worker_input_cls, "model_fields") and "writer_state" in worker_input_cls.model_fields:
+            writer_state = getattr(domain_state_obj, "content", None)
+            worker_kwargs["writer_state"] = writer_state
+        context.worker_input = worker_input_cls(**worker_kwargs)
         return State.WORK
 
     def _handle_critic(self, context: SupervisorContext) -> State:
@@ -363,12 +353,19 @@ class Supervisor:
                 logger.info(f"[supervisor] REJECT after {context.loops_used} transitions (replanning)")
                 return State.PLAN
             context.feedback = decision.feedback
-            context.worker_input = WorkerInput(
-                task=prev_worker_input.task,
-                previous_result=prev_worker_input.previous_result,
-                feedback=decision.feedback,
-                tool_result=prev_worker_input.tool_result,
-            )
+            worker_agent = self.dispatcher.workers.get(context.worker_id)
+            worker_input_cls = worker_agent.input_schema if worker_agent else WorkerInput
+            worker_kwargs = {
+                "task": prev_worker_input.task,
+                "previous_result": prev_worker_input.previous_result,
+                "feedback": decision.feedback,
+                "tool_result": prev_worker_input.tool_result,
+            }
+            domain_state_obj = getattr(context.project_state, "domain_state", None)
+            if hasattr(worker_input_cls, "model_fields") and "writer_state" in worker_input_cls.model_fields:
+                writer_state = getattr(domain_state_obj, "content", None)
+                worker_kwargs["writer_state"] = writer_state
+            context.worker_input = worker_input_cls(**worker_kwargs)
             logger.info(f"[supervisor] REJECT after {context.loops_used} transitions")
             return State.WORK
 

@@ -52,6 +52,17 @@ def main() -> None:
     state = WriterDomainState.load(topic=instructions or None) if not args.fresh else WriterDomainState(topic=instructions or None)
     structure_sections = state.structure.sections if state.structure else []
     if not structure_sections:
+        state = state.model_copy(
+            update={
+                "structure": state.structure.model_copy(
+                    update={
+                        "sections": ["Introduction"],
+                    }
+                )
+            }
+        )
+        structure_sections = state.structure.sections if state.structure else []
+    if not structure_sections:
         raise RuntimeError(
             "Writer requires an explicit structure: no sections were provided in domain_state.structure.sections."
         )

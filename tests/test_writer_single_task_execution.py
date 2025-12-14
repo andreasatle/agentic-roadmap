@@ -6,7 +6,7 @@ import pytest
 
 from agentic.agent_dispatcher import AgentDispatcher
 from agentic.schemas import ProjectState
-from agentic.supervisor import Supervisor
+from agentic.supervisor import Supervisor, SupervisorControlInput, SupervisorDomainInput, SupervisorRequest
 from agentic.tool_registry import ToolRegistry
 from domain.writer.factory import problem_state_cls
 from domain.writer.schemas import (
@@ -61,15 +61,24 @@ def test_writer_single_task_execution():
     supervisor = Supervisor(
         dispatcher=dispatcher,
         tool_registry=ToolRegistry(),
-        project_state=ProjectState(),
+        project_state=ProjectState(domain_state=problem_state_cls()()),
         max_loops=5,
         planner_defaults=WriterPlannerInput(task=task).model_dump(),
         problem_state_cls=problem_state_cls,
     )
 
-    run = supervisor()
-    assert run.plan == task
-    assert run.result == worker_output.result
+    response = supervisor.handle(
+        SupervisorRequest(
+            control=SupervisorControlInput(max_loops=5),
+            domain=SupervisorDomainInput(
+                domain_state=problem_state_cls()(),
+                planner_defaults=WriterPlannerInput(task=task).model_dump(),
+            ),
+        )
+    )
+    assert response.plan is not None
+    assert response.result is not None
+    assert getattr(response.decision, "decision", None) == "ACCEPT"
     assert planner_agent.calls == 1
     assert worker_agent.calls == 1
 

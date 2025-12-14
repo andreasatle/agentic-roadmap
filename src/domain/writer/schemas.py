@@ -121,8 +121,8 @@ class WriterCriticInput(CriticInput[WriterTask, WriterResult]):
 
     model_config = ConfigDict(populate_by_name=True, extra="allow")
 
-    plan: WriterTask = Field(..., alias="task")
-    worker_answer: WriterResult = Field(..., alias="candidate")
+    plan: WriterTask
+    worker_answer: WriterResult
 
 
 class WriterCriticOutput(Decision):
