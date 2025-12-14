@@ -40,28 +40,19 @@ def main() -> None:
     load_dotenv(override=True)
     client = OpenAI()
     parser = argparse.ArgumentParser(description="Run the writer supervisor.")
-    parser.add_argument("--topic", type=str, default="", help="Optional writing topic.")
-    parser.add_argument("--tone", type=str, default="", help="Optional writing tone.")
-    parser.add_argument("--audience", type=str, default="", help="Optional target audience.")
-    parser.add_argument("--length", type=str, default="", help="Optional length guidance.")
+    parser.add_argument("--instructions", type=str, default="", help="Opaque task instructions.")
     parser.add_argument("--max-iterations", type=int, default=1, help="Maximum supervisor iterations (capped at 10).")
     parser.add_argument("--fresh", action="store_true", help="Start with a fresh state (ignore persisted topic state).")
     args = parser.parse_args()
 
-    topic = args.topic.strip()
-    tone = args.tone.strip()
-    audience = args.audience.strip()
-    length = args.length.strip()
+    instructions = args.instructions.strip()
     max_iterations = max(1, min(args.max_iterations, 10))
     initial_planner_input = WriterPlannerInput(
-        topic=topic or None,
-        tone=tone or None,
-        audience=audience or None,
-        length=length or None,
+        instructions=instructions or None,
     )
 
     tool_registry = make_tool_registry()
-    state = WriterDomainState.load(topic=topic or None) if not args.fresh else WriterDomainState(topic=topic or None)
+    state = WriterDomainState.load(topic=instructions or None) if not args.fresh else WriterDomainState(topic=instructions or None)
 
     iteration = 0
     remaining = state.remaining_sections()
@@ -85,7 +76,7 @@ def main() -> None:
 
         if state_data is not None:
             updated_state = WriterDomainState(**state_data)
-            updated_state.save(topic=topic or None)
+            updated_state.save(topic=instructions or None)
             state = updated_state
 
         _pretty_print_run(run)
