@@ -110,4 +110,6 @@ def test_refine_is_idempotent_and_appends_once():
 
     assert final_text.count(draft_text) == 1
     assert final_text.count(refine_append) == 1
+    assert domain_state.structure.sections == ["Intro"]
+    assert domain_state.content.section_order is None
     assert domain_state.completed_sections == [section_name]
