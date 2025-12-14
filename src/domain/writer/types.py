@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from typing import Literal
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class WriterTask(BaseModel):
@@ -19,3 +19,14 @@ class WriterResult(BaseModel):
     """Text produced by the worker for a single writing task."""
 
     text: str = Field(..., description="Completed prose for the section.")
+
+
+class WriteOp(BaseModel):
+    """Data-only write operation schema."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    op: Literal["draft", "refine", "merge", "split"]
+    target_section: str | None
+    source_sections: list[str]
+    instructions: str
