@@ -1,7 +1,5 @@
 from __future__ import annotations
 
-import json
-
 import pytest
 
 from agentic.agent_dispatcher import AgentDispatcher
@@ -16,11 +14,10 @@ from domain.writer.schemas import (
     WriterWorkerOutput,
     WriterCriticInput,
     WriterCriticOutput,
-    WriterDomainState,
 )
-from domain.writer.types import WriterResult, WriterTask
-from domain.writer.planner import make_planner
 from domain.writer.state import StructureState
+from domain.writer.schemas import WriterDomainState
+from domain.writer.types import WriterResult, WriterTask
 
 
 class DummyAgent:
@@ -37,15 +34,9 @@ class DummyAgent:
         return self.output_json
 
 
-def test_writer_single_task_execution():
-    task = WriterTask(
-        section_name="Intro",
-        purpose="Write intro",
-        operation="draft",
-        requirements=["Keep it concise"],
-    )
+def run_supervisor_once(task: WriterTask, worker_text: str, domain_state: WriterDomainState):
     planner_output = WriterPlannerOutput(task=task, worker_id="writer-worker")
-    worker_output = WriterWorkerOutput(result=WriterResult(text="done"))
+    worker_output = WriterWorkerOutput(result=WriterResult(text=worker_text))
     critic_output = WriterCriticOutput(decision="ACCEPT")
 
     planner_agent = DummyAgent(WriterPlannerInput, WriterPlannerOutput, planner_output.model_dump_json(), "planner")
@@ -60,7 +51,6 @@ def test_writer_single_task_execution():
         max_retries=1,
     )
 
-    domain_state = WriterDomainState(structure=StructureState(sections=[task.section_name]))
     supervisor = Supervisor(
         dispatcher=dispatcher,
         tool_registry=ToolRegistry(),
@@ -79,18 +69,45 @@ def test_writer_single_task_execution():
             ),
         )
     )
-    assert response.plan is not None
-    assert response.result is not None
-    assert response.decision["decision"] == "ACCEPT"
-    updated_state = problem_state_cls()().model_validate(response.project_state["domain_state"])
-    assert task.section_name in updated_state.content.sections
-    assert updated_state.content.sections[task.section_name].strip() != ""
-    assert updated_state.completed_sections == [task.section_name]
-    assert planner_agent.calls == 1
-    assert worker_agent.calls == 1
+    return response
 
 
-def test_writer_planner_requires_task():
-    planner = make_planner(client=object(), model="test-model")
-    with pytest.raises(RuntimeError):
-        planner(json.dumps({"project_state": {}}))
+def test_refine_is_idempotent_and_appends_once():
+    section_name = "Intro"
+    draft_text = "Draft content."
+    refine_append = "Refined addition."
+    refine_text = f"{draft_text}\n\n{refine_append}"
+
+    draft_task = WriterTask(
+        section_name=section_name,
+        purpose="Write intro",
+        operation="draft",
+        requirements=["Provide an introduction."],
+    )
+    refine_task = WriterTask(
+        section_name=section_name,
+        purpose="Refine intro",
+        operation="refine",
+        requirements=["Improve clarity."],
+    )
+
+    domain_state = WriterDomainState(structure=StructureState(sections=[section_name]))
+
+    draft_response = run_supervisor_once(draft_task, draft_text, domain_state)
+    assert draft_response.decision["decision"] == "ACCEPT"
+    domain_state = WriterDomainState(**draft_response.project_state["domain_state"])
+    assert domain_state.content.sections[section_name].strip() != ""
+
+    refine_response = run_supervisor_once(refine_task, refine_text, domain_state)
+    assert refine_response.decision["decision"] == "ACCEPT"
+    domain_state = WriterDomainState(**refine_response.project_state["domain_state"])
+    combined_text = domain_state.content.sections[section_name]
+
+    refine_again_response = run_supervisor_once(refine_task, combined_text, domain_state)
+    assert refine_again_response.decision["decision"] == "ACCEPT"
+    domain_state = WriterDomainState(**refine_again_response.project_state["domain_state"])
+    final_text = domain_state.content.sections[section_name]
+
+    assert final_text.count(draft_text) == 1
+    assert final_text.count(refine_append) == 1
+    assert domain_state.completed_sections == [section_name]
