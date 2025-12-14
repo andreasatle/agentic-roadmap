@@ -19,11 +19,7 @@ echo
 
 echo "=== Running Writer Problem ==="
 uv run agentic-writer \
-  --topic "Write an article about War and Piece." \
-  --tone "Informative" \
-  --audience "General public" \
-  --length "1000 words"
-
+  --instructions "Write an article about War and Peace for the general public, informative tone, ~1000 words."
 echo
 
 echo "=== All problems completed ==="

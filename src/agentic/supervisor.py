@@ -210,19 +210,6 @@ class Supervisor:
 
         logger.debug(f"[supervisor] PLAN call_id={planner_response.call_id}")
         planner_output = planner_response.output
-        if getattr(planner_output, "worker_id", None) == "writer-complete":
-            context.decision = Decision(decision="ACCEPT")
-            context.trace.append(
-                {
-                    "state": State.PLAN.name,
-                    "agent_id": planner_response.agent_id,
-                    "call_id": planner_response.call_id,
-                    "tool_name": None,
-                    "input": None,
-                    "output": planner_response.output,
-                }
-            )
-            return State.END
         context.plan = planner_output.task
         context.project_state.last_plan = (
             context.plan.model_dump() if hasattr(context.plan, "model_dump") else context.plan
