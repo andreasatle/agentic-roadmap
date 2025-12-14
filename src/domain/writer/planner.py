@@ -107,6 +107,8 @@ def make_planner(client: OpenAI, model: str) -> Agent[WriterPlannerInput, Writer
             if structure_data is None:
                 raise RuntimeError("StructureState is required for writer planning.")
             structure = StructureState.model_validate(structure_data)
+            if not structure.sections:
+                raise RuntimeError("StructureState must include sections for writer planning.")
             next_section = structure.next_section(completed_sections)
             if not next_section:
                 output_model = WriterPlannerOutput(
