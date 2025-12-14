@@ -67,14 +67,10 @@ class WriterDomainState(LoadSaveMixin):
 
     def snapshot_for_llm(self) -> dict:
         data = {}
-        if self.refinement_steps:
-            data["refinement_steps"] = self.refinement_steps
         if self.completed_sections:
             data["completed_sections"] = self.completed_sections
-        if self.content.section_order:
-            data["section_order"] = self.content.section_order
         if self.structure.sections:
-            data["structure"] = {"sections": self.structure.sections}
+            data["section_order"] = list(self.structure.sections)
         return data
 
     def remaining_sections(self) -> list[str]:
