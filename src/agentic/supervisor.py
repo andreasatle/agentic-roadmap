@@ -1,7 +1,10 @@
 """
-The Supervisor is a pure executor.
-Given a request containing exactly one domain task, it validates, routes, executes, and critiques that task, producing a single immutable response.
-It does not control workflow, create tasks, or loop for progress.
+Supervisor contract (authoritative test oracle):
+- The Supervisor is a pure executor.
+- It executes exactly one task per request.
+- It does not create, advance, or decide tasks, manage workflow, or loop for progress.
+- It returns a single immutable response representing one execution attempt.
+Any behavior diverging from this contract is a bug.
 """
 from __future__ import annotations
 from dataclasses import dataclass
