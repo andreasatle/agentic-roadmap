@@ -56,7 +56,7 @@ def run_supervisor_once(task: WriterTask, worker_text: str, domain_state: Writer
         tool_registry=ToolRegistry(),
         project_state=ProjectState(domain_state=domain_state),
         max_loops=5,
-        planner_defaults=WriterPlannerInput().model_dump(),
+        planner_defaults=WriterPlannerInput(task=task).model_dump(),
         problem_state_cls=problem_state_cls,
     )
 
@@ -65,7 +65,7 @@ def run_supervisor_once(task: WriterTask, worker_text: str, domain_state: Writer
             control=SupervisorControlInput(max_loops=5),
             domain=SupervisorDomainInput(
                 domain_state=domain_state,
-                planner_defaults=WriterPlannerInput().model_dump(),
+                planner_defaults=WriterPlannerInput(task=task).model_dump(),
             ),
         )
     )

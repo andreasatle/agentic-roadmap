@@ -78,7 +78,7 @@ def test_writer_reject_then_accept():
         tool_registry=ToolRegistry(),
         project_state=ProjectState(domain_state=domain_state),
         max_loops=5,
-        planner_defaults=WriterPlannerInput().model_dump(),
+        planner_defaults=WriterPlannerInput(task=initial_task).model_dump(),
         problem_state_cls=lambda: WriterDomainState,
     )
 
@@ -87,7 +87,7 @@ def test_writer_reject_then_accept():
             control=SupervisorControlInput(max_loops=5),
             domain=SupervisorDomainInput(
                 domain_state=domain_state,
-                planner_defaults=WriterPlannerInput().model_dump(),
+                planner_defaults=WriterPlannerInput(task=initial_task).model_dump(),
             ),
         )
     )

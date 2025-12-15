@@ -84,6 +84,7 @@ class WriterPlannerInput(PlannerInput[WriterTask, WriterResult]):
 
     # instructions is preferred and opaque; other semantic fields are legacy and ignored by planner logic.
     project_state: dict | None = None
+    task: WriterTask
     instructions: str | None = None
     topic: str | None = None
     tone: str | None = None

@@ -1,3 +1,8 @@
+"""
+The Supervisor is a pure executor.
+Given a request containing exactly one domain task, it validates, routes, executes, and critiques that task, producing a single immutable response.
+It does not control workflow, create tasks, or loop for progress.
+"""
 from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Callable
