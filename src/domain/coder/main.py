@@ -4,12 +4,7 @@ import argparse
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from domain.coder import (
-    CoderPlannerInput,
-    make_agent_dispatcher,
-    make_tool_registry,
-    problem_state_cls,
-)
+from domain.coder import make_agent_dispatcher, make_tool_registry, problem_state_cls
 from agentic.supervisor import (
     SupervisorControlInput,
     SupervisorDomainInput,
@@ -17,7 +12,10 @@ from agentic.supervisor import (
     run_supervisor,
 )
 from domain.coder.state import ProblemState
+from domain.coder.types import CodeTask
 
+from agentic.logging_config import get_logger
+logger = get_logger("domain.coder.main")
 
 def _pretty_print_run(run: dict) -> None:
     """Render the supervisor output in a readable diagnostic summary."""
@@ -44,19 +42,25 @@ def main() -> None:
     project_description = args.description.strip()
     if not project_description:
         raise SystemExit("A project description is required to start the coder supervisor.")
+    # Supervisor now requires an explicit domain task; coder still relies on planner-generated tasks, so it is disabled until CoderTask is introduced.
+    logger.warning("Coder domain is disabled: it relies on planner-generated tasks. Introduce an explicit CoderTask before re-enabling.")  
+    return
+    raise RuntimeError(
+        "Coder domain is disabled: it relies on planner-generated tasks. Introduce an explicit CoderTask before re-enabling."
+    )
 
-    initial_planner_input = CoderPlannerInput(project_description=project_description)
     client = OpenAI()
 
     tool_registry = make_tool_registry()
     dispatcher = make_agent_dispatcher(client, model="gpt-4.1-mini", max_retries=3)
     state = ProblemState.load()
+    task = CodeTask(language="python", specification=project_description, requirements=[project_description])
 
     supervisor_input = SupervisorRequest(
         control=SupervisorControlInput(max_loops=5),
         domain=SupervisorDomainInput(
             domain_state=state,
-            planner_defaults=initial_planner_input.model_dump(),
+            task=task,
         ),
     )
     run = run_supervisor(

@@ -16,6 +16,7 @@ class SupervisorState(Enum):
 @dataclass
 class SupervisorContext:
     plan: Any | None = None
+    request_task: Any | None = None
     worker_id: str | None = None
     worker_input: WorkerInput | None = None
     worker_output: WorkerOutput | None = None
@@ -36,4 +37,3 @@ class SupervisorContext:
     project_state: ProjectState | None = None
     domain_snapshot: dict | None = None
     pending_state_update: tuple[Any, Any] | None = None
-    planner_defaults: dict | None = None

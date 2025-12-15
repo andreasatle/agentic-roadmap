@@ -72,7 +72,7 @@ def main() -> None:
             control=SupervisorControlInput(max_loops=5),
             domain=SupervisorDomainInput(
                 domain_state=state,
-                planner_defaults=WriterPlannerInput(task=task, instructions=instructions or None).model_dump(),
+                task=task,
             ),
         )
         run = run_supervisor(

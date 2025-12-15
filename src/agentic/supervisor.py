@@ -4,7 +4,7 @@ Given a request containing exactly one domain task, it validates, routes, execut
 It does not control workflow, create tasks, or loop for progress.
 """
 from __future__ import annotations
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any, Callable
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -25,7 +25,7 @@ class SupervisorDomainInput(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     domain_state: DomainStateProtocol
-    planner_defaults: dict
+    task: Any
 
 
 class SupervisorRequest(BaseModel):
@@ -54,7 +54,6 @@ class Supervisor:
     problem_state_cls: Callable[[], type[BaseModel]]
     project_state: ProjectState
     max_loops: int = 5
-    planner_defaults: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self) -> None:
         self._handlers: dict[State, Callable[[SupervisorContext], State]] = {
@@ -84,7 +83,9 @@ class Supervisor:
             raise TypeError(f"Non-serializable type: {type(value).__name__}")
 
         max_loops = request.control.max_loops
-        planner_defaults = request.domain.planner_defaults
+        request_task = request.domain.task
+        if request_task is None:
+            raise RuntimeError("SupervisorRequest must include a task.")
         project_state = ProjectState()
         project_state.domain_state = request.domain.domain_state
 
@@ -93,7 +94,7 @@ class Supervisor:
         context = SupervisorContext(trace=[])
         context.project_state = project_state
         context.domain_snapshot = domain_snapshot
-        context.planner_defaults = planner_defaults
+        context.request_task = request_task
         state = State.PLAN
 
         while state != State.END and context.loops_used < max_loops:
@@ -154,7 +155,7 @@ class Supervisor:
 
     def _handle_plan(self, context: SupervisorContext) -> State:
         planner_input_cls = self.dispatcher.planner.input_schema
-        planner_kwargs = dict(context.planner_defaults or {})
+        planner_kwargs = {}
         planner_feedback = context.planner_feedback
         if isinstance(planner_feedback, str):
             planner_feedback = Feedback(kind="OTHER", message=planner_feedback)
@@ -163,10 +164,8 @@ class Supervisor:
             previous_task=context.previous_plan,
             previous_worker_id=context.previous_worker_id,
         )
-
-        required_fields = getattr(planner_input_cls, "model_fields", {})
-        if "project_description" in required_fields and not planner_kwargs.get("project_description"):
-            raise RuntimeError("Coder domain requires planner_defaults['project_description'] to be set.")
+        if "task" in getattr(planner_input_cls, "model_fields", {}):
+            planner_kwargs["task"] = context.request_task
 
         planner_input = planner_input_cls(**planner_kwargs)
         snapshot = self._make_snapshot(context)
@@ -193,10 +192,13 @@ class Supervisor:
 
         logger.debug(f"[supervisor] PLAN call_id={planner_response.call_id}")
         planner_output = planner_response.output
-        context.plan = planner_output.task
-        context.project_state.last_plan = (
-            planner_output.model_dump() if hasattr(planner_output, "model_dump") else planner_output
-        )
+        task = context.request_task
+        if task is None:
+            raise RuntimeError("Planner produced no task and none was provided.")
+        if hasattr(planner_output, "model_copy"):
+            planner_output = planner_output.model_copy(update={"task": task})
+        context.plan = task
+        context.project_state.last_plan = planner_output.model_dump() if hasattr(planner_output, "model_dump") else planner_output
         context.worker_id = planner_output.worker_id
         context.previous_plan = planner_output.task
         context.previous_worker_id = planner_output.worker_id
@@ -239,7 +241,6 @@ class Supervisor:
                 plan=task,
                 worker_answer=None,
                 worker_id=worker_id,
-                planner_defaults=context.planner_defaults,
             )
             return State.CRITIC
 
@@ -268,7 +269,6 @@ class Supervisor:
                 plan=context.plan,
                 worker_answer=worker_output.result,
                 worker_id=context.worker_id,
-                planner_defaults=context.planner_defaults,
             )
             return State.CRITIC
 
@@ -376,15 +376,19 @@ class Supervisor:
 
         raise RuntimeError("Critic decision must be ACCEPT or REJECT.")
 
-    def _build_critic_input(self, plan, worker_answer, worker_id, planner_defaults=None):
+    def _build_critic_input(self, plan, worker_answer, worker_id):
         critic_input_cls = self.dispatcher.critic.input_schema
         critic_kwargs = {"plan": plan, "worker_answer": worker_answer}
         fields = critic_input_cls.model_fields
         if "worker_id" in fields:
             critic_kwargs["worker_id"] = worker_id or ""
         if "project_description" in fields:
-            defaults = planner_defaults or {}
-            critic_kwargs["project_description"] = defaults.get("project_description", "")
+            if hasattr(plan, "project_description"):
+                critic_kwargs["project_description"] = getattr(plan, "project_description")
+            elif hasattr(plan, "specification"):
+                critic_kwargs["project_description"] = getattr(plan, "specification")
+            else:
+                critic_kwargs["project_description"] = ""
         return critic_input_cls(**critic_kwargs)
 
 def run_supervisor(
@@ -399,7 +403,6 @@ def run_supervisor(
         tool_registry=tool_registry,
         project_state=ProjectState(),
         max_loops=supervisor_input.control.max_loops,
-        planner_defaults=supervisor_input.domain.planner_defaults,
         problem_state_cls=problem_state_cls,
     )
     return supervisor.handle(supervisor_input)

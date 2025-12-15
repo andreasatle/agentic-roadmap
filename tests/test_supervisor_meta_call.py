@@ -43,6 +43,7 @@ def test_supervisor_output_is_immutable_and_serializable():
     planner_agent = DummyAgent("planner", input_schema=ArithmeticPlannerInput, output_model=planner_output)
     worker_agent = DummyAgent("worker_addsub", input_schema=ArithmeticWorkerInput, output_model=worker_output)
     critic_agent = DummyAgent("critic", input_schema=ArithmeticCriticInput, output_model=critic_output)
+    task = ArithmeticTask(op="ADD", a=1, b=2)
 
     dispatcher = ArithmeticDispatcher(
         planner=planner_agent,
@@ -59,7 +60,6 @@ def test_supervisor_output_is_immutable_and_serializable():
         tool_registry=ToolRegistry(),
         project_state=project_state,
         max_loops=3,
-        planner_defaults={},
         problem_state_cls=lambda: ArithmeticContentState,
     )
 
@@ -68,7 +68,7 @@ def test_supervisor_output_is_immutable_and_serializable():
             control=SupervisorControlInput(max_loops=3),
             domain=SupervisorDomainInput(
                 domain_state=project_state.domain_state,
-                planner_defaults={},
+                task=task,
             ),
         )
     )

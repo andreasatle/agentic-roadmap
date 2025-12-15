@@ -66,7 +66,6 @@ def test_writer_single_task_execution():
         tool_registry=ToolRegistry(),
         project_state=ProjectState(domain_state=domain_state),
         max_loops=5,
-        planner_defaults=WriterPlannerInput(task=task).model_dump(),
         problem_state_cls=problem_state_cls,
     )
 
@@ -75,7 +74,7 @@ def test_writer_single_task_execution():
             control=SupervisorControlInput(max_loops=5),
             domain=SupervisorDomainInput(
                 domain_state=domain_state,
-                planner_defaults=WriterPlannerInput(task=task).model_dump(),
+                task=task,
             ),
         )
     )

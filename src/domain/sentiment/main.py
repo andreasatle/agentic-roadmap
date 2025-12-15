@@ -12,6 +12,7 @@ from agentic.supervisor import (
     run_supervisor,
 )
 from domain.sentiment.factory import SentimentContentState
+from domain.sentiment.types import SentimentTask
 
 
 def _pretty_print_run(run: dict) -> None:
@@ -40,12 +41,13 @@ def main() -> None:
     tool_registry = make_tool_registry()
     dispatcher = make_agent_dispatcher(client, model="gpt-4.1-mini", max_retries=3)
     state = SentimentContentState()
+    task = SentimentTask(text="Test", target_sentiment="NEUTRAL")
 
     supervisor_input = SupervisorRequest(
         control=SupervisorControlInput(max_loops=5),
         domain=SupervisorDomainInput(
             domain_state=state,
-            planner_defaults={},
+            task=task,
         ),
     )
     run = run_supervisor(
