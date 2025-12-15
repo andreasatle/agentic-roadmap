@@ -26,6 +26,10 @@ def _pretty_print_run(run: dict) -> None:
     print(f"  Plan: {_serialize(plan)}")
     print(f"  Result: {_serialize(result)}")
     print(f"  Decision: {_serialize(decision)}")
+    if run.trace:
+        print("  Trace:")
+        for entry in run.trace:
+            print(f"    {_serialize(entry)}")
 
 
 def main() -> None:

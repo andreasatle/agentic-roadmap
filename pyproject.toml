@@ -21,12 +21,14 @@ agentic-arithmetic = "domain.arithmetic.main:main"
 agentic-sentiment = "domain.sentiment.main:main"
 agentic-coder = "domain.coder.main:main"
 agentic-writer = "domain.writer.main:main"
+agentic-document = "domain.document.main:main"
 
 [tool.poetry.scripts]
 arithmetic = "domain.arithmetic.main:main"
 sentiment = "domain.sentiment.main:main"
 coder = "domain.coder.main:main"
 writer = "domain.writer.main:main"
+document = "domain.document.main:main"
 
 [build-system]
 requires = ["setuptools>=61.0"]

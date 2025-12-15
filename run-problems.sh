@@ -22,4 +22,11 @@ uv run agentic-writer \
   --instructions "Write an article about War and Peace for the general public, informative tone, ~1000 words."
 echo
 
+echo "=== Running Document Analysis Problem ==="
+uv run agentic-document \
+  --tone "informative" \
+  --audience "general public" \
+  --goal "Outline an article about War and Peace"
+echo
+
 echo "=== All problems completed ==="

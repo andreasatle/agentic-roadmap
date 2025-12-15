@@ -8,7 +8,7 @@ from agentic.supervisor import SupervisorDomainInput, SupervisorRequest, run_sup
 from domain.sentiment.types import SentimentTask
 
 
-def _pretty_print_run(run: dict) -> None:
+def _pretty_print_run(run: dict, trace: bool = False) -> None:
     """Render the supervisor output in a readable diagnostic summary."""
     def _serialize(value):
         return value.model_dump() if hasattr(value, "model_dump") else value
@@ -21,6 +21,10 @@ def _pretty_print_run(run: dict) -> None:
     print(f"  Plan: {_serialize(plan)}")
     print(f"  Result: {_serialize(result)}")
     print(f"  Decision: {_serialize(decision)}")
+    if trace and run.trace:
+        print("  Trace:")
+        for entry in run.trace:
+            print(f"    {_serialize(entry)}")
 
 
 def main() -> None:
