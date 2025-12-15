@@ -1,4 +1,5 @@
 
+from typing import Self
 from agentic.common.load_save_mixin import LoadSaveMixin
 from domain.coder.types import CodeResult, CodeTask
 
@@ -11,7 +12,7 @@ class ProblemState(LoadSaveMixin):
 
     content: str = ""
 
-    def update(self, task: CodeTask, result: CodeResult) -> ProblemState:
+    def update(self, task: CodeTask, result: CodeResult) -> Self:
         """
         Return a NEW ProblemState instance updated with accepted worker result.
         Default behavior: no change.
