@@ -5,14 +5,8 @@ import argparse
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from domain.arithmetic import make_agent_dispatcher, make_tool_registry, problem_state_cls
-from agentic.supervisor import (
-    SupervisorControlInput,
-    SupervisorDomainInput,
-    SupervisorRequest,
-    run_supervisor,
-)
-from domain.arithmetic.factory import ArithmeticContentState
+from domain.arithmetic import make_agent_dispatcher, make_tool_registry
+from agentic.supervisor import SupervisorDomainInput, SupervisorRequest, run_supervisor
 from domain.arithmetic.types import ArithmeticTask
 
 
@@ -39,13 +33,10 @@ def main() -> None:
 
     tool_registry = make_tool_registry()
     dispatcher = make_agent_dispatcher(client, model="gpt-4.1-mini", max_retries=3)
-    state = ArithmeticContentState()
     task = ArithmeticTask(op="ADD", a=1, b=1)
 
     supervisor_input = SupervisorRequest(
-        control=SupervisorControlInput(max_loops=5),
         domain=SupervisorDomainInput(
-            domain_state=state,
             task=task,
         ),
     )
@@ -53,7 +44,6 @@ def main() -> None:
         supervisor_input,
         dispatcher=dispatcher,
         tool_registry=tool_registry,
-        problem_state_cls=problem_state_cls,
     )
     _pretty_print_run(run)
 

@@ -1,5 +1,4 @@
 from openai import OpenAI
-from pydantic import BaseModel
 
 from agentic.tool_registry import ToolRegistry
 from domain.arithmetic.types import (
@@ -13,11 +12,6 @@ from domain.arithmetic.planner import make_planner
 from domain.arithmetic.worker import make_worker
 from domain.arithmetic.critic import make_critic
 from domain.arithmetic.tools import add, sub, mul
-from agentic.common.domain_state import StatelessProblemState
-
-class ArithmeticContentState(StatelessProblemState):
-    pass
-
 def make_agent_dispatcher(
     client: OpenAI,
     model: str = "gpt-4.1-mini",
@@ -31,7 +25,6 @@ def make_agent_dispatcher(
         planner=planner,
         workers=workers,
         critic=critic,
-        domain_name="arithmetic",
     )
 
 
@@ -41,7 +34,3 @@ def make_tool_registry() -> ToolRegistry:
     tool_registry.register("sub", "Deterministic subtraction tool.", sub, SubArgs)
     tool_registry.register("mul", "Deterministic multiplication tool.", mul, MulArgs)
     return tool_registry
-
-
-def problem_state_cls() -> type[BaseModel]:
-    return ArithmeticContentState

@@ -100,6 +100,4 @@ class ArithmeticCriticInput(BaseModel):
 ArithmeticCriticOutput = Decision
 
 class ArithmeticDispatcher(AgentDispatcher[ArithmeticTask, ArithmeticResult, Decision]):
-    def validate_worker_routing(self, task: ArithmeticTask, worker_id: str) -> bool:
-        spec = WORKER_CAPABILITIES.get(worker_id)
-        return bool(spec and task.op in spec.supported_ops)
+    pass

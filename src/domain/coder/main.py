@@ -4,14 +4,8 @@ import argparse
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from domain.coder import make_agent_dispatcher, make_tool_registry, problem_state_cls
-from agentic.supervisor import (
-    SupervisorControlInput,
-    SupervisorDomainInput,
-    SupervisorRequest,
-    run_supervisor,
-)
-from domain.coder.state import ProblemState
+from domain.coder import make_agent_dispatcher, make_tool_registry
+from agentic.supervisor import SupervisorDomainInput, SupervisorRequest, run_supervisor
 from domain.coder.types import CodeTask
 
 from agentic.logging_config import get_logger
@@ -54,7 +48,6 @@ def main() -> None:
     task = CodeTask(language="python", specification=project_description, requirements=[project_description])
 
     supervisor_input = SupervisorRequest(
-        control=SupervisorControlInput(max_loops=5),
         domain=SupervisorDomainInput(
             domain_state=state,
             task=task,
@@ -64,14 +57,7 @@ def main() -> None:
         supervisor_input,
         dispatcher=dispatcher,
         tool_registry=tool_registry,
-        problem_state_cls=problem_state_cls,
     )
-    trace = run.trace or []
-    project_state_entry = trace[-1].get("project_state") if trace else None
-    state_data = project_state_entry.get("domain_state") if project_state_entry else None
-    if state_data is not None:
-        updated_state = ProblemState(**state_data)
-        updated_state.save()
     _pretty_print_run(run)
 
 

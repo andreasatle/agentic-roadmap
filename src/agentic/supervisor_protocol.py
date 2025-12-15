@@ -6,5 +6,5 @@ from agentic.supervisor import SupervisorRequest, SupervisorResponse
 
 
 class SupervisorProtocol(Protocol):
-    def handle(self, request: SupervisorRequest) -> SupervisorResponse:
+    def __call__(self, request: SupervisorRequest) -> SupervisorResponse:
         ...

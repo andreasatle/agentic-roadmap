@@ -1,12 +1,7 @@
 from __future__ import annotations
 
 from agentic.agent_dispatcher import AgentDispatcher
-from agentic.supervisor import (
-    Supervisor,
-    SupervisorControlInput,
-    SupervisorDomainInput,
-    SupervisorRequest,
-)
+from agentic.supervisor import Supervisor, SupervisorDomainInput, SupervisorRequest
 from agentic.tool_registry import ToolRegistry
 from domain.writer.schemas import (
     WriterPlannerInput,
@@ -67,7 +62,6 @@ def test_writer_reject_then_accept():
         planner=planner_agent,
         workers={"writer-worker": worker_agent},
         critic=critic_agent,
-        domain_name="writer",
         max_retries=1,
     )
 
@@ -75,13 +69,10 @@ def test_writer_reject_then_accept():
     supervisor = Supervisor(
         dispatcher=dispatcher,
         tool_registry=ToolRegistry(),
-        max_loops=5,
-        problem_state_cls=lambda: WriterDomainState,
     )
 
-    response = supervisor.handle(
+    reject_response = supervisor(
         SupervisorRequest(
-            control=SupervisorControlInput(max_loops=5),
             domain=SupervisorDomainInput(
                 domain_state=domain_state,
                 task=initial_task,
@@ -89,11 +80,17 @@ def test_writer_reject_then_accept():
         )
     )
 
-    trace_state = response.trace[-1]["project_state"]["domain_state"]
-    state_after_accept = WriterDomainState(**trace_state)
+    accept_response = supervisor(
+        SupervisorRequest(
+            domain=SupervisorDomainInput(
+                domain_state=domain_state,
+                task=initial_task,
+            ),
+        )
+    )
 
-    assert planner_agent.calls == 1
-    assert worker_agent.calls == 1
-    assert critic_agent.calls == 1
-    assert state_after_accept.content.sections == {}
-    assert state_after_accept.completed_sections is None or state_after_accept.completed_sections == []
+    assert planner_agent.calls == 2
+    assert worker_agent.calls == 2
+    assert critic_agent.calls == 2
+    assert reject_response.critic_decision["decision"] == "REJECT"
+    assert accept_response.critic_decision["decision"] == "ACCEPT"

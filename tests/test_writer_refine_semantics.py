@@ -3,9 +3,8 @@ from __future__ import annotations
 import pytest
 
 from agentic.agent_dispatcher import AgentDispatcher
-from agentic.supervisor import Supervisor, SupervisorControlInput, SupervisorDomainInput, SupervisorRequest
+from agentic.supervisor import Supervisor, SupervisorDomainInput, SupervisorRequest
 from agentic.tool_registry import ToolRegistry
-from domain.writer.factory import problem_state_cls
 from domain.writer.schemas import (
     WriterPlannerInput,
     WriterPlannerOutput,
@@ -77,20 +76,16 @@ def run_supervisor_once(task: WriterTask, worker_text: str, domain_state: Writer
         planner=planner_agent,
         workers={"writer-worker": worker_agent},
         critic=critic_agent,
-        domain_name="writer",
         max_retries=1,
     )
 
     supervisor = Supervisor(
         dispatcher=dispatcher,
         tool_registry=ToolRegistry(),
-        max_loops=5,
-        problem_state_cls=problem_state_cls,
     )
 
-    response = supervisor.handle(
+    response = supervisor(
         SupervisorRequest(
-            control=SupervisorControlInput(max_loops=5),
             domain=SupervisorDomainInput(
                 domain_state=domain_state,
                 task=task,

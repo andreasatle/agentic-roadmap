@@ -7,18 +7,14 @@ Supervisor contract (authoritative test oracle):
 Any behavior diverging from this contract is a bug.
 """
 from __future__ import annotations
-from typing import Any, Callable, Self
+from typing import Any, Self
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from agentic.common.domain_state import DomainStateProtocol
-from agentic.schemas import WorkerInput, Decision
+from agentic.schemas import WorkerInput
 from agentic.tool_registry import ToolRegistry
 from agentic.agent_dispatcher import AgentDispatcher
 from agentic.supervisor_types import SupervisorState as State
-
-
-class SupervisorControlInput(BaseModel):
-    max_loops: int
 
 
 class SupervisorDomainInput(BaseModel):
@@ -38,7 +34,6 @@ class SupervisorDomainInput(BaseModel):
 
 class SupervisorRequest(BaseModel):
     """domain_state is read-only during supervisor execution; mutate state only via the emitted response event."""
-    control: SupervisorControlInput
     domain: SupervisorDomainInput
 
 
@@ -60,15 +55,11 @@ class Supervisor:
         *,
         dispatcher: AgentDispatcher,
         tool_registry: ToolRegistry,
-        problem_state_cls: Callable[[], type[BaseModel]],
-        max_loops: int = 5,
     ) -> None:
         self.dispatcher = dispatcher
         self.tool_registry = tool_registry
-        self.problem_state_cls = problem_state_cls
-        self.max_loops = max_loops
 
-    def handle(self, request: SupervisorRequest) -> SupervisorResponse:
+    def __call__(self, request: SupervisorRequest) -> SupervisorResponse:
         """
         Explicit FSM over PLAN → WORK → TOOL/CRITIC → END.
         Each agent/tool invocation is a state transition.
@@ -98,7 +89,7 @@ class Supervisor:
         if "task" in getattr(planner_input_cls, "model_fields", {}):
             planner_kwargs["task"] = request_task
         planner_input = planner_input_cls(**planner_kwargs)
-        planner_response = self.dispatcher.plan(planner_input, snapshot=None)
+        planner_response = self.dispatcher.plan(planner_input)
         planner_output = planner_response.output
         if getattr(planner_output, "task", None) != request_task:
             raise RuntimeError("Planner output task did not match requested task.")
@@ -123,7 +114,7 @@ class Supervisor:
         )
 
         # WORK
-        worker_response = self.dispatcher.work(worker_id, worker_input, snapshot=None)
+        worker_response = self.dispatcher.work(worker_id, worker_input)
         worker_output = worker_response.output
         worker_result = worker_output.result
         trace.append(
@@ -167,7 +158,7 @@ class Supervisor:
                 writer_state = getattr(domain_state_obj, "content", None) if domain_state_obj else None
                 worker_kwargs["writer_state"] = writer_state
             worker_input = worker_input_cls(**worker_kwargs)
-            worker_response = self.dispatcher.work(worker_id, worker_input, snapshot=None)
+            worker_response = self.dispatcher.work(worker_id, worker_input)
             worker_output = worker_response.output
             worker_result = worker_output.result
             trace.append(
@@ -192,7 +183,7 @@ class Supervisor:
             worker_answer=worker_result,
             worker_id=worker_id,
         )
-        critic_response = self.dispatcher.critique(critic_input, snapshot=None)
+        critic_response = self.dispatcher.critique(critic_input)
         decision = critic_response.output
         trace.append(
             {
@@ -241,12 +232,9 @@ def run_supervisor(
     *,
     dispatcher: AgentDispatcher,
     tool_registry: ToolRegistry,
-    problem_state_cls: Callable[[], type[BaseModel]],
 ) -> SupervisorResponse:
     supervisor = Supervisor(
         dispatcher=dispatcher,
         tool_registry=tool_registry,
-        max_loops=supervisor_input.control.max_loops,
-        problem_state_cls=problem_state_cls,
     )
-    return supervisor.handle(supervisor_input)
+    return supervisor(supervisor_input)

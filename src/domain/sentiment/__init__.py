@@ -12,7 +12,7 @@ from domain.sentiment.types import (
 from domain.sentiment.planner import make_planner
 from domain.sentiment.worker import make_worker
 from domain.sentiment.critic import make_critic
-from domain.sentiment.factory import make_agent_dispatcher, make_tool_registry, problem_state_cls
+from domain.sentiment.factory import make_agent_dispatcher, make_tool_registry
 
 
 __all__ = [
@@ -30,5 +30,4 @@ __all__ = [
     "make_worker",
     "make_critic",
     "make_tool_registry",
-    "problem_state_cls",
 ]

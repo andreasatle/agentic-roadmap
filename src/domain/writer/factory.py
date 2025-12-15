@@ -1,12 +1,10 @@
 from openai import OpenAI
-from pydantic import BaseModel
 
 from agentic.tool_registry import ToolRegistry
 from domain.writer.dispatcher import WriterDispatcher
 from domain.writer.planner import make_planner
 from domain.writer.worker import make_worker
 from domain.writer.critic import make_critic
-from domain.writer.schemas import WriterDomainState
 
 
 def make_agent_dispatcher(
@@ -22,14 +20,9 @@ def make_agent_dispatcher(
         planner=planner,
         workers={"writer-worker": worker},
         critic=critic,
-        domain_name="writer",
     )
 
 
 def make_tool_registry() -> ToolRegistry:
     # Writer domain uses no tools in the MVP.
     return ToolRegistry()
-
-
-def problem_state_cls() -> type[BaseModel]:
-    return WriterDomainState

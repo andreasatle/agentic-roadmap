@@ -5,9 +5,8 @@ import json
 import pytest
 
 from agentic.agent_dispatcher import AgentDispatcher
-from agentic.supervisor import Supervisor, SupervisorControlInput, SupervisorDomainInput, SupervisorRequest
+from agentic.supervisor import Supervisor, SupervisorDomainInput, SupervisorRequest
 from agentic.tool_registry import ToolRegistry
-from domain.writer.factory import problem_state_cls
 from domain.writer.schemas import (
     WriterPlannerInput,
     WriterPlannerOutput,
@@ -85,7 +84,6 @@ def test_writer_single_task_execution():
         planner=planner_agent,
         workers={"writer-worker": worker_agent},
         critic=critic_agent,
-        domain_name="writer",
         max_retries=1,
     )
 
@@ -93,13 +91,10 @@ def test_writer_single_task_execution():
     supervisor = Supervisor(
         dispatcher=dispatcher,
         tool_registry=ToolRegistry(),
-        max_loops=5,
-        problem_state_cls=problem_state_cls,
     )
 
-    response = supervisor.handle(
+    response = supervisor(
         SupervisorRequest(
-            control=SupervisorControlInput(max_loops=5),
             domain=SupervisorDomainInput(
                 domain_state=domain_state,
                 task=task,
@@ -120,4 +115,4 @@ def test_writer_single_task_execution():
 def test_writer_planner_requires_structure():
     planner = make_planner(client=object(), model="test-model")
     with pytest.raises(Exception):
-        planner(json.dumps({"project_state": {}}))
+        planner(json.dumps({}))

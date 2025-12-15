@@ -31,7 +31,6 @@ class AgentDispatcherBase:
         self,
         agent: AgentProtocol[InputSchema, OutputSchema],
         input: InputSchema,
-        snapshot: dict | None = None,
     ) -> OutputSchema:
         """Call agent, validate JSON, retry boundedly, return typed object."""
         last_err: Exception | None = None
@@ -39,13 +38,11 @@ class AgentDispatcherBase:
 
         for attempt in range(1, self.max_retries + 1):
             payload = input.model_dump()
-            if snapshot:
-                payload["project_state"] = snapshot
             raw = agent(json.dumps(payload))
             last_raw = raw
             logger.debug(
                 f"[dispatcher] {agent.name} attempt {attempt}/{self.max_retries} "
-                f"payload={raw[:200]}"
+                f"response_preview={raw[:200]}"
             )
             try:
                 return agent.output_schema.model_validate_json(raw)
@@ -70,45 +67,23 @@ class AgentDispatcher(Generic[T, R, D], AgentDispatcherBase):
     planner: AgentProtocol[PlannerInput[T, R], PlannerOutput[T]]
     workers: dict[str, AgentProtocol[WorkerInput[T, R], WorkerOutput[R]]]
     critic: AgentProtocol[CriticInput[T, R], D]
-    domain_name: str
 
     # inherits max_retries and _call from base
 
-    def plan(self, planner_input: PlannerInput[T, R] | None = None, snapshot: dict | None = None) -> AgentCallResult[PlannerOutput[T]]:
-        if planner_input is None:
-            planner_input = PlannerInput[T, R]()
-        output: PlannerOutput[T] = self._call(self.planner, planner_input, snapshot)
+    def plan(self, planner_input: PlannerInput[T, R]) -> AgentCallResult[PlannerOutput[T]]:
+        output: PlannerOutput[T] = self._call(self.planner, planner_input)
         return AgentCallResult(agent_id=self.planner.id, output=output)
 
-    def work(self, worker_id: str, args: WorkerInput[T, R], snapshot: dict | None = None) -> AgentCallResult[WorkerOutput[R]]:
-        last_err: Exception | None = None
-        for attempt in range(1, self.max_retries + 1):
-            try:
-                worker_agent = self.workers.get(worker_id)
-                if worker_agent is None:
-                    raise ValueError(f"Unknown worker_id '{worker_id}'")
-                logger.debug(
-                    f"[dispatcher] worker attempt {attempt}/{self.max_retries} "
-                    f"routing_id={worker_id}"
-                )
-                output: WorkerOutput[R] = self._call(worker_agent, args, snapshot)
-                return AgentCallResult(agent_id=worker_agent.id, output=output)
-            except Exception as e:
-                last_err = e
-                continue
-
-        raise RuntimeError(
-            f"Worker routing failed after {self.max_retries} retries. "
-            f"Last error: {last_err}"
+    def work(self, worker_id: str, args: WorkerInput[T, R]) -> AgentCallResult[WorkerOutput[R]]:
+        worker_agent = self.workers.get(worker_id)
+        if worker_agent is None:
+            raise ValueError(f"Unknown worker_id '{worker_id}'")
+        logger.debug(
+            f"[dispatcher] worker routing_id={worker_id}"
         )
+        output: WorkerOutput[R] = self._call(worker_agent, args)
+        return AgentCallResult(agent_id=worker_agent.id, output=output)
 
-    def critique(self, args: CriticInput[T, R], snapshot: dict | None = None) -> AgentCallResult[D]:
-        output: D = self._call(self.critic, args, snapshot)
+    def critique(self, args: CriticInput[T, R]) -> AgentCallResult[D]:
+        output: D = self._call(self.critic, args)
         return AgentCallResult(agent_id=self.critic.id, output=output)
-
-    def validate_worker_routing(self, task: T, worker_id: str) -> bool:
-        """
-        Domain-specific dispatchers MUST override this.
-        The base dispatcher always returns True.
-        """
-        return True

@@ -16,7 +16,7 @@ from domain.arithmetic.types import (
 from domain.arithmetic.planner import make_planner
 from domain.arithmetic.worker import make_worker
 from domain.arithmetic.critic import make_critic
-from domain.arithmetic.factory import make_agent_dispatcher, make_tool_registry, problem_state_cls
+from domain.arithmetic.factory import make_agent_dispatcher, make_tool_registry
 
 __all__ = [
     "ArithmeticTask",
@@ -37,5 +37,4 @@ __all__ = [
     "make_worker",
     "make_critic",
     "make_tool_registry",
-    "problem_state_cls",
 ]

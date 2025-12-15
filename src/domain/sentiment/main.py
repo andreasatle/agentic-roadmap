@@ -4,14 +4,8 @@ import argparse
 from dotenv import load_dotenv
 from openai import OpenAI
 
-from domain.sentiment import make_agent_dispatcher, make_tool_registry, problem_state_cls
-from agentic.supervisor import (
-    SupervisorControlInput,
-    SupervisorDomainInput,
-    SupervisorRequest,
-    run_supervisor,
-)
-from domain.sentiment.factory import SentimentContentState
+from domain.sentiment import make_agent_dispatcher, make_tool_registry
+from agentic.supervisor import SupervisorDomainInput, SupervisorRequest, run_supervisor
 from domain.sentiment.types import SentimentTask
 
 
@@ -38,13 +32,10 @@ def main() -> None:
 
     tool_registry = make_tool_registry()
     dispatcher = make_agent_dispatcher(client, model="gpt-4.1-mini", max_retries=3)
-    state = SentimentContentState()
     task = SentimentTask(text="Test", target_sentiment="NEUTRAL")
 
     supervisor_input = SupervisorRequest(
-        control=SupervisorControlInput(max_loops=5),
         domain=SupervisorDomainInput(
-            domain_state=state,
             task=task,
         ),
     )
@@ -52,7 +43,6 @@ def main() -> None:
         supervisor_input,
         dispatcher=dispatcher,
         tool_registry=tool_registry,
-        problem_state_cls=problem_state_cls,
     )
     _pretty_print_run(run)
 

@@ -1,12 +1,10 @@
 from openai import OpenAI
-from pydantic import BaseModel
 
 from agentic.tool_registry import ToolRegistry
 from domain.coder.types import CoderDispatcher
 from domain.coder.planner import make_planner
 from domain.coder.worker import make_worker
 from domain.coder.critic import make_critic
-from domain.coder.state import ProblemState
 
 
 def make_agent_dispatcher(
@@ -22,14 +20,9 @@ def make_agent_dispatcher(
         planner=planner,
         workers={"coder-worker": worker},
         critic=critic,
-        domain_name="coder",
     )
 
 
 def make_tool_registry() -> ToolRegistry:
     # Coding domain has no external tools; return an empty registry for parity.
     return ToolRegistry()
-
-
-def problem_state_cls() -> type[BaseModel]:
-    return ProblemState

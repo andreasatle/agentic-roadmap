@@ -3,7 +3,7 @@ from __future__ import annotations
 import pytest
 from pydantic import ValidationError
 
-from agentic.supervisor import Supervisor, SupervisorRequest, SupervisorControlInput, SupervisorDomainInput
+from agentic.supervisor import Supervisor, SupervisorRequest, SupervisorDomainInput
 from agentic.tool_registry import ToolRegistry
 from domain.arithmetic.types import (
     ArithmeticCriticInput,
@@ -16,7 +16,6 @@ from domain.arithmetic.types import (
     ArithmeticWorkerOutput,
     ArithmeticDispatcher,
 )
-from domain.arithmetic.factory import ArithmeticContentState
 
 
 class DummyAgent:
@@ -48,22 +47,17 @@ def test_supervisor_output_is_immutable_and_serializable():
         planner=planner_agent,
         workers={"worker_addsub": worker_agent},
         critic=critic_agent,
-        domain_name="arithmetic",
         max_retries=1,
     )
 
     supervisor = Supervisor(
         dispatcher=dispatcher,
         tool_registry=ToolRegistry(),
-        max_loops=3,
-        problem_state_cls=lambda: ArithmeticContentState,
     )
 
-    output = supervisor.handle(
+    output = supervisor(
         SupervisorRequest(
-            control=SupervisorControlInput(max_loops=3),
             domain=SupervisorDomainInput(
-                domain_state=ArithmeticContentState(),
                 task=task,
             ),
         )
