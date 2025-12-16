@@ -1,5 +1,5 @@
 from openai import OpenAI
-from agentic.agents import Agent
+from agentic.agents.openai import OpenAIAgent
 from domain.arithmetic.types import (
     ArithmeticPlannerInput,
     ArithmeticPlannerOutput,
@@ -64,11 +64,11 @@ STATE USAGE:
 """
 
 
-def make_planner(client: OpenAI, model: str) -> Agent[ArithmeticPlannerInput, ArithmeticPlannerOutput]:
+def make_planner(client: OpenAI, model: str) -> OpenAIAgent[ArithmeticPlannerInput, ArithmeticPlannerOutput]:
     """
     Planner emits a single ArithmeticTask and routes it to a compatible worker.
     """
-    base_agent = Agent(
+    base_agent = OpenAIAgent(
         name="Planner",
         client=client,
         model=model,
@@ -79,7 +79,7 @@ def make_planner(client: OpenAI, model: str) -> Agent[ArithmeticPlannerInput, Ar
     )
 
     class ArithmeticPlannerAgent:
-        def __init__(self, agent: Agent[ArithmeticPlannerInput, ArithmeticPlannerOutput]):
+        def __init__(self, agent: OpenAIAgent[ArithmeticPlannerInput, ArithmeticPlannerOutput]):
             self._agent = agent
             self.name = agent.name
             self.input_schema = agent.input_schema

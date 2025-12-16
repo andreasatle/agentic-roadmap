@@ -1,4 +1,3 @@
-
 from dataclasses import dataclass, field
 from typing import Generic, Final
 from uuid import uuid4
@@ -7,12 +6,8 @@ from openai import OpenAI
 from agentic.protocols import InputSchema, OutputSchema
 
 
-# ============================================================
-# Generic Agent Wrapper
-# ============================================================
-
 @dataclass
-class Agent(Generic[InputSchema, OutputSchema]):
+class OpenAIAgent(Generic[InputSchema, OutputSchema]):
     """
     Generic LLM-based agent.
 

@@ -3,6 +3,7 @@ import argparse
 
 from dotenv import load_dotenv
 from openai import OpenAI
+#from anthropic import Anthropic
 
 from domain.arithmetic import make_agent_dispatcher, make_tool_registry
 from domain.arithmetic.types import ArithmeticTask
@@ -35,7 +36,7 @@ def main() -> None:
     client = OpenAI()
 
     tool_registry = make_tool_registry()
-    dispatcher = make_agent_dispatcher(client, model="gpt-4.1-mini", max_retries=3)
+    dispatcher = make_agent_dispatcher(client, model="gpt-5.2", max_retries=3)
     task = ArithmeticTask(op="ADD", a=1, b=1)
 
     result = run(

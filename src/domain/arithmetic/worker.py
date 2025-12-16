@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from openai import OpenAI
-from agentic.agents import Agent
+from agentic.agents.openai import OpenAIAgent
 from domain.arithmetic.types import ArithmeticWorkerInput, ArithmeticWorkerOutput
 
 
@@ -60,7 +60,12 @@ RULES:
 """
 
 
-def make_worker(client: OpenAI, model: str, worker_id: str) -> Agent[ArithmeticWorkerInput, ArithmeticWorkerOutput]:
+def make_worker(
+    client: OpenAI,
+    *,
+    worker_id: str,
+    model: str = "gpt-4.1-mini",
+) -> OpenAIAgent[ArithmeticWorkerInput, ArithmeticWorkerOutput]:
     """
     Worker emits either:
       - a tool_request, or
@@ -69,12 +74,12 @@ def make_worker(client: OpenAI, model: str, worker_id: str) -> Agent[ArithmeticW
     It NEVER executes the tool itself.
     """
     worker_prompt = PROMPT_WORKER_ADDSUB if worker_id == "worker_addsub" else PROMPT_WORKER_MUL
-    return Agent(
+    return OpenAIAgent(
         name=worker_id,
         client=client,
         model=model,
         system_prompt=worker_prompt,
         input_schema=ArithmeticWorkerInput,
         output_schema=ArithmeticWorkerOutput,
-        temperature=0.4,
+        temperature=0.0,
     )

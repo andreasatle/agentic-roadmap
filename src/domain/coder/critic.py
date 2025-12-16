@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-from agentic.agents import Agent
+from agentic.agents.openai import OpenAIAgent
 from domain.coder.types import CoderCriticInput, CoderCriticOutput
 
 
@@ -46,11 +46,11 @@ STATE USAGE:
 """
 
 
-def make_critic(client: OpenAI, model: str) -> Agent[CoderCriticInput, CoderCriticOutput]:
+def make_critic(client: OpenAI, model: str) -> OpenAIAgent[CoderCriticInput, CoderCriticOutput]:
     """
     Critic validates that the code meets the project-aligned specification and requirements.
     """
-    return Agent(
+    return OpenAIAgent(
         name="CoderCritic",
         client=client,
         model=model,

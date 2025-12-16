@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-from agentic.agents import Agent
+from agentic.agents.openai import OpenAIAgent
 from domain.writer.schemas import WriterPlannerInput, WriterPlannerOutput
 
 
@@ -44,11 +44,11 @@ RULES:
 """
 
 
-def make_planner(client: OpenAI, model: str) -> Agent[WriterPlannerInput, WriterPlannerOutput]:
+def make_planner(client: OpenAI, model: str) -> OpenAIAgent[WriterPlannerInput, WriterPlannerOutput]:
     """
     MVP planner: emits a single WriterTask routed to the writer worker.
     """
-    base_agent = Agent(
+    base_agent = OpenAIAgent(
         name="WriterPlanner",
         client=client,
         model=model,
@@ -59,7 +59,7 @@ def make_planner(client: OpenAI, model: str) -> Agent[WriterPlannerInput, Writer
     )
 
     class WriterPlannerAgent:
-        def __init__(self, agent: Agent[WriterPlannerInput, WriterPlannerOutput]):
+        def __init__(self, agent: OpenAIAgent[WriterPlannerInput, WriterPlannerOutput]):
             self._agent = agent
             self.name = agent.name
             self.input_schema = agent.input_schema

@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-from agentic.agents import Agent
+from agentic.agents.openai import OpenAIAgent
 from domain.writer.schemas import WriterCriticInput, WriterCriticOutput
 
 
@@ -78,11 +78,11 @@ Your job is deterministic evaluation. Nothing more.
 """
 
 
-def make_critic(client: OpenAI, model: str) -> Agent[WriterCriticInput, WriterCriticOutput]:
+def make_critic(client: OpenAI, model: str) -> OpenAIAgent[WriterCriticInput, WriterCriticOutput]:
     """
     MVP critic: accepts any non-empty text and mirrors the writer decision schema.
     """
-    base_agent = Agent(
+    base_agent = OpenAIAgent(
         name="WriterCritic",
         client=client,
         model=model,
@@ -93,7 +93,7 @@ def make_critic(client: OpenAI, model: str) -> Agent[WriterCriticInput, WriterCr
     )
 
     class WriterCriticAgent:
-        def __init__(self, agent: Agent[WriterCriticInput, WriterCriticOutput]):
+        def __init__(self, agent: OpenAIAgent[WriterCriticInput, WriterCriticOutput]):
             self._agent = agent
             self.name = agent.name
             self.input_schema = agent.input_schema

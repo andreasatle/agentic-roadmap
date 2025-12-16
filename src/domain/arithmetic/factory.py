@@ -18,7 +18,7 @@ def make_agent_dispatcher(
     max_retries: int = 3,
 ) -> ArithmeticDispatcher:
     planner = make_planner(client, model=model)
-    workers = {worker_id: make_worker(client, model=model, worker_id=worker_id) for worker_id in WORKER_CAPABILITIES}
+    workers = {worker_id: make_worker(client, worker_id=worker_id) for worker_id in WORKER_CAPABILITIES}
     critic = make_critic(client, model=model)
     return ArithmeticDispatcher(
         max_retries=max_retries,

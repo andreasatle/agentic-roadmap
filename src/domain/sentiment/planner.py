@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-from agentic.agents import Agent
+from agentic.agents.openai import OpenAIAgent
 from domain.sentiment.types import SentimentPlannerInput, SentimentPlannerOutput
 
 
@@ -57,11 +57,11 @@ STATE USAGE:
 """
 
 
-def make_planner(client: OpenAI, model: str) -> Agent[SentimentPlannerInput, SentimentPlannerOutput]:
+def make_planner(client: OpenAI, model: str) -> OpenAIAgent[SentimentPlannerInput, SentimentPlannerOutput]:
     """
     Planner emits a single sentiment task.
     """
-    base_agent = Agent(
+    base_agent = OpenAIAgent(
         name="SentimentPlanner",
         client=client,
         model=model,
@@ -72,7 +72,7 @@ def make_planner(client: OpenAI, model: str) -> Agent[SentimentPlannerInput, Sen
     )
 
     class SentimentPlannerAgent:
-        def __init__(self, agent: Agent[SentimentPlannerInput, SentimentPlannerOutput]):
+        def __init__(self, agent: OpenAIAgent[SentimentPlannerInput, SentimentPlannerOutput]):
             self._agent = agent
             self.name = agent.name
             self.input_schema = agent.input_schema

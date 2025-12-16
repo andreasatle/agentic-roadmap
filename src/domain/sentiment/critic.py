@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-from agentic.agents import Agent
+from agentic.agents.openai import OpenAIAgent
 from domain.sentiment.types import SentimentCriticInput, SentimentCriticOutput
 
 
@@ -39,11 +39,11 @@ STATE USAGE:
 """
 
 
-def make_critic(client: OpenAI, model: str) -> Agent[SentimentCriticInput, SentimentCriticOutput]:
+def make_critic(client: OpenAI, model: str) -> OpenAIAgent[SentimentCriticInput, SentimentCriticOutput]:
     """
     Critic judges the sentiment label for the provided text.
     """
-    return Agent(
+    return OpenAIAgent(
         name="SentimentCritic",
         client=client,
         model=model,

@@ -1,6 +1,6 @@
 from openai import OpenAI
 
-from agentic.agents import Agent
+from agentic.agents.openai import OpenAIAgent
 from domain.writer.schemas import (
     WriterWorkerInput,
     WriterWorkerOutput,
@@ -55,11 +55,11 @@ Your task is execution, not planning. Wait for the Planner’s JSON.
 When you receive a task, write the section accordingly.
 """
 
-def make_worker(client: OpenAI, model: str) -> Agent[WriterWorkerInput, WriterWorkerOutput]:
+def make_worker(client: OpenAI, model: str) -> OpenAIAgent[WriterWorkerInput, WriterWorkerOutput]:
     """
     MVP worker: always returns a placeholder paragraph for the requested section.
     """
-    base_agent = Agent(
+    base_agent = OpenAIAgent(
         name="writer-worker",
         client=client,
         model=model,
@@ -70,7 +70,7 @@ def make_worker(client: OpenAI, model: str) -> Agent[WriterWorkerInput, WriterWo
     )
 
     class WriterWorkerAgent:
-        def __init__(self, agent: Agent[WriterWorkerInput, WriterWorkerOutput]):
+        def __init__(self, agent: OpenAIAgent[WriterWorkerInput, WriterWorkerOutput]):
             self._agent = agent
             self.name = agent.name
             self.input_schema = agent.input_schema
