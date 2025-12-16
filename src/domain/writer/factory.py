@@ -1,7 +1,8 @@
 from agentic.tool_registry import ToolRegistry
 from domain.writer.dispatcher import WriterDispatcher
 from domain.writer.planner import make_planner
-from domain.writer.worker import make_worker
+from domain.writer.draft_worker import make_draft_worker
+from domain.writer.refine_worker import make_refine_worker
 from domain.writer.critic import make_critic
 
 
@@ -10,12 +11,16 @@ def make_agent_dispatcher(
     max_retries: int = 3,
 ) -> WriterDispatcher:
     planner = make_planner(model=model)
-    worker = make_worker(model=model)
+    draft_worker = make_draft_worker(model=model)
+    refine_worker = make_refine_worker(model=model)
     critic = make_critic(model=model)
     return WriterDispatcher(
         max_retries=max_retries,
         planner=planner,
-        workers={"writer-worker": worker},
+        workers={
+            "writer-draft-worker": draft_worker,
+            "writer-refine-worker": refine_worker,
+        },
         critic=critic,
     )
 

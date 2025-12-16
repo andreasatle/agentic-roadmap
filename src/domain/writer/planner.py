@@ -1,5 +1,6 @@
 from agentic.agents.openai import OpenAIAgent
 from domain.writer.schemas import WriterPlannerInput, WriterPlannerOutput
+from domain.writer.types import DraftSectionTask, RefineSectionTask
 
 
 PROMPT_PLANNER = """ROLE:
@@ -75,7 +76,13 @@ def make_planner(model: str) -> OpenAIAgent[WriterPlannerInput, WriterPlannerOut
             task_section = getattr(planner_input.task, "section_name", None)
             if task_section not in sections:
                 raise RuntimeError(f"Writer planner cannot invent section '{task_section}'.")
-            output_model = WriterPlannerOutput(task=planner_input.task, worker_id="writer-worker")
+            if isinstance(planner_input.task, DraftSectionTask):
+                worker_id = "writer-draft-worker"
+            elif isinstance(planner_input.task, RefineSectionTask):
+                worker_id = "writer-refine-worker"
+            else:
+                raise RuntimeError("Unsupported writer task type.")
+            output_model = WriterPlannerOutput(task=planner_input.task, worker_id=worker_id)
             return output_model.model_dump_json()
 
     return WriterPlannerAgent(base_agent)  # type: ignore[return-value]

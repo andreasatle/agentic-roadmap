@@ -9,7 +9,8 @@ from domain.writer.schemas import (
 )
 from domain.writer.dispatcher import WriterDispatcher
 from domain.writer.planner import make_planner
-from domain.writer.worker import make_worker
+from domain.writer.draft_worker import make_draft_worker
+from domain.writer.refine_worker import make_refine_worker
 from domain.writer.critic import make_critic
 from domain.writer.factory import make_agent_dispatcher, make_tool_registry
 
@@ -27,7 +28,8 @@ __all__ = [
     "WriterDispatcher",
     "make_agent_dispatcher",
     "make_planner",
-    "make_worker",
+    "make_draft_worker",
+    "make_refine_worker",
     "make_critic",
     "make_tool_registry",
 ]

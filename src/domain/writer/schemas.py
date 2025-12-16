@@ -64,7 +64,10 @@ class WriterPlannerOutput(PlannerOutput[WriterTask]):
     model_config = ConfigDict(populate_by_name=True)
 
     task: WriterTask
-    worker_id: str = "writer-worker"
+    worker_id: str = Field(
+        default="writer-draft-worker",
+        description="Target worker identifier for execution.",
+    )
 
 
 class WriterWorkerInput(WorkerInput[WriterTask, WriterResult]):
