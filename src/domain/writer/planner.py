@@ -44,7 +44,7 @@ RULES:
 
 def make_planner(model: str) -> OpenAIAgent[WriterPlannerInput, WriterPlannerOutput]:
     """
-    MVP planner: emits a single WriterTask routed to the writer worker.
+    Planner emits one WriterTask for a provided structure; no document management.
     """
     base_agent = OpenAIAgent(
         name="WriterPlanner",

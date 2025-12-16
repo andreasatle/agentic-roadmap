@@ -12,6 +12,7 @@ def run(
     tool_registry: ToolRegistry,
     domain_state: WriterDomainState,
 ):
+    """Execute exactly one WriterTask; writer does not manage documents or persistence."""
     supervisor_input = SupervisorRequest(
         domain=SupervisorDomainInput(
             task=task,

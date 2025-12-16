@@ -2,36 +2,9 @@
 
 ## Writer Domain
 
-The Writer domain implements a **multi-section article generator** using the agentic framework.
-
-### State Model
-
-* **WriterDomainState**
-
-  * Persistent, load/save capable
-  * Owns high-level progression metadata
-
-* **WriterContextState**
-
-  * Holds generated section content
-  * Tracks `sections` and `section_order`
-
-### Planner Responsibilities
-
-* Select next section
-* Decide operation (`draft` vs `refine`)
-* Optionally emit `section_order`
-
-### Worker Responsibilities
-
-* Produce JSON-only output
-* Merge text only in `refine` mode
-* Never invent structure
-
-### Critic Responsibilities
-
-* Single-section validation only
-* Reject empty output
-* Accept everything else (MVP)
-
-The Writer is designed to become **topic-agnostic** once prompt cleanup is complete.
+- Writer is a single-task executor.
+- It writes exactly one section per invocation.
+- It is not a document manager and does not infer or persist structure.
+- Planner validates provided structure and emits one `WriterTask`.
+- Worker produces text for that task only; no merging or refinement of prior content.
+- Any multi-section orchestration or persistence happens outside the writer domain.

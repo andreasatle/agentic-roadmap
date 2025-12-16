@@ -13,7 +13,7 @@ from domain.writer.types import WriterTask
 
 
 def _pretty_print_run(run: dict) -> None:
-    """Render the supervisor output in a readable diagnostic summary."""
+    """Render the single-task writer execution result."""
     def _serialize(value):
         return value.model_dump() if hasattr(value, "model_dump") else value
 
