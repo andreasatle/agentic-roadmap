@@ -15,7 +15,7 @@ from domain.writer.schemas import (
     WriterCriticOutput,
     WriterDomainState,
 )
-from domain.writer.types import WriterResult, WriterTask
+from domain.writer.types import DraftSectionTask, RefineSectionTask, WriterResult, WriterTask
 from domain.writer.planner import make_planner
 from domain.writer.state import StructureState
 from agentic.supervisor import SupervisorResponse
@@ -38,11 +38,9 @@ def apply_writer_accept(state: WriterDomainState, task: WriterTask, response: Su
     if not text:
         return state
     sections = dict(state.content.sections or {})
-    current = sections.get(task.section_name, "")
-    if task.operation == "refine" and text != current:
+    existing_text = sections.get(task.section_name)
+    if isinstance(task, RefineSectionTask) or existing_text in (None, ""):
         sections[task.section_name] = text
-    else:
-        sections[task.section_name] = text if task.operation == "draft" else current or text
     completed = list(state.completed_sections or [])
     if task.section_name not in completed:
         completed.append(task.section_name)
@@ -65,23 +63,22 @@ class DummyAgent:
 
 
 def test_writer_single_task_execution():
-    task = WriterTask(
+    task = DraftSectionTask(
         section_name="Intro",
         purpose="Write intro",
-        operation="draft",
         requirements=["Keep it concise"],
     )
-    planner_output = WriterPlannerOutput(task=task, worker_id="writer-worker")
+    planner_output = WriterPlannerOutput(task=task, worker_id="writer-draft-worker")
     worker_output = WriterWorkerOutput(result=WriterResult(text="done"))
     critic_output = WriterCriticOutput(decision="ACCEPT")
 
     planner_agent = DummyAgent(WriterPlannerInput, WriterPlannerOutput, planner_output.model_dump_json(), "planner")
-    worker_agent = DummyAgent(WriterWorkerInput, WriterWorkerOutput, worker_output.model_dump_json(), "worker")
+    worker_agent = DummyAgent(WriterWorkerInput, WriterWorkerOutput, worker_output.model_dump_json(), "worker-draft-worker")
     critic_agent = DummyAgent(WriterCriticInput, WriterCriticOutput, critic_output.model_dump_json(), "critic")
 
     dispatcher = AgentDispatcher(
         planner=planner_agent,
-        workers={"writer-worker": worker_agent},
+        workers={"writer-draft-worker": worker_agent},
         critic=critic_agent,
         max_retries=1,
     )

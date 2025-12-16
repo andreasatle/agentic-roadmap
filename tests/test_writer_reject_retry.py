@@ -12,7 +12,7 @@ from domain.writer.schemas import (
     WriterDomainState,
 )
 from domain.writer.state import StructureState
-from domain.writer.types import WriterResult, WriterTask
+from domain.writer.types import DraftSectionTask, WriterResult
 
 
 class SequenceAgent:
@@ -33,16 +33,15 @@ class SequenceAgent:
 
 def test_writer_reject_then_accept():
     section_name = "Intro"
-    initial_task = WriterTask(
+    initial_task = DraftSectionTask(
         section_name=section_name,
         purpose="Initial intro",
-        operation="draft",
         requirements=["State intro"],
     )
 
     planner_outputs = [
-        WriterPlannerOutput(task=initial_task, worker_id="writer-worker").model_dump_json(),
-        WriterPlannerOutput(task=initial_task, worker_id="writer-worker").model_dump_json(),
+        WriterPlannerOutput(task=initial_task, worker_id="writer-draft-worker").model_dump_json(),
+        WriterPlannerOutput(task=initial_task, worker_id="writer-draft-worker").model_dump_json(),
     ]
     worker_outputs = [
         WriterWorkerOutput(result=WriterResult(text="bad")).model_dump_json(),
@@ -54,12 +53,12 @@ def test_writer_reject_then_accept():
     ]
 
     planner_agent = SequenceAgent(WriterPlannerInput, WriterPlannerOutput, planner_outputs, "planner")
-    worker_agent = SequenceAgent(WriterWorkerInput, WriterWorkerOutput, worker_outputs, "worker")
+    worker_agent = SequenceAgent(WriterWorkerInput, WriterWorkerOutput, worker_outputs, "worker-draft-worker")
     critic_agent = SequenceAgent(WriterCriticInput, WriterCriticOutput, critic_outputs, "critic")
 
     dispatcher = AgentDispatcher(
         planner=planner_agent,
-        workers={"writer-worker": worker_agent},
+        workers={"writer-draft-worker": worker_agent},
         critic=critic_agent,
         max_retries=1,
     )

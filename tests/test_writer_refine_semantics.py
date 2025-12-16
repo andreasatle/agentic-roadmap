@@ -14,7 +14,7 @@ from domain.writer.schemas import (
 )
 from domain.writer.state import StructureState
 from domain.writer.schemas import WriterDomainState
-from domain.writer.types import WriterResult, WriterTask
+from domain.writer.types import DraftSectionTask, RefineSectionTask, WriterResult, WriterTask
 from agentic.supervisor import SupervisorResponse
 
 
@@ -36,11 +36,10 @@ def apply_writer_accept(state: WriterDomainState, task: WriterTask, response: Su
         return state
     sections = dict(state.content.sections or {})
     current = sections.get(task.section_name, "")
-    if task.operation == "refine":
-        new_text = current if text == current else text
+    if isinstance(task, RefineSectionTask):
+        sections[task.section_name] = current if text == current else text
     else:
-        new_text = text
-    sections[task.section_name] = new_text
+        sections[task.section_name] = text
     completed = list(state.completed_sections or [])
     if task.section_name not in completed:
         completed.append(task.section_name)
@@ -63,17 +62,18 @@ class DummyAgent:
 
 
 def run_supervisor_once(task: WriterTask, worker_text: str, domain_state: WriterDomainState):
-    planner_output = WriterPlannerOutput(task=task, worker_id="writer-worker")
+    worker_id = "writer-draft-worker" if isinstance(task, DraftSectionTask) else "writer-refine-worker"
+    planner_output = WriterPlannerOutput(task=task, worker_id=worker_id)
     worker_output = WriterWorkerOutput(result=WriterResult(text=worker_text))
     critic_output = WriterCriticOutput(decision="ACCEPT")
 
     planner_agent = DummyAgent(WriterPlannerInput, WriterPlannerOutput, planner_output.model_dump_json(), "planner")
-    worker_agent = DummyAgent(WriterWorkerInput, WriterWorkerOutput, worker_output.model_dump_json(), "worker")
+    worker_agent = DummyAgent(WriterWorkerInput, WriterWorkerOutput, worker_output.model_dump_json(), worker_id)
     critic_agent = DummyAgent(WriterCriticInput, WriterCriticOutput, critic_output.model_dump_json(), "critic")
 
     dispatcher = AgentDispatcher(
         planner=planner_agent,
-        workers={"writer-worker": worker_agent},
+        workers={worker_id: worker_agent},
         critic=critic_agent,
         max_retries=1,
     )
@@ -100,16 +100,14 @@ def test_refine_is_idempotent_and_appends_once():
     refine_append = "Refined addition."
     refine_text = f"{draft_text}\n\n{refine_append}"
 
-    draft_task = WriterTask(
+    draft_task = DraftSectionTask(
         section_name=section_name,
         purpose="Write intro",
-        operation="draft",
         requirements=["Provide an introduction."],
     )
-    refine_task = WriterTask(
+    refine_task = RefineSectionTask(
         section_name=section_name,
         purpose="Refine intro",
-        operation="refine",
         requirements=["Improve clarity."],
     )
 

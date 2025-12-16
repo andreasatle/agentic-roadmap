@@ -1,14 +1,13 @@
 
 from domain.writer.schemas import WriterDomainState
 from domain.writer.state import StructureState
-from domain.writer.types import WriterResult, WriterTask
+from domain.writer.types import DraftSectionTask, WriterResult
 
 
 def test_writer_snapshot_exposes_only_names_and_order():
-    task = WriterTask(
+    task = DraftSectionTask(
         section_name="Intro",
         purpose="Write intro",
-        operation="draft",
         requirements=["State purpose"],
     )
     result = WriterResult(text="Intro text")
