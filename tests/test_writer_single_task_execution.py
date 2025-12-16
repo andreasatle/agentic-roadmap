@@ -9,7 +9,7 @@ from agentic.tool_registry import ToolRegistry
 from domain.writer.schemas import (
     WriterPlannerInput,
     WriterPlannerOutput,
-    WriterWorkerInput,
+    DraftWorkerInput,
     WriterWorkerOutput,
     WriterCriticInput,
     WriterCriticOutput,
@@ -43,7 +43,7 @@ def test_writer_single_task_execution():
     critic_output = WriterCriticOutput(decision="ACCEPT")
 
     planner_agent = DummyAgent(WriterPlannerInput, WriterPlannerOutput, planner_output.model_dump_json(), "planner")
-    worker_agent = DummyAgent(WriterWorkerInput, WriterWorkerOutput, worker_output.model_dump_json(), "worker-draft-worker")
+    worker_agent = DummyAgent(DraftWorkerInput, WriterWorkerOutput, worker_output.model_dump_json(), "worker-draft-worker")
     critic_agent = DummyAgent(WriterCriticInput, WriterCriticOutput, critic_output.model_dump_json(), "critic")
 
     dispatcher = AgentDispatcher(

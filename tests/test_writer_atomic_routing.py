@@ -1,9 +1,11 @@
 from __future__ import annotations
 
+import json
+
 import pytest
 
 from domain.writer.planner import make_planner
-from domain.writer.schemas import WriterPlannerInput, WriterPlannerOutput, WriterWorkerInput
+from domain.writer.schemas import DraftWorkerInput, WriterPlannerInput, WriterPlannerOutput
 from domain.writer.types import DraftSectionTask, RefineSectionTask
 
 
@@ -25,10 +27,14 @@ def test_planner_routes_draft_and_refine_to_distinct_workers():
     assert refine_output.task == refine_input.task
 
 
-def test_planner_rejects_missing_section_and_worker_input_requires_kind():
+def test_writer_planner_requires_discriminated_task():
     planner = make_planner(model="dummy")
-    with pytest.raises(RuntimeError, match="requires an explicit task"):
-        planner("{}")
-
-    with pytest.raises(Exception):
-        WriterWorkerInput.model_validate({"task": {"section_name": "Intro", "purpose": "p", "requirements": ["r"]}})
+    invalid_payloads = [
+        "{}",
+        json.dumps({"task": {}}),
+        json.dumps({"task": {"section_name": "Intro"}}),
+        json.dumps({"task": {"kind": "unknown", "section_name": "Intro", "purpose": "p", "requirements": ["r"]}}),
+    ]
+    for payload in invalid_payloads:
+        with pytest.raises(RuntimeError):
+            planner(payload)

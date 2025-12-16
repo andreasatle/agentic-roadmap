@@ -1,5 +1,6 @@
 from agentic.agents.openai import OpenAIAgent
-from domain.writer.schemas import WriterWorkerInput, WriterWorkerOutput
+from domain.writer.schemas import DraftWorkerInput, WriterWorkerOutput
+from domain.writer.types import DraftSectionTask
 
 
 PROMPT_DRAFT_WORKER = """ROLE:
@@ -33,19 +34,19 @@ RULES:
 """
 
 
-def make_draft_worker(model: str) -> OpenAIAgent[WriterWorkerInput, WriterWorkerOutput]:
+def make_draft_worker(model: str) -> OpenAIAgent[DraftWorkerInput, WriterWorkerOutput]:
     """Create the dedicated draft worker; it only handles DraftSectionTask inputs."""
     base_agent = OpenAIAgent(
         name="writer-draft-worker",
         model=model,
         system_prompt=PROMPT_DRAFT_WORKER,
-        input_schema=WriterWorkerInput,
+        input_schema=DraftWorkerInput,
         output_schema=WriterWorkerOutput,
         temperature=0.0,
     )
 
     class WriterDraftWorkerAgent:
-        def __init__(self, agent: OpenAIAgent[WriterWorkerInput, WriterWorkerOutput]):
+        def __init__(self, agent: OpenAIAgent[DraftWorkerInput, WriterWorkerOutput]):
             self._agent = agent
             self.name = agent.name
             self.input_schema = agent.input_schema
@@ -54,13 +55,15 @@ def make_draft_worker(model: str) -> OpenAIAgent[WriterWorkerInput, WriterWorker
 
         def __call__(self, user_input: str) -> str:
             try:
-                worker_input = WriterWorkerInput.model_validate_json(user_input)
-            except Exception:
-                worker_input = None
+                worker_input = DraftWorkerInput.model_validate_json(user_input)
+            except Exception as exc:
+                raise RuntimeError("writer-draft-worker requires a DraftSectionTask input.") from exc
+            if not isinstance(worker_input.task, DraftSectionTask):
+                raise RuntimeError("writer-draft-worker received non-draft task.")
 
             raw_output = self._agent(user_input)
             output_model = WriterWorkerOutput.model_validate_json(raw_output)
-            if not output_model.result.text and worker_input:
+            if not output_model.result.text:
                 output_model.result.text = f"{worker_input.task.section_name}: {worker_input.task.purpose}"
             return output_model.model_dump_json()
 

@@ -5,7 +5,8 @@ from agentic.tool_registry import ToolRegistry
 from domain.writer.schemas import (
     WriterPlannerInput,
     WriterPlannerOutput,
-    WriterWorkerInput,
+    DraftWorkerInput,
+    RefineWorkerInput,
     WriterWorkerOutput,
     WriterCriticInput,
     WriterCriticOutput,
@@ -34,7 +35,8 @@ def run_supervisor_once(task: WriterTask, worker_text: str):
     critic_output = WriterCriticOutput(decision="ACCEPT")
 
     planner_agent = DummyAgent(WriterPlannerInput, WriterPlannerOutput, planner_output.model_dump_json(), "planner")
-    worker_agent = DummyAgent(WriterWorkerInput, WriterWorkerOutput, worker_output.model_dump_json(), worker_id)
+    worker_input_schema = DraftWorkerInput if worker_id == "writer-draft-worker" else RefineWorkerInput
+    worker_agent = DummyAgent(worker_input_schema, WriterWorkerOutput, worker_output.model_dump_json(), worker_id)
     critic_agent = DummyAgent(WriterCriticInput, WriterCriticOutput, critic_output.model_dump_json(), "critic")
 
     dispatcher = AgentDispatcher(

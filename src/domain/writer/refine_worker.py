@@ -1,5 +1,6 @@
 from agentic.agents.openai import OpenAIAgent
-from domain.writer.schemas import WriterWorkerInput, WriterWorkerOutput
+from domain.writer.schemas import RefineWorkerInput, WriterWorkerOutput
+from domain.writer.types import RefineSectionTask
 
 
 PROMPT_REFINE_WORKER = """ROLE:
@@ -33,19 +34,19 @@ RULES:
 """
 
 
-def make_refine_worker(model: str) -> OpenAIAgent[WriterWorkerInput, WriterWorkerOutput]:
+def make_refine_worker(model: str) -> OpenAIAgent[RefineWorkerInput, WriterWorkerOutput]:
     """Create the dedicated refine worker; it only handles RefineSectionTask inputs."""
     base_agent = OpenAIAgent(
         name="writer-refine-worker",
         model=model,
         system_prompt=PROMPT_REFINE_WORKER,
-        input_schema=WriterWorkerInput,
+        input_schema=RefineWorkerInput,
         output_schema=WriterWorkerOutput,
         temperature=0.0,
     )
 
     class WriterRefineWorkerAgent:
-        def __init__(self, agent: OpenAIAgent[WriterWorkerInput, WriterWorkerOutput]):
+        def __init__(self, agent: OpenAIAgent[RefineWorkerInput, WriterWorkerOutput]):
             self._agent = agent
             self.name = agent.name
             self.input_schema = agent.input_schema
@@ -54,13 +55,15 @@ def make_refine_worker(model: str) -> OpenAIAgent[WriterWorkerInput, WriterWorke
 
         def __call__(self, user_input: str) -> str:
             try:
-                worker_input = WriterWorkerInput.model_validate_json(user_input)
-            except Exception:
-                worker_input = None
+                worker_input = RefineWorkerInput.model_validate_json(user_input)
+            except Exception as exc:
+                raise RuntimeError("writer-refine-worker requires a RefineSectionTask input.") from exc
+            if not isinstance(worker_input.task, RefineSectionTask):
+                raise RuntimeError("writer-refine-worker received non-refine task.")
 
             raw_output = self._agent(user_input)
             output_model = WriterWorkerOutput.model_validate_json(raw_output)
-            if not output_model.result.text and worker_input:
+            if not output_model.result.text:
                 output_model.result.text = f"{worker_input.task.section_name}: {worker_input.task.purpose}"
             return output_model.model_dump_json()
 

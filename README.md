@@ -70,15 +70,7 @@ The Writer domain implements a **multi-section article generator** using the age
 
 ### State Model
 
-* **WriterDomainState**
-
-  * Persistent, load/save capable
-  * Owns high-level progression metadata
-
-* **WriterContextState**
-
-  * Holds generated section content
-  * Tracks `sections` and `section_order`
+Writer is now stateless: it accepts a `WriterTask` and returns a `WriterResult`. Document structure, ordering, and persistence live outside the writer domain.
 
 ### Planner Responsibilities
 

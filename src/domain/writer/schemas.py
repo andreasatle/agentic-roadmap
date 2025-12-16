@@ -3,7 +3,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from agentic.schemas import Decision, Feedback, PlannerOutput, WorkerOutput
 
-from domain.writer.types import WriterResult, WriterTask
+from domain.writer.types import DraftSectionTask, RefineSectionTask, WriterResult, WriterTask
 
 
 class WriterPlannerInput(BaseModel):
@@ -26,12 +26,23 @@ class WriterPlannerOutput(PlannerOutput[WriterTask]):
     )
 
 
-class WriterWorkerInput(BaseModel):
-    """Work request for the writer worker."""
+class DraftWorkerInput(BaseModel):
+    """Work request for the draft worker."""
 
     model_config = ConfigDict(populate_by_name=True, extra="forbid")
 
-    task: WriterTask
+    task: DraftSectionTask
+    previous_result: WriterResult | None = None
+    feedback: Feedback | None = None
+    tool_result: WriterResult | None = None
+
+
+class RefineWorkerInput(BaseModel):
+    """Work request for the refine worker."""
+
+    model_config = ConfigDict(populate_by_name=True, extra="forbid")
+
+    task: RefineSectionTask
     previous_result: WriterResult | None = None
     feedback: Feedback | None = None
     tool_result: WriterResult | None = None

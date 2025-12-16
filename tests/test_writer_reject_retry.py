@@ -5,7 +5,7 @@ from agentic.tool_registry import ToolRegistry
 from domain.writer.schemas import (
     WriterPlannerInput,
     WriterPlannerOutput,
-    WriterWorkerInput,
+    DraftWorkerInput,
     WriterWorkerOutput,
     WriterCriticInput,
     WriterCriticOutput,
@@ -51,7 +51,7 @@ def test_writer_reject_then_accept():
     ]
 
     planner_agent = SequenceAgent(WriterPlannerInput, WriterPlannerOutput, planner_outputs, "planner")
-    worker_agent = SequenceAgent(WriterWorkerInput, WriterWorkerOutput, worker_outputs, "worker-draft-worker")
+    worker_agent = SequenceAgent(DraftWorkerInput, WriterWorkerOutput, worker_outputs, "worker-draft-worker")
     critic_agent = SequenceAgent(WriterCriticInput, WriterCriticOutput, critic_outputs, "critic")
 
     dispatcher = AgentDispatcher(
