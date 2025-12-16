@@ -27,9 +27,9 @@ STRUCTURAL RESPONSIBILITIES:
 PLANNER OUTPUT FORMAT (STRICT JSON ONLY):
 {
   "task": {
+    "kind": "draft_section | refine_section",
     "section_name": "<concise, human-readable section title>",
     "purpose": "<why this section is necessary for the article>",
-    "operation": "draft | refine",
     "requirements": []
   }
 }

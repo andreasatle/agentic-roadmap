@@ -1,4 +1,4 @@
-from domain.writer.types import WriterResult, WriterTask
+from domain.writer.types import DraftSectionTask, RefineSectionTask, WriterResult, WriterTask
 from domain.writer.schemas import (
     WriterPlannerInput,
     WriterPlannerOutput,
@@ -15,6 +15,8 @@ from domain.writer.factory import make_agent_dispatcher, make_tool_registry
 
 __all__ = [
     "WriterTask",
+    "DraftSectionTask",
+    "RefineSectionTask",
     "WriterResult",
     "WriterPlannerInput",
     "WriterPlannerOutput",

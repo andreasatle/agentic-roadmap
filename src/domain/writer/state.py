@@ -1,6 +1,6 @@
 
 from pydantic import BaseModel, Field
-from domain.writer.types import WriterResult, WriterTask
+from domain.writer.types import RefineSectionTask, WriterResult, WriterTask
 
 
 class StructureState(BaseModel):
@@ -31,10 +31,9 @@ class WriterContentState(BaseModel):
         # Copy sections immutably
         new_sections = dict(self.sections)
         section_name = getattr(task, "section_name", None)
-        operation = getattr(task, "operation", None)
         if section_name:
             existing_text = new_sections.get(section_name)
-            if operation == "refine" or existing_text in (None, ""):
+            if isinstance(task, RefineSectionTask) or existing_text in (None, ""):
                 new_sections[section_name] = result.text
 
         # Determine updated section_order
