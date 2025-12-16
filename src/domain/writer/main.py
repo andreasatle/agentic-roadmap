@@ -6,9 +6,7 @@ from domain.writer import (
     make_agent_dispatcher,
     make_tool_registry,
 )
-from domain.writer.state import StructureState
 from domain.writer.api import run
-from domain.writer.schemas import WriterDomainState
 from domain.writer.types import DraftSectionTask
 
 
@@ -45,11 +43,10 @@ def main() -> None:
     sections_arg = [s.strip() for s in args.sections.split(",") if s.strip()]
     if not sections_arg:
         raise RuntimeError(
-            "Writer requires an explicit structure: no sections were provided."
+            "Writer requires an explicit section name: no sections were provided."
         )
-    state = WriterDomainState(structure=StructureState(sections=sections_arg))
 
-    section_name = state.structure.sections[0]
+    section_name = sections_arg[0]
     task = DraftSectionTask(
         section_name=section_name,
         purpose=f"Write the '{section_name}' section.",
@@ -60,7 +57,6 @@ def main() -> None:
         task,
         dispatcher=dispatcher,
         tool_registry=tool_registry,
-        domain_state=state,
     )
 
     _pretty_print_run(result)

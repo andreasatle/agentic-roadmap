@@ -1,27 +1,12 @@
 
-from domain.writer.schemas import WriterDomainState
-from domain.writer.state import StructureState
-from domain.writer.types import DraftSectionTask, WriterResult
+import pytest
 
 
-def test_writer_snapshot_exposes_only_names_and_order():
-    task = DraftSectionTask(
-        section_name="Intro",
-        purpose="Write intro",
-        requirements=["State purpose"],
-    )
-    result = WriterResult(text="Intro text")
-    state = WriterDomainState(
-        completed_sections=["Intro"],
-        structure=StructureState(sections=["Intro", "Body", "Conclusion"]),
-    )
-    updated_state = state.update(task, result)
+from domain.writer.schemas import WriterWorkerInput
+from domain.writer.types import DraftSectionTask
 
-    snapshot = updated_state.snapshot_for_llm()
 
-    assert "completed_sections" in snapshot
-    assert "section_order" in snapshot
-    assert "content" not in snapshot
-    assert "sections" not in snapshot
-    assert snapshot["completed_sections"] == ["Intro"]
-    assert snapshot["section_order"] == ["Intro", "Body", "Conclusion"]
+def test_worker_input_disallows_project_state():
+    task = DraftSectionTask(section_name="Intro", purpose="p", requirements=["r"])
+    with pytest.raises(Exception):
+        WriterWorkerInput.model_validate({"task": task.model_dump(), "project_state": {"domain": {}}})

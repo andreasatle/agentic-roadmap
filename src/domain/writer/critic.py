@@ -17,12 +17,6 @@ INPUT FORMAT:
     "requirements": ["...", "..."]
   },
   "worker_answer": "<text the Worker wrote>"
-
-  Optional:
-  "project_state": {
-    "project": { ... },
-    "domain": { ... }
-  } | null
 }
 
 OUTPUT FORMAT (STRICT JSON):
@@ -63,14 +57,6 @@ EVALUATION RULES:
 
 7. **Strict JSON only**.
    No analysis, no commentary, no Markdown, no prose outside the JSON.
-
-STATE USAGE:
-- If project_state.project shows repeated failures or rejected sections, use
-  this information to detect loops or uncorrected issues.
-- If project_state.domain contains details about the current overall outline or
-  writing intent, ensure the Worker output remains consistent with that state.
-- If no project_state is present, behave exactly as before.
-- Never require project_state; all validations must work without it.
 
 Your job is deterministic evaluation. Nothing more.
 """

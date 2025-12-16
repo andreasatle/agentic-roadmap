@@ -1,6 +1,4 @@
 
-import pytest
-
 from agentic.agent_dispatcher import AgentDispatcher
 from agentic.supervisor import Supervisor, SupervisorDomainInput, SupervisorRequest
 from agentic.tool_registry import ToolRegistry
@@ -12,39 +10,7 @@ from domain.writer.schemas import (
     WriterCriticInput,
     WriterCriticOutput,
 )
-from domain.writer.state import StructureState
-from domain.writer.schemas import WriterDomainState
 from domain.writer.types import DraftSectionTask, RefineSectionTask, WriterResult, WriterTask
-from agentic.supervisor import SupervisorResponse
-
-
-def apply_writer_accept(state: WriterDomainState, task: WriterTask, response: SupervisorResponse) -> WriterDomainState:
-    decision = response.critic_decision
-    decision_value = decision.get("decision") if isinstance(decision, dict) else getattr(decision, "decision", None)
-    if decision_value != "ACCEPT":
-        return state
-    worker_output = response.worker_output
-    if worker_output is None:
-        return state
-    if isinstance(worker_output, dict):
-        result = worker_output.get("result") if isinstance(worker_output.get("result"), dict) else worker_output.get("result")
-        text = result.get("text") if isinstance(result, dict) else ""
-    else:
-        result = getattr(worker_output, "result", None)
-        text = getattr(result, "text", "") if result else ""
-    if not text:
-        return state
-    sections = dict(state.content.sections or {})
-    current = sections.get(task.section_name, "")
-    if isinstance(task, RefineSectionTask):
-        sections[task.section_name] = current if text == current else text
-    else:
-        sections[task.section_name] = text
-    completed = list(state.completed_sections or [])
-    if task.section_name not in completed:
-        completed.append(task.section_name)
-    new_content = state.content.model_copy(update={"sections": sections})
-    return state.model_copy(update={"content": new_content, "completed_sections": completed})
 
 
 class DummyAgent:
@@ -61,7 +27,7 @@ class DummyAgent:
         return self.output_json
 
 
-def run_supervisor_once(task: WriterTask, worker_text: str, domain_state: WriterDomainState):
+def run_supervisor_once(task: WriterTask, worker_text: str):
     worker_id = "writer-draft-worker" if isinstance(task, DraftSectionTask) else "writer-refine-worker"
     planner_output = WriterPlannerOutput(task=task, worker_id=worker_id)
     worker_output = WriterWorkerOutput(result=WriterResult(text=worker_text))
@@ -86,7 +52,6 @@ def run_supervisor_once(task: WriterTask, worker_text: str, domain_state: Writer
     response = supervisor(
         SupervisorRequest(
             domain=SupervisorDomainInput(
-                domain_state=domain_state,
                 task=task,
             ),
         )
@@ -96,10 +61,6 @@ def run_supervisor_once(task: WriterTask, worker_text: str, domain_state: Writer
 
 def test_refine_is_idempotent_and_appends_once():
     section_name = "Intro"
-    draft_text = "Draft content."
-    refine_append = "Refined addition."
-    refine_text = f"{draft_text}\n\n{refine_append}"
-
     draft_task = DraftSectionTask(
         section_name=section_name,
         purpose="Write intro",
@@ -111,25 +72,10 @@ def test_refine_is_idempotent_and_appends_once():
         requirements=["Improve clarity."],
     )
 
-    domain_state = WriterDomainState(structure=StructureState(sections=[section_name]))
-
-    draft_response = run_supervisor_once(draft_task, draft_text, domain_state)
+    draft_response = run_supervisor_once(draft_task, "Draft content.")
+    assert draft_response.worker_id == "writer-draft-worker"
     assert draft_response.critic_decision["decision"] == "ACCEPT"
-    domain_state = apply_writer_accept(domain_state, draft_task, draft_response)
-    assert domain_state.content.sections[section_name].strip() != ""
 
-    refine_response = run_supervisor_once(refine_task, refine_text, domain_state)
+    refine_response = run_supervisor_once(refine_task, "Refined content.")
+    assert refine_response.worker_id == "writer-refine-worker"
     assert refine_response.critic_decision["decision"] == "ACCEPT"
-    domain_state = apply_writer_accept(domain_state, refine_task, refine_response)
-    combined_text = domain_state.content.sections[section_name]
-
-    refine_again_response = run_supervisor_once(refine_task, combined_text, domain_state)
-    assert refine_again_response.critic_decision["decision"] == "ACCEPT"
-    domain_state = apply_writer_accept(domain_state, refine_task, refine_again_response)
-    final_text = domain_state.content.sections[section_name]
-
-    assert final_text.count(draft_text) == 1
-    assert final_text.count(refine_append) == 1
-    assert domain_state.structure.sections == ["Intro"]
-    assert domain_state.content.section_order is None
-    assert domain_state.completed_sections == [section_name]

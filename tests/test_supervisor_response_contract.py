@@ -2,7 +2,6 @@
 import json
 
 from agentic.supervisor import SupervisorResponse
-from domain.writer.schemas import WriterDomainState
 
 
 def test_supervisor_response_is_json_serializable():
@@ -18,10 +17,7 @@ def test_supervisor_response_is_json_serializable():
     json.dumps(serialized)
 
 
-def test_domain_state_can_be_rehydrated_from_response():
-    original_state = WriterDomainState()
-    state_snapshot = original_state.model_dump()
-
+def test_supervisor_response_has_trace_but_no_domain_state():
     response = SupervisorResponse(
         task={"task": "rehydrate"},
         worker_id="worker",
@@ -31,3 +27,4 @@ def test_domain_state_can_be_rehydrated_from_response():
     )
 
     assert response.trace is not None
+    assert "domain_state" not in response.model_dump()

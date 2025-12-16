@@ -9,9 +9,7 @@ from domain.writer.schemas import (
     WriterWorkerOutput,
     WriterCriticInput,
     WriterCriticOutput,
-    WriterDomainState,
 )
-from domain.writer.state import StructureState
 from domain.writer.types import DraftSectionTask, WriterResult
 
 
@@ -63,7 +61,6 @@ def test_writer_reject_then_accept():
         max_retries=1,
     )
 
-    domain_state = WriterDomainState(structure=StructureState(sections=[section_name]))
     supervisor = Supervisor(
         dispatcher=dispatcher,
         tool_registry=ToolRegistry(),
@@ -72,7 +69,6 @@ def test_writer_reject_then_accept():
     reject_response = supervisor(
         SupervisorRequest(
             domain=SupervisorDomainInput(
-                domain_state=domain_state,
                 task=initial_task,
             ),
         )
@@ -81,7 +77,6 @@ def test_writer_reject_then_accept():
     accept_response = supervisor(
         SupervisorRequest(
             domain=SupervisorDomainInput(
-                domain_state=domain_state,
                 task=initial_task,
             ),
         )
