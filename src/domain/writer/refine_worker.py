@@ -34,6 +34,7 @@ RULES:
 
 
 def make_refine_worker(model: str) -> OpenAIAgent[WriterWorkerInput, WriterWorkerOutput]:
+    """Create the dedicated refine worker; it only handles RefineSectionTask inputs."""
     base_agent = OpenAIAgent(
         name="writer-refine-worker",
         model=model,

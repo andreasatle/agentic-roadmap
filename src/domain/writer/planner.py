@@ -39,7 +39,10 @@ RULES:
 
 
 def make_planner(model: str) -> OpenAIAgent[WriterPlannerInput, WriterPlannerOutput]:
-    """Planner only validates structure membership and routes tasks to workers."""
+    """
+    Planner only validates structure membership and routes writer tasks to the
+    appropriate worker (draft vs refine). It never alters tasks or invents content.
+    """
     base_agent = OpenAIAgent(
         name="WriterPlanner",
         model=model,

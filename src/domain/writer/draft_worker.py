@@ -34,6 +34,7 @@ RULES:
 
 
 def make_draft_worker(model: str) -> OpenAIAgent[WriterWorkerInput, WriterWorkerOutput]:
+    """Create the dedicated draft worker; it only handles DraftSectionTask inputs."""
     base_agent = OpenAIAgent(
         name="writer-draft-worker",
         model=model,
