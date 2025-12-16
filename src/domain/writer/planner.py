@@ -67,6 +67,15 @@ def make_planner(model: str) -> OpenAIAgent[WriterPlannerInput, WriterPlannerOut
             planner_input = self.input_schema.model_validate_json(user_input)
             if planner_input.task is None:
                 raise RuntimeError("Writer planner requires an explicit task.")
+            project_state = planner_input.project_state
+            domain_state = project_state.domain if project_state else None
+            structure = domain_state.structure if domain_state else None
+            sections = structure.sections if structure else None
+            if not sections:
+                raise RuntimeError("Writer planner requires explicit structure with at least one section.")
+            task_section = getattr(planner_input.task, "section_name", None)
+            if task_section not in sections:
+                raise RuntimeError(f"Writer planner cannot invent section '{task_section}'.")
             output_model = WriterPlannerOutput(task=planner_input.task, worker_id="writer-worker")
             return output_model.model_dump_json()
 
