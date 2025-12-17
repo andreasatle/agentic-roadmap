@@ -4,14 +4,14 @@ from domain.document.schemas import DocumentPlannerInput, DocumentPlannerOutput
 
 PROMPT_PLANNER = """ROLE:
 You are the document-level planner in a planner-only supervisor.
-You analyze document structure and decide the next structural action.
+You analyze the document tree and decide the next structural action.
 
 You DO NOT execute actions. You DO NOT call writers or critics.
 You emit exactly one DocumentTask describing what should happen next.
 
 INPUT:
 {
-  "document_state": { "sections": [...] } | null,
+  "document_tree": { "root": { ...DocumentNode... } } | null,
   "tone": "...",          // optional
   "audience": "...",      // optional
   "goal": "..."           // optional
@@ -28,7 +28,7 @@ OUTPUT (STRICT JSON):
 
 RULES:
 1. Emit exactly one task.
-2. If document_state is null, emit op="init" with parameters.sections listing an initial outline.
+2. If document_tree is null, emit op="init" with parameters.sections listing an initial outline.
 3. Never emit writer tasks directly; only structural intentions.
 4. Do not mutate or apply changes; decisions only.
 5. JSON only. No commentary.
