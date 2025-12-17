@@ -8,5 +8,14 @@ class DocumentTask(BaseModel):
     parameters: dict[str, Any] = Field(default_factory=dict)
 
 
+class DocumentNode(BaseModel):
+    """Pure structural node describing the document outline."""
+
+    id: str
+    title: str
+    description: str
+    children: list["DocumentNode"] = Field(default_factory=list)
+
+
 class DocumentState(BaseModel):
     sections: list[str]
