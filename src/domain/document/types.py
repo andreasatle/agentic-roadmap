@@ -17,5 +17,5 @@ class DocumentNode(BaseModel):
     children: list["DocumentNode"] = Field(default_factory=list)
 
 
-class DocumentState(BaseModel):
-    sections: list[str]
+class DocumentTree(BaseModel):
+    root: DocumentNode

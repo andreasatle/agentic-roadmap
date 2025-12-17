@@ -4,19 +4,19 @@ from agentic.analysis_supervisor import (
     run_analysis_supervisor,
 )
 from domain.document.schemas import DocumentPlannerInput
-from domain.document.types import DocumentState
+from domain.document.types import DocumentTree
 
 
 def analyze(
     *,
-    document_state: DocumentState | None,
+    document_tree: DocumentTree | None,
     tone: str | None,
     audience: str | None,
     goal: str | None,
     dispatcher: AgentDispatcher,
 ):
     planner_input = DocumentPlannerInput(
-        document_state=document_state,
+        document_tree=document_tree,
         tone=tone,
         audience=audience,
         goal=goal,

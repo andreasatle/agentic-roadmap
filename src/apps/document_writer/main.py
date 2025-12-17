@@ -1,7 +1,7 @@
 import argparse
 from dotenv import load_dotenv
 from domain.document.planner import make_planner
-from domain.document.types import DocumentState
+from domain.document.types import DocumentTree
 from domain.document.api import analyze
 from agentic.agent_dispatcher import AgentDispatcher
 from agentic.logging_config import get_logger
@@ -58,11 +58,11 @@ def main() -> None:
     )
 
     # --- Initial document state ---
-    # For now, start with no state (first planning step).
-    document_state: DocumentState | None = None
+    # For now, start with no tree (first planning step).
+    document_tree: DocumentTree | None = None
 
     run = analyze(
-        document_state=document_state,
+        document_tree=document_tree,
         tone=args.tone,
         audience=args.audience,
         goal=args.goal,
