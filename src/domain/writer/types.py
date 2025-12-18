@@ -41,6 +41,7 @@ class RefineSectionTask(BaseSectionTask):
 WriterTask = Annotated[
     DraftSectionTask | RefineSectionTask, Field(discriminator="kind")
 ]
+"""Union of writer tasks executed under bounded retry semantics; acceptance by the critic is terminal."""
 
 
 class WriterResult(BaseModel):
@@ -48,6 +49,7 @@ class WriterResult(BaseModel):
 
     - Bound to exactly one node via the surrounding task’s node_id.
     - Contains only section text; it does not imply storage, ordering, or assembly.
+    - May be absent in non-convergent runs; when present and accepted, it is terminal for that attempt.
     """
 
     text: str = Field(..., description="Completed prose for the section.")

@@ -4,6 +4,7 @@ Controller contract (authoritative test oracle):
 - It executes exactly one task per request.
 - It does not create, advance, or decide tasks, manage workflow, or loop for progress.
 - It returns a single immutable response representing one execution attempt.
+- Retry limits are enforced externally; Controller execution is atomic and finite per call.
 Any behavior diverging from this contract is a bug.
 """
 from typing import Any, Self
