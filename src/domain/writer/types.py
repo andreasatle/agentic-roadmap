@@ -44,6 +44,10 @@ WriterTask = Annotated[
 
 
 class WriterResult(BaseModel):
-    """Single section output keyed by DocumentNode.id; no structural authority."""
+    """Single section output keyed by one DocumentNode.id; no structural or persistence authority.
+
+    - Bound to exactly one node via the surrounding task’s node_id.
+    - Contains only section text; it does not imply storage, ordering, or assembly.
+    """
 
     text: str = Field(..., description="Completed prose for the section.")

@@ -74,6 +74,7 @@ class DocumentTree(BaseModel):
     """Complete document structure provided by the Document layer.
 
     The tree is complete and immutable for a writer run; Writer consumes it but never mutates or enriches it.
+    Content is intentionally absent; text binding lives externally via {DocumentNode.id → text}.
     """
 
     root: DocumentNode
