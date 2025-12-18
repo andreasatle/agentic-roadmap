@@ -97,15 +97,88 @@ def make_critic(model: str) -> OpenAIAgent[WriterCriticInput, WriterCriticOutput
                     },
                 ).model_dump_json()
 
+            lower_text = text.lower()
             section_name = getattr(critic_input.plan, "section_name", "") or ""
-            if section_name and section_name.lower() not in text.lower():
+            node_desc = critic_input.node_description or getattr(critic_input.plan, "purpose", "")
+
+            # Requirement coverage
+            for req in getattr(critic_input.plan, "requirements", []) or []:
+                if req and req.lower() not in lower_text:
+                    return WriterCriticOutput(
+                        decision="REJECT",
+                        feedback={
+                            "kind": "TASK_INCOMPLETE",
+                            "message": f"Add coverage for requirement: '{req}'.",
+                        },
+                    ).model_dump_json()
+
+            # Scope containment
+            if section_name and section_name.lower() not in lower_text:
                 return WriterCriticOutput(
                     decision="REJECT",
                     feedback={
                         "kind": "SCOPE_ERROR",
-                        "message": f"Section '{section_name}' is not clearly addressed.",
+                        "message": f"Focus on section '{section_name}' explicitly.",
                     },
                 ).model_dump_json()
+            if node_desc and node_desc.lower() not in lower_text:
+                return WriterCriticOutput(
+                    decision="REJECT",
+                    feedback={
+                        "kind": "SCOPE_ERROR",
+                        "message": "Align text with the section description; remove off-topic content.",
+                    },
+                ).model_dump_json()
+            forbidden_scope_terms = [
+                "future section",
+                "next section",
+                "other sections",
+                "entire document",
+                "whole document",
+                "overall document",
+                "document-wide",
+                "conclusion of the document",
+            ]
+            for term in forbidden_scope_terms:
+                if term in lower_text:
+                    return WriterCriticOutput(
+                        decision="REJECT",
+                        feedback={
+                            "kind": "SCOPE_ERROR",
+                            "message": f"Remove meta or cross-section content (found '{term}').",
+                        },
+                    ).model_dump_json()
+
+            # Completeness heuristics
+            if len(text.strip()) < 80:
+                return WriterCriticOutput(
+                    decision="REJECT",
+                    feedback={
+                        "kind": "TASK_INCOMPLETE",
+                        "message": "Expand the section with substantive prose; current text is too short.",
+                    },
+                ).model_dump_json()
+            lines = [ln.strip() for ln in text.splitlines() if ln.strip()]
+            if lines:
+                bullet_lines = [ln for ln in lines if ln.startswith(("-", "*", "•"))]
+                if len(bullet_lines) > len(lines) / 2:
+                    return WriterCriticOutput(
+                        decision="REJECT",
+                        feedback={
+                            "kind": "TASK_INCOMPLETE",
+                            "message": "Convert bullet fragments into cohesive prose paragraphs.",
+                        },
+                    ).model_dump_json()
+            placeholder_terms = ["todo", "tbd", "lorem", "ipsum", "placeholder"]
+            for term in placeholder_terms:
+                if term in lower_text:
+                    return WriterCriticOutput(
+                        decision="REJECT",
+                        feedback={
+                            "kind": "TASK_INCOMPLETE",
+                            "message": "Replace placeholder text with completed section prose.",
+                        },
+                    ).model_dump_json()
 
             return WriterCriticOutput(
                 decision="ACCEPT",
