@@ -13,4 +13,4 @@ class DocumentPlannerInput(BaseModel):
 
 
 class DocumentPlannerOutput(BaseModel):
-    task: DocumentTask
+    document_tree: DocumentTree
