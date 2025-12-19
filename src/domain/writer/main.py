@@ -9,6 +9,7 @@ from domain.writer import (
 from domain.writer.api import execute_document
 from domain.document.types import DocumentTree, DocumentNode
 from domain.document.content import ContentStore
+from domain.intent import load_intent_from_file
 
 
 def _pretty_print_run(run: dict) -> None:
@@ -35,7 +36,14 @@ def main() -> None:
     parser = argparse.ArgumentParser(description="Run the writer supervisor.")
     parser.add_argument("--instructions", type=str, default="", help="Opaque task instructions.")
     parser.add_argument("--sections", type=str, default="", help="Comma-separated list of section names.")
+    parser.add_argument(
+        "--intent",
+        type=str,
+        default=None,
+        help="Optional path to YAML intent envelope.",
+    )
     args = parser.parse_args()
+    intent = load_intent_from_file(args.intent) if args.intent else None
 
     instructions = args.instructions.strip()
     if not instructions:
@@ -71,6 +79,7 @@ def main() -> None:
         content_store=content_store,
         dispatcher=dispatcher,
         tool_registry=tool_registry,
+        intent=intent,
     )
 
     print("Writer execution complete. Sections written:")
