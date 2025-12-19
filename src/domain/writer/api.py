@@ -6,6 +6,19 @@ from domain.document.types import DocumentTree
 from domain.document.content import ContentStore
 from domain.writer.emission import emit_writer_tasks
 from domain.intent.types import IntentEnvelope
+from domain.writer.intent_audit import audit_intent_satisfaction, IntentAuditResult
+from dataclasses import dataclass
+
+
+@dataclass
+class WriterExecutionResult:
+    """Wrapper returning content plus advisory intent audit; execution is unchanged."""
+
+    content_store: ContentStore
+    intent_audit: IntentAuditResult
+
+    def __getattr__(self, item):
+        return getattr(self.content_store, item)
 
 
 def run(
@@ -42,7 +55,7 @@ def execute_document(
     tool_registry: ToolRegistry,
     max_refine_attempts: int = 1,
     intent: IntentEnvelope | None = None,
-) -> ContentStore:
+) -> WriterExecutionResult:
     tasks = emit_writer_tasks(document_tree, content_store, intent=intent)
     for task in tasks:
         attempts = 0
@@ -71,4 +84,12 @@ def execute_document(
                 purpose=current_task.purpose,
                 requirements=current_task.requirements,
             )
-    return content_store
+    intent_audit = audit_intent_satisfaction(
+        document_tree=document_tree,
+        content_store=content_store,
+        intent=intent,
+    )
+    return WriterExecutionResult(
+        content_store=content_store,
+        intent_audit=intent_audit,
+    )

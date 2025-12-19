@@ -66,7 +66,7 @@ def main() -> None:
     )
     content_store = ContentStore()
     dispatcher = make_agent_dispatcher(model="gpt-4.1-mini", max_retries=3)
-    result_store = execute_document(
+    result = execute_document(
         document_tree=document_tree,
         content_store=content_store,
         dispatcher=dispatcher,
@@ -74,8 +74,9 @@ def main() -> None:
     )
 
     print("Writer execution complete. Sections written:")
-    for node_id, text in result_store.by_node_id.items():
+    for node_id, text in result.content_store.by_node_id.items():
         print(f"- {node_id}: {text[:80]}")
+    print("Intent audit (advisory):", result.intent_audit.model_dump())
 
 
 if __name__ == "__main__":
