@@ -16,10 +16,14 @@ from domain.document.schemas import DocumentPlannerOutput
 logger = get_logger("apps.document_from_text")
 
 
-def _read_text(path: str | None) -> str:
+def _read_text(text: str | None, path: str | None) -> str:
+    if text and path:
+        raise ValueError("Provide exactly one of --text or --text-path, not both.")
+    if text:
+        return text
     if path:
         return Path(path).read_text()
-    return input()
+    raise ValueError("Either --text or --text-path is required.")
 
 
 def assemble_markdown(node: DocumentNode, store: ContentStore, depth: int = 0) -> list[str]:
@@ -37,11 +41,18 @@ def assemble_markdown(node: DocumentNode, store: ContentStore, depth: int = 0) -
 def main() -> None:
     load_dotenv(override=True)
     parser = argparse.ArgumentParser(description="Run text → intent adapter into document writer.")
-    parser.add_argument(
+    group = parser.add_mutually_exclusive_group(required=True)
+    group.add_argument(
+        "--text",
+        type=str,
+        default=None,
+        help="Inline raw user text.",
+    )
+    group.add_argument(
         "--text-path",
         type=str,
         default=None,
-        help="Path to raw user text. If omitted, read from stdin.",
+        help="Path to raw user text file.",
     )
     parser.add_argument(
         "--out",
@@ -56,7 +67,7 @@ def main() -> None:
     )
     args = parser.parse_args()
 
-    raw_text = _read_text(args.text_path)
+    raw_text = _read_text(args.text, args.text_path)
     intent_controller = make_text_intent_controller(model="gpt-4.1-mini")
     intent = intent_controller(raw_text)
 
