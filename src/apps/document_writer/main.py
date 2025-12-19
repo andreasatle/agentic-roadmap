@@ -64,6 +64,11 @@ def main() -> None:
         default=None,
         help="Optional path to write assembled markdown output.",
     )
+    parser.add_argument(
+        "--trace",
+        action="store_true",
+        help="Optional advisory trace of intent observability and audit (no behavioral impact).",
+    )
     args = parser.parse_args()
     intent = load_intent_from_file(args.intent) if args.intent else None
     out_path = Path(args.out) if args.out else None
@@ -90,6 +95,8 @@ def main() -> None:
     )
 
     _pretty_print_run(run)
+    if args.trace:
+        print("Advisory: document intent observation =", getattr(run, "intent_observation", None))
 
     planned_tree: DocumentTree = run.plan.document_tree
 
@@ -104,6 +111,8 @@ def main() -> None:
         tool_registry=writer_tool_registry,
         intent=intent,
     )
+    if args.trace:
+        print("Advisory: writer intent audit =", writer_result.intent_audit.model_dump())
 
     def assemble_markdown(node: DocumentNode, store: ContentStore, depth: int = 0) -> list[str]:
         lines: list[str] = []
