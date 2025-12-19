@@ -3,6 +3,7 @@ from pathlib import Path
 from dotenv import load_dotenv
 
 from domain.intent import make_text_intent_controller
+from domain.intent.text_prompt_refiner import make_text_prompt_refiner_controller
 from domain.document.planner import make_planner
 from domain.document.api import analyze
 from domain.document.content import ContentStore
@@ -68,8 +69,10 @@ def main() -> None:
     args = parser.parse_args()
 
     raw_text = _read_text(args.text, args.text_path)
+    refiner = make_text_prompt_refiner_controller(model="gpt-4.1-mini")
+    refined_text = refiner(raw_text)
     intent_controller = make_text_intent_controller(model="gpt-4.1-mini")
-    intent = intent_controller(raw_text)
+    intent = intent_controller(refined_text)
 
     # Document analysis
     planner = make_planner(model="gpt-4.1-mini")
