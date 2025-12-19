@@ -25,6 +25,23 @@ root/
 
 Each domain is a thin specialization layered on top of the same agentic core.
 
+## agentic-document-from-text CLI
+
+Pipeline (advisory where noted):
+- Raw user text → text prompt refiner (advisory, semantic-preserving)
+- Refined text → intent adapter → `IntentEnvelope` (advisory)
+- Intent → document planner → writer + critic → markdown assembly
+
+Flags:
+- `--text`: inline raw user text (authoritative input).
+- `--trace`: print advisory intent observation/audit; no behavioral impact.
+- `--print-intent`: print parsed `IntentEnvelope` as YAML (advisory, read-only, non-authoritative) derived from `intent.model_dump()`, then continue execution normally.
+
+Intent:
+- Intent is the structured summary (`IntentEnvelope`) extracted from refined text.
+- Printed in YAML for readability; not editable or accepted as input in this flow.
+- Any intent shown is advisory only; downstream planning/writing remain unchanged by printing.
+
 ---
 
 # src/agentic/README.md

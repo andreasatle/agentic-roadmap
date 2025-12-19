@@ -1,6 +1,7 @@
 import argparse
 from pathlib import Path
 from dotenv import load_dotenv
+import yaml
 
 from domain.intent import make_text_intent_controller
 from domain.intent.text_prompt_refiner import make_text_prompt_refiner_controller
@@ -75,6 +76,11 @@ def main() -> None:
         action="store_true",
         help="Print advisory intent observation and audit.",
     )
+    parser.add_argument(
+        "--print-intent",
+        action="store_true",
+        help="Print advisory parsed intent (YAML, read-only) for inspection.",
+    )
     args = parser.parse_args()
 
     raw_text = _read_text(args.text, args.text_path)
@@ -82,6 +88,16 @@ def main() -> None:
     refined_text = refiner(raw_text)
     intent_controller = make_text_intent_controller(model="gpt-4.1-mini")
     intent = intent_controller(refined_text)
+    if args.print_intent:
+        print("--- Parsed Intent (advisory) ---")
+        print(
+            yaml.safe_dump(
+                intent.model_dump(),
+                sort_keys=False,
+                default_flow_style=False,
+            ).rstrip()
+        )
+        print("--------------------------------")
 
     # Document analysis
     planner = make_planner(model="gpt-4.1-mini")
