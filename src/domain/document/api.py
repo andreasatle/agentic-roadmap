@@ -5,6 +5,7 @@ from agentic.analysis_controller import (
 )
 from domain.document.schemas import DocumentPlannerInput
 from domain.document.types import DocumentTree
+from domain.intent.types import IntentEnvelope
 
 
 def analyze(
@@ -13,6 +14,7 @@ def analyze(
     tone: str | None,
     audience: str | None,
     goal: str | None,
+    intent: IntentEnvelope | None = None,
     dispatcher: AgentDispatcher,
 ):
     planner_input = DocumentPlannerInput(
@@ -20,6 +22,7 @@ def analyze(
         tone=tone,
         audience=audience,
         goal=goal,
+        intent=intent,
     )
     controller_input = AnalysisControllerRequest(planner_input=planner_input)
     return run_analysis_controller(
