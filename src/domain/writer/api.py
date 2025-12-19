@@ -5,6 +5,7 @@ from domain.writer.types import DraftSectionTask, RefineSectionTask, WriterTask
 from domain.document.types import DocumentTree
 from domain.document.content import ContentStore
 from domain.writer.emission import emit_writer_tasks
+from domain.intent.types import IntentEnvelope
 
 
 def run(
@@ -40,8 +41,9 @@ def execute_document(
     dispatcher: AgentDispatcher,
     tool_registry: ToolRegistry,
     max_refine_attempts: int = 1,
+    intent: IntentEnvelope | None = None,
 ) -> ContentStore:
-    tasks = emit_writer_tasks(document_tree, content_store)
+    tasks = emit_writer_tasks(document_tree, content_store, intent=intent)
     for task in tasks:
         attempts = 0
         current_task: WriterTask = task

@@ -1,9 +1,11 @@
 from domain.document.types import DocumentTree, DocumentNode
 from domain.document.content import ContentStore
 from domain.writer.types import DraftSectionTask, RefineSectionTask, WriterTask
+from domain.writer.intent_projection import apply_advisory_intent
+from domain.intent.types import IntentEnvelope
 
 
-def emit_writer_tasks(tree: DocumentTree, store: ContentStore) -> list[WriterTask]:
+def emit_writer_tasks(tree: DocumentTree, store: ContentStore, intent: IntentEnvelope | None = None) -> list[WriterTask]:
     tasks: list[WriterTask] = []
 
     def visit(node: DocumentNode) -> None:
@@ -29,4 +31,4 @@ def emit_writer_tasks(tree: DocumentTree, store: ContentStore) -> list[WriterTas
 
     for child in tree.root.children:
         visit(child)
-    return tasks
+    return [apply_advisory_intent(task, intent) for task in tasks]
