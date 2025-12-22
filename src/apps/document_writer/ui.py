@@ -71,48 +71,7 @@ def _intent_from_inputs(
     return IntentEnvelope.model_validate(data)
 
 
-def load_intent_into_ui(file_path: str | None) -> tuple[Any, ...]:
-    if not file_path:
-        return (
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            "No file provided.",
-        )
-    try:
-        intent = load_intent_from_file(file_path)
-    except Exception as exc:
-        return (
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            None,
-            f"Intent load error: {exc}",
-        )
-
+def intent_to_ui(intent: IntentEnvelope) -> list[Any]:
     structural = intent.structural_intent
     semantic = intent.semantic_constraints
     style = intent.stylistic_preferences
@@ -124,16 +83,20 @@ def load_intent_into_ui(file_path: str | None) -> tuple[Any, ...]:
             return "Custom", value
         return "", ""
 
-    audience_choice, audience_custom = _select_with_custom(structural.audience, ["general", "executives", "engineers", "researchers"])
+    audience_choice, audience_custom = _select_with_custom(
+        structural.audience, ["general", "executives", "engineers", "researchers"]
+    )
     humor_choice, humor_custom = _select_with_custom(style.humor_level, ["none", "light", "moderate"])
     formality_choice, formality_custom = _select_with_custom(style.formality, ["informal", "neutral", "formal"])
-    narrative_choice, narrative_custom = _select_with_custom(style.narrative_voice, ["first-person", "third-person", "neutral"])
+    narrative_choice, narrative_custom = _select_with_custom(
+        style.narrative_voice, ["first-person", "third-person", "neutral"]
+    )
 
-    return (
+    return [
         structural.document_goal or "",
         audience_choice,
         audience_custom,
-        structural.tone if structural.tone in ["informative", "reflective", "technical", "narrative", "other", ""] else "",
+        structural.tone or "",
         "\n".join(structural.required_sections or []),
         "\n".join(structural.forbidden_sections or []),
         "\n".join(semantic.must_include or []),
@@ -145,8 +108,54 @@ def load_intent_into_ui(file_path: str | None) -> tuple[Any, ...]:
         formality_custom,
         narrative_choice,
         narrative_custom,
-        "",
-    )
+    ]
+
+
+def load_intent_into_ui(file_path: str | None) -> tuple[Any, ...]:
+    if not file_path:
+        return (
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value="No file provided."),
+        )
+    try:
+        intent = load_intent_from_file(file_path)
+    except Exception as exc:
+        return (
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=""),
+            gr.update(value=f"Intent load error: {exc}"),
+        )
+    values = intent_to_ui(intent)
+    updates = [gr.update(value=v) for v in values]
+    updates.append(gr.update(value=""))
+    return tuple(updates)
 
 
 def save_intent_yaml(
@@ -326,12 +335,19 @@ def main() -> None:
         with gr.Row():
             load_button = gr.Button("Load Intent")
             save_intent_button = gr.Button("Save Intent")
-        generate_button = gr.Button("Generate Article")
-        save_article_button = gr.Button("Save Article", interactive=False)
-        error_output = gr.Textbox(label="Validation Errors", lines=6)
-        article_output = gr.Code(label="Generated Article", language="markdown")
-        intent_download = gr.File(label="Intent YAML (download)", interactive=False)
-        article_download = gr.File(label="Article (download)", interactive=False)
+            generate_button = gr.Button("Generate Article")
+            save_article_button = gr.Button("Save Article", interactive=False)
+        
+        with gr.Row():
+            error_output = gr.Textbox(label="Validation Errors", lines=6)
+        
+        with gr.Row():
+            article_output = gr.Code(label="Generated Article", language="markdown")
+        
+        with gr.Row():
+            intent_download = gr.File(label="Intent YAML (download)", interactive=False)
+            article_download = gr.File(label="Article (download)", interactive=False)
+
 
         inputs = [
             document_goal,
