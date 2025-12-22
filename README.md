@@ -172,3 +172,12 @@ Primarily used to validate Supervisor behavior under trivial state.
 * `isinstance` checks are temporary and tracked as explicit debt
 
 The project favors **explicitness over cleverness** and **correctness over convenience**.
+
+## License
+
+This project is licensed under the MIT License.
+
+The repository is public to encourage transparency, learning, and discussion.
+Future commercial offerings (e.g. hosted services, enterprise features, or
+integrations) may be developed separately and are not implied to be covered
+by this license.
