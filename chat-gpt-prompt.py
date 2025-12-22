@@ -1,8 +1,43 @@
+"""
+This module injects a project-specific bootstrap prompt into ChatGPT at the
+start of a session. Its purpose is to establish a *behavioral contract* that
+governs how the model should reason, respond, and produce artifacts for this
+project.
+
+What this module does:
+- Defines and supplies a bootstrap prompt that constrains tone, rigor, and scope
+- Enforces interaction discipline (no hallucination, no unrequested brainstorming,
+  crisp technical answers, explicit clarification when ambiguous)
+- Aligns ChatGPT’s vocabulary and assumptions with the project’s architecture
+- Makes executable artifacts (e.g. Codex prompts, commit messages) deterministic
+  in both content *and* formatting
+
+What is project-dependent:
+- The project description (what the system is being built for)
+- Core architectural invariants (e.g. Controller must remain domain-independent)
+- Terminology used by the codebase (e.g. “Controller” vs legacy names)
+- Rules about which artifacts may be produced and in what exact format
+
+What is intentionally NOT project-dependent:
+- The expectation of precision, minimalism, and critical reasoning
+- The prohibition against inventing architecture or drifting scope
+- The preference for surgical changes over broad rewrites
+
+This module should be updated whenever:
+- Core concepts are renamed in the codebase
+- Architectural invariants change
+- Artifact-format contracts are tightened or extended
+
+The bootstrap prompt is part of the system, not documentation.
+If it drifts from the code or the project’s real constraints, the system will
+silently degrade.
+"""
+
 #!/usr/bin/env python3
 import pathlib
 
 # The bootstrap prompt inserted verbatim at the top of the output file
-BOOTSTRAP_PROMPT = """AGENTIC PROJECT BOOTSTRAP PROMPT (PASTE AT START OF NEW SESSION)
+BOOTSTRAP_PROMPT = '''AGENTIC PROJECT BOOTSTRAP PROMPT (PASTE AT START OF NEW SESSION)
 
 INITIALIZATION — DO NOT MODIFY
 
@@ -18,9 +53,20 @@ not hallucinate missing details
 not invent architecture I did not approve
 
 Constraints:
-Supervisor must remain domain-independent.
+Controller must remain domain-independent.
 No structural changes unless I explicitly request them.
 All code must remain strict-schema validated.
+
+When I explicitly ask for:
+- a Codex prompt, or
+- a commit message
+
+You must:
+- return exactly ONE code block per requested artifact
+- use plain triple backticks ``` … ```
+- include no prose, explanation, or commentary outside the code block
+- not combine multiple artifacts in a single code block
+- not infer that I want Codex prompts or commit messages unless I explicitly ask
 
 Your role:
 Keep critiques strong and eliminate fluff.
@@ -29,10 +75,7 @@ Prefer surgical patches over large rewrites.
 Never assume brainstorming unless I explicitly say “brainstorm.”
 
 END OF BOOTSTRAP PROMPT
-
----------------------------------------------------------------------
-
-"""
+'''
 
 def build_snapshot() -> None:
     # Fixed root directory
