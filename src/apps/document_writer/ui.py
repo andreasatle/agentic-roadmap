@@ -1,10 +1,16 @@
-import json
+import tempfile
+from pathlib import Path
 from typing import Any
-
+from dotenv import load_dotenv
 import gradio as gr
+import yaml
 from pydantic import ValidationError
 
+from apps.document_writer.service import generate_document
+from domain.intent import load_intent_from_file
 from domain.intent.types import IntentEnvelope
+
+load_dotenv(override=True)
 
 
 def _to_none(value: str) -> str | None:
@@ -23,7 +29,7 @@ def _list_from_text(value: str) -> list[str]:
     return [item.strip() for item in items if item.strip()]
 
 
-def build_intent(
+def _intent_from_inputs(
     document_goal: str,
     audience_choice: str,
     audience_custom: str,
@@ -39,7 +45,7 @@ def build_intent(
     formality_custom: str,
     narrative_voice: str,
     narrative_voice_custom: str,
-) -> tuple[str, str]:
+) -> IntentEnvelope:
     audience_value = _to_none(audience_custom) if audience_choice == "Custom" else _to_none(audience_choice)
     data: dict[str, Any] = {
         "structural_intent": {
@@ -62,19 +68,194 @@ def build_intent(
             else _to_none(narrative_voice),
         },
     }
+    return IntentEnvelope.model_validate(data)
+
+
+def load_intent_into_ui(file_path: str | None) -> tuple[Any, ...]:
+    if not file_path:
+        return (
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            "No file provided.",
+        )
+    try:
+        intent = load_intent_from_file(file_path)
+    except Exception as exc:
+        return (
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            None,
+            f"Intent load error: {exc}",
+        )
+
+    structural = intent.structural_intent
+    semantic = intent.semantic_constraints
+    style = intent.stylistic_preferences
+
+    def _select_with_custom(value: str | None, choices: list[str]) -> tuple[str, str]:
+        if value and value in choices:
+            return value, ""
+        if value:
+            return "Custom", value
+        return "", ""
+
+    audience_choice, audience_custom = _select_with_custom(structural.audience, ["general", "executives", "engineers", "researchers"])
+    humor_choice, humor_custom = _select_with_custom(style.humor_level, ["none", "light", "moderate"])
+    formality_choice, formality_custom = _select_with_custom(style.formality, ["informal", "neutral", "formal"])
+    narrative_choice, narrative_custom = _select_with_custom(style.narrative_voice, ["first-person", "third-person", "neutral"])
+
+    return (
+        structural.document_goal or "",
+        audience_choice,
+        audience_custom,
+        structural.tone if structural.tone in ["informative", "reflective", "technical", "narrative", "other", ""] else "",
+        "\n".join(structural.required_sections or []),
+        "\n".join(structural.forbidden_sections or []),
+        "\n".join(semantic.must_include or []),
+        "\n".join(semantic.must_avoid or []),
+        "\n".join(semantic.required_mentions or []),
+        humor_choice,
+        humor_custom,
+        formality_choice,
+        formality_custom,
+        narrative_choice,
+        narrative_custom,
+        "",
+    )
+
+
+def save_intent_yaml(
+    document_goal: str,
+    audience_choice: str,
+    audience_custom: str,
+    tone: str,
+    required_sections: str,
+    forbidden_sections: str,
+    must_include: str,
+    must_avoid: str,
+    required_mentions: str,
+    humor_level: str,
+    humor_level_custom: str,
+    formality: str,
+    formality_custom: str,
+    narrative_voice: str,
+    narrative_voice_custom: str,
+) -> tuple[str | None, str]:
+    try:
+        intent = _intent_from_inputs(
+            document_goal,
+            audience_choice,
+            audience_custom,
+            tone,
+            required_sections,
+            forbidden_sections,
+            must_include,
+            must_avoid,
+            required_mentions,
+            humor_level,
+            humor_level_custom,
+            formality,
+            formality_custom,
+            narrative_voice,
+            narrative_voice_custom,
+        )
+    except ValidationError as exc:
+        return None, f"Validation error: {exc}"
+
+    yaml_text = yaml.safe_dump(intent.model_dump(), sort_keys=False, default_flow_style=False)
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".yaml")
+    Path(tmp.name).write_text(yaml_text)
+    return tmp.name, ""
+
+
+def save_article(markdown: str) -> tuple[str | None, str]:
+    if not markdown or not markdown.strip():
+        return None, "No article generated."
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".md")
+    Path(tmp.name).write_text(markdown)
+    return tmp.name, ""
+
+
+def generate_article(
+    document_goal: str,
+    audience_choice: str,
+    audience_custom: str,
+    tone: str,
+    required_sections: str,
+    forbidden_sections: str,
+    must_include: str,
+    must_avoid: str,
+    required_mentions: str,
+    humor_level: str,
+    humor_level_custom: str,
+    formality: str,
+    formality_custom: str,
+    narrative_voice: str,
+    narrative_voice_custom: str,
+) -> tuple[str, str, str, gr.update]:
+    try:
+        intent = _intent_from_inputs(
+            document_goal,
+            audience_choice,
+            audience_custom,
+            tone,
+            required_sections,
+            forbidden_sections,
+            must_include,
+            must_avoid,
+            required_mentions,
+            humor_level,
+            humor_level_custom,
+            formality,
+            formality_custom,
+            narrative_voice,
+            narrative_voice_custom,
+        )
+    except ValidationError as exc:
+        return "", f"Validation error: {exc}", "", gr.update(interactive=False)
 
     try:
-        intent = IntentEnvelope.model_validate(data)
-    except ValidationError as exc:
-        return "", f"Validation error:\n{exc}"
+        result = generate_document(
+            goal=intent.structural_intent.document_goal,
+            audience=intent.structural_intent.audience,
+            tone=intent.structural_intent.tone,
+            intent=intent,
+            trace=False,
+        )
+    except Exception as exc:
+        return "", f"Execution error: {exc}", "", gr.update(interactive=False)
 
-    pretty_json = json.dumps(intent.model_dump(), indent=2)
-    return pretty_json, ""
-
-
+    return result.markdown, "", result.markdown, gr.update(interactive=True)
 def main() -> None:
-    with gr.Blocks(title="IntentEnvelope Preview") as demo:
-        gr.Markdown("# IntentEnvelope Preview\nPure input surface; no execution.")
+    with gr.Blocks(title="Document Intent") as demo:
+        gr.Markdown("# Document Intent")
+        intent_file = gr.File(label="Intent YAML", type="filepath", file_types=[".yaml", ".yml"])
+        article_state = gr.State("")
 
         with gr.Group():
             gr.Markdown("## Structural Intent")
@@ -142,9 +323,15 @@ def main() -> None:
                 label="Narrative Voice (Custom)", placeholder="Used when Narrative Voice=Custom"
             )
 
-        build_button = gr.Button("Build IntentEnvelope")
-        json_output = gr.Code(label="IntentEnvelope (JSON)", language="json")
+        with gr.Row():
+            load_button = gr.Button("Load Intent")
+            save_intent_button = gr.Button("Save Intent")
+        generate_button = gr.Button("Generate Article")
+        save_article_button = gr.Button("Save Article", interactive=False)
         error_output = gr.Textbox(label="Validation Errors", lines=6)
+        article_output = gr.Code(label="Generated Article", language="markdown")
+        intent_download = gr.File(label="Intent YAML (download)", interactive=False)
+        article_download = gr.File(label="Article (download)", interactive=False)
 
         inputs = [
             document_goal,
@@ -164,9 +351,29 @@ def main() -> None:
             narrative_voice_custom,
         ]
 
-        build_button.click(build_intent, inputs=inputs, outputs=[json_output, error_output])
-        for control in inputs:
-            control.change(build_intent, inputs=inputs, outputs=[json_output, error_output])
+        load_button.click(
+            load_intent_into_ui,
+            inputs=[intent_file],
+            outputs=inputs + [error_output],
+        )
+
+        save_intent_button.click(
+            save_intent_yaml,
+            inputs=inputs,
+            outputs=[intent_download, error_output],
+        )
+
+        generate_button.click(
+            generate_article,
+            inputs=inputs,
+            outputs=[article_output, error_output, article_state, save_article_button],
+        )
+
+        save_article_button.click(
+            save_article,
+            inputs=[article_state],
+            outputs=[article_download, error_output],
+        )
 
     demo.launch()
 
