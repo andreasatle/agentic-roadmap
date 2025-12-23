@@ -8,13 +8,13 @@
 <body>
     <h1>Document Writer</h1>
 
-    <section id="intent-upload">
+    <section id="intent-upload" data-phase="intent">
         <h2>Upload / Paste Intent YAML</h2>
         <p>Load an existing IntentEnvelope (optional).</p>
         <input type="file" id="intent-file" />
     </section>
 
-    <section id="intent-form">
+    <section id="intent-form" data-phase="intent">
         <h2>Intent Form</h2>
         <div class="field-group">
             <label for="document-goal">Document Goal</label>
@@ -60,34 +60,51 @@
             <label for="narrative-voice">Narrative Voice</label>
             <input type="text" id="narrative-voice" />
         </div>
+        <section id="save-intent" data-phase="intent">
+            <h2>Save Intent</h2>
+            <div class="save-row">
+                <input
+                  type="text"
+                  id="intent-filename"
+                  placeholder="intent.yaml"
+                  aria-label="Intent filename"
+                />
+                <button id="save-intent-btn" onclick="saveIntent()">Save Intent</button>
+            </div>
+        </section>
+        <div class="field-group">
+            <button onclick="generateDocument()">Generate Document</button>
+        </div>
     </section>
 
-    <section id="save-intent">
-        <h2>Save Intent</h2>
-        <input type="text" id="intent-filename" placeholder="intent.yaml" />
-        <button onclick="saveIntent()">Save Intent</button>
-    </section>
-
-    <section id="generate-document">
+    <section id="generate-document" data-phase="structure">
         <h2>Generate Document</h2>
         <button onclick="generateDocument()">Generate Article</button>
     </section>
 
-    <section id="article-output">
+    <section id="article-output" data-phase="content">
         <h2>Article Output</h2>
-        <pre id="article-text"></pre>
+        <div id="article-text"></div>
     </section>
 
-    <section id="save-article">
+    <section id="save-article" data-phase="content">
         <h2>Save Article</h2>
-        <input type="text" id="article-filename" placeholder="article.md" />
-        <button onclick="saveDocument()">Save Article</button>
+        <div class="save-row">
+            <input
+                type="text"
+                id="article-filename"
+                placeholder="article.md"
+                aria-label="Article filename"
+            />
+            <button onclick="saveDocument()">Save Article</button>
+        </div>
     </section>
 
-    <section id="errors">
+    <section id="errors" data-phase="export">
         <pre id="error-area"></pre>
     </section>
 
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="/static/app.js"></script>
 </body>
 </html>

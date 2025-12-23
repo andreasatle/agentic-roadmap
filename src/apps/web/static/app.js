@@ -1,3 +1,4 @@
+let currentPhase = "intent";
 let currentIntent = null;
 let currentMarkdown = null;
 
@@ -36,6 +37,14 @@ function renderIntent(intent) {
 
 function setError(message) {
   errorArea.textContent = message || "";
+}
+
+function setIntentDisabled(flag) {
+  Object.values(intentFields).forEach((el) => {
+    if (el) el.disabled = flag;
+  });
+  const fileInput = document.getElementById("intent-file");
+  if (fileInput) fileInput.disabled = flag;
 }
 
 function readIntentFromForm() {
@@ -122,7 +131,8 @@ async function saveIntent() {
   }
   try {
     const filenameInput = document.getElementById("intent-filename");
-    const filename = (filenameInput?.value || "").trim();
+    const filenameRaw = (filenameInput?.value || "").trim();
+    const filename = filenameRaw || "intent.yaml";
     const resp = await fetch("/intent/save", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -137,7 +147,7 @@ async function saveIntent() {
     const url = window.URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = filename || "intent.yaml";
+    a.download = filename;
     document.body.appendChild(a);
     a.click();
     a.remove();
@@ -153,6 +163,11 @@ async function generateDocument() {
     setError("No intent to generate from. Load or apply changes first.");
     return;
   }
+  setIntentDisabled(true, { allowOutput: true });
+  const articleArea = document.getElementById("article-text");
+  if (articleArea) {
+    articleArea.textContent = "Generating...";
+  }
   try {
     const resp = await fetch("/document/generate", {
       method: "POST",
@@ -166,13 +181,15 @@ async function generateDocument() {
     }
     const data = await resp.json();
     currentMarkdown = data.markdown || "";
-    const articleArea = document.getElementById("article-text");
     if (articleArea) {
-      articleArea.textContent = currentMarkdown;
+      articleArea.innerHTML = marked.parse(data.markdown || "");
     }
+    setActivePhase("content");
     setError("");
   } catch (err) {
     setError(err?.message || "Error generating document.");
+  } finally {
+    setIntentDisabled(false);
   }
 }
 
@@ -209,6 +226,13 @@ async function saveDocument() {
   }
 }
 
+function setActivePhase(phase) {
+  currentPhase = phase;
+  document.querySelectorAll("[data-phase]").forEach((el) => {
+    el.style.display = el.dataset.phase === phase ? "block" : "none";
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("intent-file");
   if (input) {
@@ -218,4 +242,5 @@ document.addEventListener("DOMContentLoaded", () => {
   if (intentForm) {
     intentForm.addEventListener("input", applyIntentChanges);
   }
+  setActivePhase("intent");
 });

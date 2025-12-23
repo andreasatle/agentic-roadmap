@@ -3,3 +3,14 @@
   color: red;
   white-space: pre-wrap;
 }
+
+.save-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.save-row input[type="text"] {
+  flex: 1;
+  min-width: 200px;
+}
