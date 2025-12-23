@@ -3,108 +3,121 @@
 <head>
     <meta charset="UTF-8">
     <title>Document Writer</title>
+    <script>
+      tailwind = {
+        config: {
+          plugins: [tailwindcssTypography],
+        }
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/typography@0.5.10/dist/typography.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="/static/style.css">
 </head>
-<body>
-    <h1>Document Writer</h1>
+<body class="bg-gray-50">
+    <main class="max-w-4xl mx-auto p-6 space-y-6 font-sans">
+        <h1 class="text-2xl font-semibold text-gray-800">Document Writer</h1>
 
-    <section id="intent-upload" data-phase="intent">
-        <h2>Upload / Paste Intent YAML</h2>
-        <p>Load an existing IntentEnvelope (optional).</p>
-        <input type="file" id="intent-file" />
-    </section>
+        <section id="intent-upload" data-phase="intent" class="bg-white border rounded-lg shadow-sm p-4 space-y-2">
+            <h2 class="text-lg font-semibold text-gray-800">Upload / Paste Intent YAML</h2>
+            <p class="text-sm text-gray-600">Load an existing IntentEnvelope (optional).</p>
+            <input type="file" id="intent-file" class="w-full text-sm text-gray-700" />
+        </section>
 
-    <section id="intent-form" data-phase="intent">
-        <h2>Intent Form</h2>
-        <div class="field-group">
-            <label for="document-goal">Document Goal</label>
-            <input type="text" id="document-goal" />
-        </div>
-        <div class="field-group">
-            <label for="audience">Audience</label>
-            <input type="text" id="audience" />
-        </div>
-        <div class="field-group">
-            <label for="tone">Tone</label>
-            <input type="text" id="tone" />
-        </div>
-        <div class="field-group">
-            <label for="required-sections">Required Sections</label>
-            <textarea id="required-sections"></textarea>
-        </div>
-        <div class="field-group">
-            <label for="forbidden-sections">Forbidden Sections</label>
-            <textarea id="forbidden-sections"></textarea>
-        </div>
-        <div class="field-group">
-            <label for="must-include">Must Include</label>
-            <textarea id="must-include"></textarea>
-        </div>
-        <div class="field-group">
-            <label for="must-avoid">Must Avoid</label>
-            <textarea id="must-avoid"></textarea>
-        </div>
-        <div class="field-group">
-            <label for="required-mentions">Required Mentions</label>
-            <textarea id="required-mentions"></textarea>
-        </div>
-        <div class="field-group">
-            <label for="humor-level">Humor Level</label>
-            <input type="text" id="humor-level" />
-        </div>
-        <div class="field-group">
-            <label for="formality">Formality</label>
-            <input type="text" id="formality" />
-        </div>
-        <div class="field-group">
-            <label for="narrative-voice">Narrative Voice</label>
-            <input type="text" id="narrative-voice" />
-        </div>
-        <section id="save-intent" data-phase="intent">
-            <h2>Save Intent</h2>
-            <div class="save-row">
-                <input
-                  type="text"
-                  id="intent-filename"
-                  placeholder="intent.yaml"
-                  aria-label="Intent filename"
-                />
-                <button id="save-intent-btn" onclick="saveIntent()">Save Intent</button>
+        <section id="intent-form" data-phase="intent" class="bg-white border rounded-lg shadow-sm p-4 space-y-3">
+            <h2 class="text-lg font-semibold text-gray-800">Intent Form</h2>
+            <div class="field-group space-y-1">
+                <label for="document-goal" class="block text-sm font-medium text-gray-700">Document Goal</label>
+                <input type="text" id="document-goal" class="w-full border rounded-md p-2 text-sm" />
+            </div>
+            <div class="field-group space-y-1">
+                <label for="audience" class="block text-sm font-medium text-gray-700">Audience</label>
+                <input type="text" id="audience" class="w-full border rounded-md p-2 text-sm" />
+            </div>
+            <div class="field-group space-y-1">
+                <label for="tone" class="block text-sm font-medium text-gray-700">Tone</label>
+                <input type="text" id="tone" class="w-full border rounded-md p-2 text-sm" />
+            </div>
+            <div class="field-group space-y-1">
+                <label for="required-sections" class="block text-sm font-medium text-gray-700">Required Sections</label>
+                <textarea id="required-sections" class="w-full border rounded-md p-2 text-sm"></textarea>
+            </div>
+            <div class="field-group space-y-1">
+                <label for="forbidden-sections" class="block text-sm font-medium text-gray-700">Forbidden Sections</label>
+                <textarea id="forbidden-sections" class="w-full border rounded-md p-2 text-sm"></textarea>
+            </div>
+            <div class="field-group space-y-1">
+                <label for="must-include" class="block text-sm font-medium text-gray-700">Must Include</label>
+                <textarea id="must-include" class="w-full border rounded-md p-2 text-sm"></textarea>
+            </div>
+            <div class="field-group space-y-1">
+                <label for="must-avoid" class="block text-sm font-medium text-gray-700">Must Avoid</label>
+                <textarea id="must-avoid" class="w-full border rounded-md p-2 text-sm"></textarea>
+            </div>
+            <div class="field-group space-y-1">
+                <label for="required-mentions" class="block text-sm font-medium text-gray-700">Required Mentions</label>
+                <textarea id="required-mentions" class="w-full border rounded-md p-2 text-sm"></textarea>
+            </div>
+            <div class="field-group space-y-1">
+                <label for="humor-level" class="block text-sm font-medium text-gray-700">Humor Level</label>
+                <input type="text" id="humor-level" class="w-full border rounded-md p-2 text-sm" />
+            </div>
+            <div class="field-group space-y-1">
+                <label for="formality" class="block text-sm font-medium text-gray-700">Formality</label>
+                <input type="text" id="formality" class="w-full border rounded-md p-2 text-sm" />
+            </div>
+            <div class="field-group space-y-1">
+                <label for="narrative-voice" class="block text-sm font-medium text-gray-700">Narrative Voice</label>
+                <input type="text" id="narrative-voice" class="w-full border rounded-md p-2 text-sm" />
+            </div>
+            <section id="save-intent" data-phase="intent" class="space-y-2">
+                <h2 class="text-md font-semibold text-gray-800">Save Intent</h2>
+                <div class="save-row flex items-center gap-3">
+                    <input
+                      type="text"
+                      id="intent-filename"
+                      placeholder="intent.yaml"
+                      aria-label="Intent filename"
+                      class="w-full border rounded-md p-2 text-sm"
+                    />
+                    <button id="save-intent-btn" onclick="saveIntent()" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm">Save Intent</button>
+                </div>
+            </section>
+            <div class="field-group">
+                <button onclick="generateDocument()" class="px-4 py-2 bg-green-600 text-white rounded-md text-sm">Generate Document</button>
             </div>
         </section>
-        <div class="field-group">
-            <button onclick="generateDocument()">Generate Document</button>
-        </div>
-    </section>
 
-    <section id="generate-document" data-phase="structure">
-        <h2>Generate Document</h2>
-        <button onclick="generateDocument()">Generate Article</button>
-    </section>
+        <section id="generate-document" data-phase="structure" class="bg-white border rounded-lg shadow-sm p-4 space-y-3">
+            <h2 class="text-lg font-semibold text-gray-800">Generate Document</h2>
+            <button onclick="generateDocument()" class="px-4 py-2 bg-green-600 text-white rounded-md text-sm">Generate Article</button>
+        </section>
 
-    <section id="article-output" data-phase="content">
-        <h2>Article Output</h2>
-        <div id="article-text"></div>
-    </section>
+        <section id="article-output" data-phase="content" class="bg-white border rounded-lg shadow-sm p-4 space-y-3">
+            <h2 class="text-lg font-semibold text-gray-800">Article Output</h2>
+            <div id="article-text" class="max-w-none max-h-[60vh] overflow-y-auto border rounded-md p-3 bg-gray-50"></div>
+        </section>
 
-    <section id="save-article" data-phase="content">
-        <h2>Save Article</h2>
-        <div class="save-row">
-            <input
-                type="text"
-                id="article-filename"
-                placeholder="article.md"
-                aria-label="Article filename"
-            />
-            <button onclick="saveDocument()">Save Article</button>
-        </div>
-    </section>
+        <section id="save-article" data-phase="content" class="bg-white border rounded-lg shadow-sm p-4 space-y-3">
+            <h2 class="text-lg font-semibold text-gray-800">Save Article</h2>
+            <div class="save-row flex items-center gap-3">
+                <input
+                    type="text"
+                    id="article-filename"
+                    placeholder="article.md"
+                    aria-label="Article filename"
+                    class="w-full border rounded-md p-2 text-sm"
+                />
+                <button onclick="saveDocument()" class="px-4 py-2 bg-blue-600 text-white rounded-md text-sm">Save Article</button>
+            </div>
+        </section>
 
-    <section id="errors" data-phase="export">
-        <pre id="error-area"></pre>
-    </section>
+        <section id="errors" data-phase="export" class="bg-white border rounded-lg shadow-sm p-4 space-y-2">
+            <pre id="error-area" class="text-sm text-red-700 bg-red-50 border border-red-200 rounded-md p-2"></pre>
+        </section>
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-    <script src="/static/app.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+        <script src="/static/app.js"></script>
+    </main>
 </body>
 </html>
