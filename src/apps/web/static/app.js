@@ -1,4 +1,5 @@
 let currentIntent = null;
+let currentArticle = null;
 
 const intentFields = {
   document_goal: document.getElementById("document-goal"),
@@ -147,12 +148,65 @@ async function saveIntent() {
   }
 }
 
-function generateDocument() {
-  console.log("generateDocument called");
+async function generateDocument() {
+  if (!currentIntent) {
+    setError("No intent to generate from. Load or apply changes first.");
+    return;
+  }
+  try {
+    const resp = await fetch("/document/generate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ intent: currentIntent }),
+    });
+    if (!resp.ok) {
+      const detail = await resp.text();
+      setError(detail || "Failed to generate document.");
+      return;
+    }
+    const data = await resp.json();
+    currentArticle = data.markdown || "";
+    const articleArea = document.getElementById("article-text");
+    if (articleArea) {
+      articleArea.textContent = currentArticle;
+    }
+    setError("");
+  } catch (err) {
+    setError(err?.message || "Error generating document.");
+  }
 }
 
-function saveDocument() {
-  console.log("saveDocument called");
+async function saveDocument() {
+  if (!currentArticle) {
+    setError("No article to save. Generate first.");
+    return;
+  }
+  try {
+    const filenameInput = document.getElementById("article-filename");
+    const filename = (filenameInput?.value || "").trim();
+    const resp = await fetch("/document/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ markdown: currentArticle, filename }),
+    });
+    if (!resp.ok) {
+      const detail = await resp.text();
+      setError(detail || "Failed to save article.");
+      return;
+    }
+    const blob = await resp.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename || "article.md";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+    setError("");
+  } catch (err) {
+    setError(err?.message || "Error saving article.");
+  }
 }
 
 document.addEventListener("DOMContentLoaded", () => {

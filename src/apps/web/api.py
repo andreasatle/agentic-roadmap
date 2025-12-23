@@ -15,7 +15,8 @@ from apps.web.schemas import (
     IntentSaveRequest,
 )
 from domain.intent import load_intent_from_yaml
-
+from dotenv import load_dotenv
+load_dotenv(override=True)
 
 BASE_DIR = Path(__file__).resolve().parent
 static_dir = BASE_DIR / "static"
