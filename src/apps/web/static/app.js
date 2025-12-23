@@ -37,6 +37,43 @@ function setError(message) {
   errorArea.textContent = message || "";
 }
 
+function readIntentFromForm() {
+  return {
+    structural_intent: {
+      document_goal: intentFields.document_goal.value.trim() || null,
+      audience: intentFields.audience.value.trim() || null,
+      tone: intentFields.tone.value.trim() || null,
+      required_sections: intentFields.required_sections.value
+        .split(/\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+      forbidden_sections: intentFields.forbidden_sections.value
+        .split(/\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+    },
+    semantic_constraints: {
+      must_include: intentFields.must_include.value
+        .split(/\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+      must_avoid: intentFields.must_avoid.value
+        .split(/\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+      required_mentions: intentFields.required_mentions.value
+        .split(/\n/)
+        .map((s) => s.trim())
+        .filter(Boolean),
+    },
+    stylistic_preferences: {
+      humor_level: intentFields.humor_level.value.trim() || null,
+      formality: intentFields.formality.value.trim() || null,
+      narrative_voice: intentFields.narrative_voice.value.trim() || null,
+    },
+  };
+}
+
 function handleIntentFileChange(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) {
@@ -67,8 +104,47 @@ function handleIntentFileChange(event) {
   reader.readAsText(file);
 }
 
-function saveIntent() {
-  console.log("saveIntent called");
+async function applyIntentChanges() {
+  try {
+    const intent = readIntentFromForm();
+    currentIntent = intent;
+    setError("");
+  } catch (err) {
+    setError(err?.message || "Failed to apply intent changes.");
+  }
+}
+
+async function saveIntent() {
+  if (!currentIntent) {
+    setError("No intent to save. Load or apply changes first.");
+    return;
+  }
+  try {
+    const filenameInput = document.getElementById("intent-filename");
+    const filename = (filenameInput?.value || "").trim();
+    const resp = await fetch("/intent/save", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ intent: currentIntent, filename }),
+    });
+    if (!resp.ok) {
+      const detail = await resp.text();
+      setError(detail || "Failed to save intent.");
+      return;
+    }
+    const blob = await resp.blob();
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename || "intent.yaml";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+    setError("");
+  } catch (err) {
+    setError(err?.message || "Error saving intent.");
+  }
 }
 
 function generateDocument() {
@@ -83,5 +159,9 @@ document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("intent-file");
   if (input) {
     input.addEventListener("change", handleIntentFileChange);
+  }
+  const intentForm = document.getElementById("intent-form");
+  if (intentForm) {
+    intentForm.addEventListener("input", applyIntentChanges);
   }
 });
