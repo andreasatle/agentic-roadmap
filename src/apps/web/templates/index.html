@@ -24,52 +24,68 @@
             <input type="file" id="intent-file" class="w-full text-sm text-gray-700" />
         </section>
 
-        <section id="intent-form" data-phase="intent" class="bg-white border rounded-lg shadow-sm p-4 space-y-3">
+        <section id="intent-form" data-phase="intent" class="bg-white border rounded-lg shadow-sm p-4 space-y-4">
             <h2 class="text-lg font-semibold text-gray-800">Intent Form</h2>
-            <div class="field-group space-y-1">
-                <label for="document-goal" class="block text-sm font-medium text-gray-700">Document Goal</label>
-                <input type="text" id="document-goal" class="w-full border rounded-md p-2 text-sm" />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="field-group space-y-1">
+                    <label for="document-goal" class="block text-sm font-medium text-gray-700">Document Goal</label>
+                    <textarea id="document-goal" class="w-full border rounded-md p-2 text-sm h-32"></textarea>
+                </div>
+                <div class="space-y-4">
+                    <div class="field-group space-y-1">
+                        <label for="audience" class="block text-sm font-medium text-gray-700">Audience</label>
+                        <input type="text" id="audience" class="w-full border rounded-md p-2 text-sm" />
+                    </div>
+                    <div class="field-group space-y-1">
+                        <label for="tone" class="block text-sm font-medium text-gray-700">Tone</label>
+                        <input type="text" id="tone" class="w-full border rounded-md p-2 text-sm" />
+                    </div>
+                </div>
             </div>
-            <div class="field-group space-y-1">
-                <label for="audience" class="block text-sm font-medium text-gray-700">Audience</label>
-                <input type="text" id="audience" class="w-full border rounded-md p-2 text-sm" />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="field-group space-y-1">
+                    <label for="required-sections" class="block text-sm font-medium text-gray-700">Required Sections</label>
+                    <textarea id="required-sections" class="w-full border rounded-md p-2 text-sm h-32"></textarea>
+                </div>
+                <div class="field-group space-y-1">
+                    <label for="forbidden-sections" class="block text-sm font-medium text-gray-700">Forbidden Sections</label>
+                    <textarea id="forbidden-sections" class="w-full border rounded-md p-2 text-sm h-32"></textarea>
+                </div>
             </div>
-            <div class="field-group space-y-1">
-                <label for="tone" class="block text-sm font-medium text-gray-700">Tone</label>
-                <input type="text" id="tone" class="w-full border rounded-md p-2 text-sm" />
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="field-group space-y-1">
+                    <label for="must-include" class="block text-sm font-medium text-gray-700">Must Include</label>
+                    <textarea id="must-include" class="w-full border rounded-md p-2 text-sm h-40"></textarea>
+                </div>
+                <div class="field-group space-y-1">
+                    <label for="must-avoid" class="block text-sm font-medium text-gray-700">Must Avoid</label>
+                    <textarea id="must-avoid" class="w-full border rounded-md p-2 text-sm h-40"></textarea>
+                </div>
             </div>
-            <div class="field-group space-y-1">
-                <label for="required-sections" class="block text-sm font-medium text-gray-700">Required Sections</label>
-                <textarea id="required-sections" class="w-full border rounded-md p-2 text-sm"></textarea>
-            </div>
-            <div class="field-group space-y-1">
-                <label for="forbidden-sections" class="block text-sm font-medium text-gray-700">Forbidden Sections</label>
-                <textarea id="forbidden-sections" class="w-full border rounded-md p-2 text-sm"></textarea>
-            </div>
-            <div class="field-group space-y-1">
-                <label for="must-include" class="block text-sm font-medium text-gray-700">Must Include</label>
-                <textarea id="must-include" class="w-full border rounded-md p-2 text-sm"></textarea>
-            </div>
-            <div class="field-group space-y-1">
-                <label for="must-avoid" class="block text-sm font-medium text-gray-700">Must Avoid</label>
-                <textarea id="must-avoid" class="w-full border rounded-md p-2 text-sm"></textarea>
-            </div>
+
             <div class="field-group space-y-1">
                 <label for="required-mentions" class="block text-sm font-medium text-gray-700">Required Mentions</label>
-                <textarea id="required-mentions" class="w-full border rounded-md p-2 text-sm"></textarea>
+                <textarea id="required-mentions" class="w-full border rounded-md p-2 text-sm h-32"></textarea>
             </div>
-            <div class="field-group space-y-1">
-                <label for="humor-level" class="block text-sm font-medium text-gray-700">Humor Level</label>
-                <input type="text" id="humor-level" class="w-full border rounded-md p-2 text-sm" />
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div class="field-group space-y-1">
+                    <label for="humor-level" class="block text-sm font-medium text-gray-700">Humor Level</label>
+                    <input type="text" id="humor-level" class="w-full border rounded-md p-2 text-sm" />
+                </div>
+                <div class="field-group space-y-1">
+                    <label for="formality" class="block text-sm font-medium text-gray-700">Formality</label>
+                    <input type="text" id="formality" class="w-full border rounded-md p-2 text-sm" />
+                </div>
+                <div class="field-group space-y-1">
+                    <label for="narrative-voice" class="block text-sm font-medium text-gray-700">Narrative Voice</label>
+                    <input type="text" id="narrative-voice" class="w-full border rounded-md p-2 text-sm" />
+                </div>
             </div>
-            <div class="field-group space-y-1">
-                <label for="formality" class="block text-sm font-medium text-gray-700">Formality</label>
-                <input type="text" id="formality" class="w-full border rounded-md p-2 text-sm" />
-            </div>
-            <div class="field-group space-y-1">
-                <label for="narrative-voice" class="block text-sm font-medium text-gray-700">Narrative Voice</label>
-                <input type="text" id="narrative-voice" class="w-full border rounded-md p-2 text-sm" />
-            </div>
+
             <section id="save-intent" data-phase="intent" class="space-y-2">
                 <h2 class="text-md font-semibold text-gray-800">Save Intent</h2>
                 <div class="save-row flex items-center gap-3">
