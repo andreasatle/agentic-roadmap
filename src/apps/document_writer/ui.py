@@ -174,6 +174,7 @@ def save_intent_yaml(
     formality_custom: str,
     narrative_voice: str,
     narrative_voice_custom: str,
+    filename: str,
 ) -> tuple[str | None, str]:
     try:
         intent = _intent_from_inputs(
@@ -197,15 +198,17 @@ def save_intent_yaml(
         return None, f"Validation error: {exc}"
 
     yaml_text = yaml.safe_dump(intent.model_dump(), sort_keys=False, default_flow_style=False)
-    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".yaml")
+    target_name = filename.strip() or "intent.yaml"
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=f"-{target_name}")
     Path(tmp.name).write_text(yaml_text)
     return tmp.name, ""
 
 
-def save_article(markdown: str) -> tuple[str | None, str]:
+def save_article(markdown: str, filename: str) -> tuple[str | None, str]:
     if not markdown or not markdown.strip():
         return None, "No article generated."
-    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=".md")
+    target_name = filename.strip() or "article.md"
+    tmp = tempfile.NamedTemporaryFile(delete=False, suffix=f"-{target_name}")
     Path(tmp.name).write_text(markdown)
     return tmp.name, ""
 
@@ -267,86 +270,103 @@ def main() -> None:
         article_state = gr.State("")
 
         with gr.Group():
-            gr.Markdown("## Structural Intent")
-            document_goal = gr.Textbox(label="Document Goal", lines=3, placeholder="Overall goal (optional)")
-            audience_choice = gr.Dropdown(
-                label="Audience",
-                choices=["", "general", "executives", "engineers", "researchers", "Custom"],
-                value="",
-            )
-            audience_custom = gr.Textbox(label="Audience (Custom)", placeholder="Used when Audience=Custom")
-            tone = gr.Dropdown(
-                label="Tone",
-                choices=["", "informative", "reflective", "technical", "narrative", "other"],
-                value="",
-            )
-            required_sections = gr.Textbox(
-                label="Required Sections",
-                placeholder="Comma or newline separated (optional)",
-                lines=3,
-            )
-            forbidden_sections = gr.Textbox(
-                label="Forbidden Sections",
-                placeholder="Comma or newline separated (optional)",
-                lines=3,
-            )
+            gr.Markdown("Load an existing IntentEnvelope (optional)")
+            intent_file
 
         with gr.Group():
-            gr.Markdown("## Semantic Constraints")
-            must_include = gr.Textbox(
-                label="Must Include",
-                placeholder="Comma or newline separated (optional)",
-                lines=2,
-            )
-            must_avoid = gr.Textbox(
-                label="Must Avoid",
-                placeholder="Comma or newline separated (optional)",
-                lines=2,
-            )
-            required_mentions = gr.Textbox(
-                label="Required Mentions",
-                placeholder="Comma or newline separated (optional)",
-                lines=2,
-            )
+            gr.Markdown("## Intent Definition")
+            with gr.Group():
+                gr.Markdown("### Structural Intent")
+                document_goal = gr.Textbox(label="Document Goal", lines=3, placeholder="Overall goal (optional)")
+                audience_choice = gr.Dropdown(
+                    label="Audience",
+                    choices=["", "general", "executives", "engineers", "researchers", "Custom"],
+                    value="",
+                )
+                audience_custom = gr.Textbox(label="Audience (Custom)", placeholder="Used when Audience=Custom")
+                tone = gr.Dropdown(
+                    label="Tone",
+                    choices=["", "informative", "reflective", "technical", "narrative", "other"],
+                    value="",
+                )
+                required_sections = gr.Textbox(
+                    label="Required Sections",
+                    placeholder="Comma or newline separated (optional)",
+                    lines=3,
+                )
+                forbidden_sections = gr.Textbox(
+                    label="Forbidden Sections",
+                    placeholder="Comma or newline separated (optional)",
+                    lines=3,
+                )
+            with gr.Group():
+                gr.Markdown("### Semantic Constraints")
+                must_include = gr.Textbox(
+                    label="Must Include",
+                    placeholder="Comma or newline separated (optional)",
+                    lines=2,
+                )
+                must_avoid = gr.Textbox(
+                    label="Must Avoid",
+                    placeholder="Comma or newline separated (optional)",
+                    lines=2,
+                )
+                required_mentions = gr.Textbox(
+                    label="Required Mentions",
+                    placeholder="Comma or newline separated (optional)",
+                    lines=2,
+                )
+            with gr.Group():
+                gr.Markdown("### Stylistic Preferences")
+                humor_level = gr.Dropdown(
+                    label="Humor Level",
+                    choices=["", "none", "light", "moderate", "Custom"],
+                    value="",
+                )
+                humor_level_custom = gr.Textbox(label="Humor Level (Custom)", placeholder="Used when Humor=Custom")
+                formality = gr.Dropdown(
+                    label="Formality",
+                    choices=["", "informal", "neutral", "formal", "Custom"],
+                    value="",
+                )
+                formality_custom = gr.Textbox(label="Formality (Custom)", placeholder="Used when Formality=Custom")
+                narrative_voice = gr.Dropdown(
+                    label="Narrative Voice",
+                    choices=["", "first-person", "third-person", "neutral", "Custom"],
+                    value="",
+                )
+                narrative_voice_custom = gr.Textbox(
+                    label="Narrative Voice (Custom)", placeholder="Used when Narrative Voice=Custom"
+                )
 
         with gr.Group():
-            gr.Markdown("## Stylistic Preferences")
-            humor_level = gr.Dropdown(
-                label="Humor Level",
-                choices=["", "none", "light", "moderate", "Custom"],
-                value="",
-            )
-            humor_level_custom = gr.Textbox(label="Humor Level (Custom)", placeholder="Used when Humor=Custom")
-            formality = gr.Dropdown(
-                label="Formality",
-                choices=["", "informal", "neutral", "formal", "Custom"],
-                value="",
-            )
-            formality_custom = gr.Textbox(label="Formality (Custom)", placeholder="Used when Formality=Custom")
-            narrative_voice = gr.Dropdown(
-                label="Narrative Voice",
-                choices=["", "first-person", "third-person", "neutral", "Custom"],
-                value="",
-            )
-            narrative_voice_custom = gr.Textbox(
-                label="Narrative Voice (Custom)", placeholder="Used when Narrative Voice=Custom"
-            )
+            gr.Markdown("## Save Intent")
+            with gr.Row():
+                filename_input = gr.Textbox(
+                    label="Intent file name", placeholder="intent.yaml", value="intent.yaml", scale=2
+                )
+                save_intent_button = gr.Button("Save Intent", scale=1)
+                intent_download = gr.File(label="Intent YAML (download)", interactive=False, scale=2)
 
-        with gr.Row():
-            load_button = gr.Button("Load Intent")
-            save_intent_button = gr.Button("Save Intent")
+        with gr.Group():
+            gr.Markdown("## Generate Article")
             generate_button = gr.Button("Generate Article")
-            save_article_button = gr.Button("Save Article", interactive=False)
-        
-        with gr.Row():
-            error_output = gr.Textbox(label="Validation Errors", lines=6)
-        
-        with gr.Row():
+
+        with gr.Group():
+            gr.Markdown("## Generated Article")
             article_output = gr.Code(label="Generated Article", language="markdown")
-        
-        with gr.Row():
-            intent_download = gr.File(label="Intent YAML (download)", interactive=False)
-            article_download = gr.File(label="Article (download)", interactive=False)
+
+        with gr.Group():
+            gr.Markdown("## Save Article")
+            with gr.Row():
+                article_filename_input = gr.Textbox(
+                    label="Article file name", placeholder="article.md", value="article.md", scale=2
+                )
+                save_article_button = gr.Button("Save Article", interactive=False, scale=1)
+                article_download = gr.File(label="Article (download)", interactive=False, scale=2)
+
+        with gr.Group():
+            error_output = gr.Textbox(label="Validation Errors", lines=6)
 
 
         inputs = [
@@ -367,7 +387,7 @@ def main() -> None:
             narrative_voice_custom,
         ]
 
-        load_button.click(
+        intent_file.change(
             load_intent_into_ui,
             inputs=[intent_file],
             outputs=inputs + [error_output],
@@ -375,7 +395,7 @@ def main() -> None:
 
         save_intent_button.click(
             save_intent_yaml,
-            inputs=inputs,
+            inputs=inputs + [filename_input],
             outputs=[intent_download, error_output],
         )
 
@@ -387,7 +407,7 @@ def main() -> None:
 
         save_article_button.click(
             save_article,
-            inputs=[article_state],
+            inputs=[article_state, article_filename_input],
             outputs=[article_download, error_output],
         )
 
