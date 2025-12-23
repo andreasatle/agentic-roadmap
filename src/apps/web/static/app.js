@@ -41,10 +41,26 @@ function setError(message) {
 
 function setIntentDisabled(flag) {
   Object.values(intentFields).forEach((el) => {
-    if (el) el.disabled = flag;
+    if (el) {
+      el.disabled = flag;
+      el.classList.toggle("opacity-60", flag);
+      el.classList.toggle("cursor-not-allowed", flag);
+    }
   });
   const fileInput = document.getElementById("intent-file");
-  if (fileInput) fileInput.disabled = flag;
+  if (fileInput) {
+    fileInput.disabled = flag;
+    fileInput.classList.toggle("opacity-60", flag);
+    fileInput.classList.toggle("cursor-not-allowed", flag);
+  }
+  const generateBtn = document.getElementById("generate-document-btn");
+  if (generateBtn) {
+    generateBtn.disabled = flag;
+    generateBtn.textContent = flag ? "Generating…" : "Generate Document";
+    generateBtn.classList.toggle("bg-green-700", flag);
+    generateBtn.classList.toggle("cursor-not-allowed", flag);
+    generateBtn.classList.toggle("opacity-80", flag);
+  }
 }
 
 function readIntentFromForm() {

@@ -35,13 +35,29 @@
                 <div class="space-y-4">
                     <div class="field-group space-y-1">
                         <label for="audience" class="block text-sm font-medium text-gray-700">Audience</label>
-                        <input type="text" id="audience" class="w-full border rounded-md p-2 text-sm" />
+                        <input list="audience-options" type="text" id="audience" class="w-full border rounded-md p-2 text-sm" />
+                        <datalist id="audience-options">
+                            <option value="engineers" />
+                            <option value="general public" />
+                            <option value="technical leadership" />
+                            <option value="product managers" />
+                            <option value="researchers" />
+                            <option value="students" />
+                        </datalist>
                     </div>
                     <div class="field-group space-y-1">
                         <label for="tone" class="block text-sm font-medium text-gray-700">Tone</label>
-                        <input type="text" id="tone" class="w-full border rounded-md p-2 text-sm" />
-                    </div>
+                    <input list="tone-options" type="text" id="tone" class="w-full border rounded-md p-2 text-sm" />
+                    <datalist id="tone-options">
+                        <option value="informative" />
+                        <option value="reflective" />
+                        <option value="analytical" />
+                        <option value="conversational" />
+                        <option value="technical" />
+                        <option value="neutral" />
+                    </datalist>
                 </div>
+            </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -74,15 +90,32 @@
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div class="field-group space-y-1">
                     <label for="humor-level" class="block text-sm font-medium text-gray-700">Humor Level</label>
-                    <input type="text" id="humor-level" class="w-full border rounded-md p-2 text-sm" />
+                    <input list="humor-options" type="text" id="humor-level" class="w-full border rounded-md p-2 text-sm" />
+                    <datalist id="humor-options">
+                        <option value="none" />
+                        <option value="light" />
+                        <option value="moderate" />
+                        <option value="dry" />
+                    </datalist>
                 </div>
                 <div class="field-group space-y-1">
                     <label for="formality" class="block text-sm font-medium text-gray-700">Formality</label>
-                    <input type="text" id="formality" class="w-full border rounded-md p-2 text-sm" />
+                    <input list="formality-options" type="text" id="formality" class="w-full border rounded-md p-2 text-sm" />
+                    <datalist id="formality-options">
+                        <option value="casual" />
+                        <option value="neutral" />
+                        <option value="formal" />
+                        <option value="academic" />
+                    </datalist>
                 </div>
                 <div class="field-group space-y-1">
                     <label for="narrative-voice" class="block text-sm font-medium text-gray-700">Narrative Voice</label>
-                    <input type="text" id="narrative-voice" class="w-full border rounded-md p-2 text-sm" />
+                    <input list="narrative-voice-options" type="text" id="narrative-voice" class="w-full border rounded-md p-2 text-sm" />
+                    <datalist id="narrative-voice-options">
+                        <option value="first-person" />
+                        <option value="third-person" />
+                        <option value="second-person" />
+                    </datalist>
                 </div>
             </div>
 
@@ -100,13 +133,13 @@
                 </div>
             </section>
             <div class="field-group">
-                <button onclick="generateDocument()" class="px-4 py-2 bg-green-600 text-white rounded-md text-sm">Generate Document</button>
+                <button id="generate-document-btn" onclick="generateDocument()" class="px-4 py-2 bg-green-600 text-white rounded-md text-sm">Generate Document</button>
             </div>
         </section>
 
         <section id="generate-document" data-phase="structure" class="bg-white border rounded-lg shadow-sm p-4 space-y-3">
             <h2 class="text-lg font-semibold text-gray-800">Generate Document</h2>
-            <button onclick="generateDocument()" class="px-4 py-2 bg-green-600 text-white rounded-md text-sm">Generate Article</button>
+            <button id="generate-document-btn" onclick="generateDocument()" class="px-4 py-2 bg-green-600 text-white rounded-md text-sm">Generate Article</button>
         </section>
 
         <section id="article-output" data-phase="content" class="bg-white border rounded-lg shadow-sm p-4 space-y-3">
