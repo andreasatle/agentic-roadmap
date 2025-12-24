@@ -8,6 +8,7 @@ import yaml
 from pathlib import Path
 
 from apps.document_writer.service import generate_document
+from apps.blog.storage import list_posts
 from apps.web.schemas import (
     DocumentGenerateRequest,
     DocumentSaveRequest,
@@ -69,3 +70,18 @@ def save_document(payload: DocumentSaveRequest):
     buffer = BytesIO(payload.markdown.encode("utf-8"))
     headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
     return StreamingResponse(buffer, media_type="text/markdown", headers=headers)
+
+
+@app.get("/blog")
+def get_blog_index(include_drafts: bool = False):
+    posts = list_posts(include_drafts=include_drafts)
+    result = [
+        {
+            "post_id": p.post_id,
+            "title": p.title,
+            "author": p.author,
+            "created_at": p.created_at,
+        }
+        for p in posts
+    ]
+    return result

@@ -58,3 +58,26 @@ def create_post(
     content_path.write_text(content)
 
     return str(post_dir.resolve())
+
+
+def list_posts(*, posts_root: str = "posts", include_drafts: bool = False) -> list[BlogPostMeta]:
+    posts: list[BlogPostMeta] = []
+    root = Path(posts_root)
+    if not root.exists() or not root.is_dir():
+        return []
+    for entry in root.iterdir():
+        if not entry.is_dir():
+            continue
+        meta_path = entry / "meta.yaml"
+        if not meta_path.exists():
+            continue
+        try:
+            meta_data = yaml.safe_load(meta_path.read_text())
+            meta = BlogPostMeta.model_validate(meta_data)
+        except Exception:
+            continue
+        if not include_drafts and meta.status != "published":
+            continue
+        posts.append(meta)
+    posts.sort(key=lambda m: m.created_at, reverse=True)
+    return posts
