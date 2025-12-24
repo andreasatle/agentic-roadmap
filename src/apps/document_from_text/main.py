@@ -31,8 +31,8 @@ def _read_text(text: str | None, path: str | None) -> str:
 def assemble_markdown(node: DocumentNode, store: ContentStore, depth: int = 0) -> list[str]:
     lines: list[str] = []
     heading_prefix = "#" * (depth + 1)
-    lines.append(f"{heading_prefix} {node.title}".strip())
     text = store.by_node_id.get(node.id)
+    text_to_emit = ""
     if text:
         text_lines = text.splitlines()
         filtered_lines: list[str] = []
@@ -43,7 +43,10 @@ def assemble_markdown(node: DocumentNode, store: ContentStore, depth: int = 0) -
                 if line == f"{node.title}:":
                     continue
             filtered_lines.append(line)
-        lines.append("\n".join(filtered_lines).strip())
+        text_to_emit = "\n".join(filtered_lines).strip()
+    if text_to_emit:
+        lines.append(f"{heading_prefix} {node.title}".strip())
+        lines.append(text_to_emit)
     for child in node.children:
         lines.extend(assemble_markdown(child, store, depth + 1))
     return lines
