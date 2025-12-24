@@ -81,3 +81,41 @@ def list_posts(*, posts_root: str = "posts", include_drafts: bool = False) -> li
         posts.append(meta)
     posts.sort(key=lambda m: m.created_at, reverse=True)
     return posts
+
+
+def _post_dir(post_id: str, posts_root: str) -> Path:
+    return Path(posts_root) / post_id
+
+
+def read_post_meta(post_id: str, posts_root: str = "posts") -> BlogPostMeta:
+    post_dir = _post_dir(post_id, posts_root)
+    meta_path = post_dir / "meta.yaml"
+    if not meta_path.exists():
+        raise FileNotFoundError(f"meta.yaml not found for post {post_id}")
+    try:
+        meta_data = yaml.safe_load(meta_path.read_text())
+        return BlogPostMeta.model_validate(meta_data)
+    except Exception as exc:
+        raise ValueError(f"Invalid meta.yaml for post {post_id}: {exc}") from exc
+
+
+def read_post_content(post_id: str, posts_root: str = "posts") -> str:
+    post_dir = _post_dir(post_id, posts_root)
+    content_path = post_dir / "content.md"
+    if not content_path.exists():
+        raise FileNotFoundError(f"content.md not found for post {post_id}")
+    return content_path.read_text()
+
+
+def read_post_intent(post_id: str, posts_root: str = "posts") -> dict:
+    post_dir = _post_dir(post_id, posts_root)
+    intent_path = post_dir / "intent.yaml"
+    if not intent_path.exists():
+        raise FileNotFoundError(f"intent.yaml not found for post {post_id}")
+    try:
+        data = yaml.safe_load(intent_path.read_text())
+        if not isinstance(data, dict):
+            raise ValueError("Intent YAML must be a mapping.")
+        return data
+    except Exception as exc:
+        raise ValueError(f"Invalid intent.yaml for post {post_id}: {exc}") from exc

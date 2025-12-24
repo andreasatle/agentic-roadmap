@@ -8,7 +8,7 @@ import yaml
 from pathlib import Path
 
 from apps.document_writer.service import generate_document
-from apps.blog.storage import list_posts
+from apps.blog.storage import list_posts, read_post_meta, read_post_content, read_post_intent
 from apps.web.schemas import (
     DocumentGenerateRequest,
     DocumentSaveRequest,
@@ -85,3 +85,27 @@ def get_blog_index(include_drafts: bool = False):
         for p in posts
     ]
     return result
+
+
+@app.get("/blog/{post_id}")
+def get_blog_post(post_id: str, include_drafts: bool = False):
+    try:
+        meta = read_post_meta(post_id)
+        if not include_drafts and meta.status != "published":
+            raise HTTPException(status_code=404, detail="Post not found")
+        content = read_post_content(post_id)
+        intent = read_post_intent(post_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Post not found")
+    except ValueError as exc:
+        raise HTTPException(status_code=404, detail=str(exc))
+
+    return {
+        "post_id": meta.post_id,
+        "title": meta.title,
+        "author": meta.author,
+        "created_at": meta.created_at,
+        "status": meta.status,
+        "content": content,
+        "intent": intent,
+    }
