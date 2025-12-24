@@ -15,6 +15,7 @@ from domain.writer.api import execute_document
 def _assemble_markdown(node: DocumentNode, store: ContentStore, depth: int = 0) -> list[str]:
     lines: list[str] = []
     heading_prefix = "#" * (depth + 1)
+    # Document-writer outputs body-only markdown; root is structural-only and never emits a heading.
     text = store.by_node_id.get(node.id)
     text_to_emit = ""
     if text:
@@ -28,7 +29,7 @@ def _assemble_markdown(node: DocumentNode, store: ContentStore, depth: int = 0) 
                     continue
             filtered_lines.append(line)
         text_to_emit = "\n".join(filtered_lines).strip()
-    if text_to_emit:
+    if text_to_emit and depth > 0:
         lines.append(f"{heading_prefix} {node.title}".strip())
         lines.append(text_to_emit)
     for child in node.children:

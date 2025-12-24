@@ -38,14 +38,14 @@ OUTPUT (STRICT JSON):
 RULES:
 1. Emit exactly one document_tree.
 2. If document_tree is null, construct a complete tree with parameters:
-   - Root node: overall document (title, description, children).
+   - Root node: structural container only (no user-facing title); set root.title="__ROOT__".
    - Child nodes: sections (title, description, children=[]).
    - parameters.sections MUST NOT appear; root MUST always be present.
 3. If document_tree is provided (not null), ignore intent entirely and preserve the provided structure.
 4. If document_tree is null, you MAY consider intent as advisory only:
    - structural_intent.required_sections may inspire section titles if coherent; do not copy blindly.
    - structural_intent.forbidden_sections may guide naming avoidance but MUST NOT suppress needed sections.
-   - document_goal / audience / tone may inform root title/description wording only; do not add hierarchy.
+   - document_goal / audience / tone may inform root description wording only; do not add hierarchy or titles.
    - semantic_constraints and stylistic_preferences MUST NOT affect structure.
    - You are free to ignore intent signals if they conflict with coherence.
 5. Intent NEVER creates, deletes, or reorders nodes by itself; you own all structural authority.
@@ -68,7 +68,7 @@ Valid init example:
   "document_tree": {
     "root": {
       "id": "doc-1",
-      "title": "My Document",
+      "title": "__ROOT__",  // structural-only; not user-facing
       "description": "Overall purpose of the document.",
       "children": [
         {
