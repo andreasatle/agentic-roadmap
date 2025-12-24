@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ meta.title }}</title>
+    <script>
+      tailwind = {
+        config: {
+          plugins: [tailwindcssTypography],
+        }
+      }
+    </script>
+    <script src="https://cdn.jsdelivr.net/npm/@tailwindcss/typography@0.5.10/dist/typography.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-50 font-sans">
+    <main class="max-w-4xl mx-auto p-6 space-y-6">
+        <header class="space-y-1">
+            <h1 class="text-2xl font-semibold text-gray-800">{{ meta.title }}</h1>
+            <div class="text-sm text-gray-600">By {{ meta.author }} · {{ meta.created_at }} · Status: {{ meta.status }}</div>
+            <a href="/blog?include_drafts={{ 'true' if include_drafts else 'false' }}" class="text-blue-600 hover:underline text-sm">Back to Blog</a>
+        </header>
+        <section class="bg-white border rounded-lg shadow-sm p-4">
+            <div class="prose max-w-none whitespace-pre-wrap">{{ content }}</div>
+        </section>
+        <section class="bg-white border rounded-lg shadow-sm p-4">
+            <details>
+                <summary class="cursor-pointer text-sm text-gray-700">Show intent (raw)</summary>
+                <pre class="text-sm text-gray-700 whitespace-pre-wrap">{{ intent }}</pre>
+            </details>
+        </section>
+    </main>
+</body>
+</html>

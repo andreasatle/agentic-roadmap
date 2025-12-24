@@ -72,9 +72,14 @@ def save_document(payload: DocumentSaveRequest):
     return StreamingResponse(buffer, media_type="text/markdown", headers=headers)
 
 
-@app.get("/blog")
-def get_blog_index(include_drafts: bool = False):
+@app.get("/blog", response_class=HTMLResponse)
+def get_blog_index(request: Request, include_drafts: bool = False, format: str = "html"):
     posts = list_posts(include_drafts=include_drafts)
+    if format == "html":
+        return templates.TemplateResponse(
+            "blog_index.html",
+            {"request": request, "posts": posts, "include_drafts": include_drafts},
+        )
     result = [
         {
             "post_id": p.post_id,
@@ -87,8 +92,8 @@ def get_blog_index(include_drafts: bool = False):
     return result
 
 
-@app.get("/blog/{post_id}")
-def get_blog_post(post_id: str, include_drafts: bool = False):
+@app.get("/blog/{post_id}", response_class=HTMLResponse)
+def get_blog_post(request: Request, post_id: str, include_drafts: bool = False, format: str = "html"):
     try:
         meta = read_post_meta(post_id)
         if not include_drafts and meta.status != "published":
@@ -99,6 +104,18 @@ def get_blog_post(post_id: str, include_drafts: bool = False):
         raise HTTPException(status_code=404, detail="Post not found")
     except ValueError as exc:
         raise HTTPException(status_code=404, detail=str(exc))
+
+    if format == "html":
+        return templates.TemplateResponse(
+            "blog_post.html",
+            {
+                "request": request,
+                "meta": meta,
+                "content": content,
+                "intent": intent,
+                "include_drafts": include_drafts,
+            },
+        )
 
     return {
         "post_id": meta.post_id,
