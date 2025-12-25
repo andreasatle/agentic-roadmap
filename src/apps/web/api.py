@@ -24,6 +24,8 @@ BASE_DIR = Path(__file__).resolve().parent
 static_dir = BASE_DIR / "static"
 templates_dir = BASE_DIR / "templates"
 
+BLOG_MARKDOWN_EXTENSIONS = ["fenced_code", "tables"]
+
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
 templates = Jinja2Templates(directory=templates_dir)
@@ -109,7 +111,7 @@ def get_blog_post(request: Request, post_id: str, include_drafts: bool = False, 
     if format == "html":
         content_html = markdown.markdown(
             content,
-            extensions=["fenced_code", "tables"],
+            extensions=BLOG_MARKDOWN_EXTENSIONS,
         )
         return templates.TemplateResponse(
             "blog_post.html",
