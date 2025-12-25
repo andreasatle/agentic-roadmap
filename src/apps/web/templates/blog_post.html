@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <title>{{ meta.title }}</title>
-    <link rel="stylesheet" href="/static/tailwind.css">
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+    <link rel="stylesheet" href="/static/app.css">
 </head>
-<body class="bg-gray-50 font-sans">
-    <main class="max-w-4xl mx-auto p-6 space-y-6">
-        <header class="space-y-1">
-            <h1 class="text-2xl font-semibold text-gray-800">{{ meta.title }}</h1>
-            <div class="text-sm text-gray-600">By {{ meta.author }} · {{ meta.created_at }} · Status: {{ meta.status }}</div>
-            <a href="/blog?include_drafts={{ 'true' if include_drafts else 'false' }}" class="text-blue-600 hover:underline text-sm">Back to Blog</a>
+<body>
+    <main class="container">
+        <p><a href="/">Home</a></p>
+        <header>
+            <h1>{{ meta.title }}</h1>
+            <div>By {{ meta.author }} · {{ meta.created_at }} · Status: {{ meta.status }}</div>
+            <a href="/blog?include_drafts={{ 'true' if include_drafts else 'false' }}">Back to Blog</a>
         </header>
-        <section class="bg-white border rounded-lg shadow-sm p-4">
-            <div class="prose prose-lg max-w-none">{{ content_html | safe }}</div>
-        </section>
+        <article>
+            {{ content_html | safe }}
+        </article>
     </main>
 </body>
 </html>

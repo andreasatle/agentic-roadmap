@@ -32,7 +32,12 @@ templates = Jinja2Templates(directory=templates_dir)
 
 
 @app.get("/", response_class=HTMLResponse)
-def read_index(request: Request):
+def read_home(request: Request):
+    return templates.TemplateResponse("home.html", {"request": request})
+
+
+@app.get("/writer", response_class=HTMLResponse)
+def read_writer(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
 
 

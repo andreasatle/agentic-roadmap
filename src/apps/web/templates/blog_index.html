@@ -3,35 +3,34 @@
 <head>
     <meta charset="UTF-8">
     <title>Blog Index</title>
-    <link rel="stylesheet" href="/static/tailwind.css">
+    <link rel="stylesheet" href="https://unpkg.com/@picocss/pico@latest/css/pico.min.css">
+    <link rel="stylesheet" href="/static/app.css">
 </head>
-<body class="bg-gray-50 font-sans">
-    <main class="max-w-4xl mx-auto p-6 space-y-6">
-        <header class="space-y-2">
-            <h1 class="text-2xl font-semibold text-gray-800">Blog Posts</h1>
+<body>
+    <main class="container">
+        <p><a href="/">Home</a></p>
+        <header>
+            <h1>Blog Posts</h1>
             {% if include_drafts %}
-            <p class="text-sm text-gray-600">Showing drafts and published posts.</p>
+            <p>Showing drafts and published posts.</p>
             {% else %}
-            <p class="text-sm text-gray-600">Showing published posts only.</p>
+            <p>Showing published posts only.</p>
             {% endif %}
         </header>
-        <section class="bg-white border rounded-lg shadow-sm p-4 space-y-4">
+        <section>
             {% if posts %}
-                <ul class="space-y-3">
+                <ul>
                     {% for p in posts %}
-                        <li class="flex items-baseline justify-between border-b pb-2 last:border-b-0 last:pb-0">
-                            <div>
-                                <a href="/blog/{{ p.post_id }}?include_drafts={{ 'true' if include_drafts else 'false' }}" class="text-blue-600 hover:underline font-medium">
-                                    {{ p.title }}
-                                </a>
-                                <div class="text-sm text-gray-600">By {{ p.author }}</div>
-                            </div>
-                            <div class="text-sm text-gray-500">{{ p.created_at }}</div>
+                        <li>
+                            <a href="/blog/{{ p.post_id }}?include_drafts={{ 'true' if include_drafts else 'false' }}">
+                                {{ p.title }}
+                            </a>
+                            <div>By {{ p.author }} · {{ p.created_at }}</div>
                         </li>
                     {% endfor %}
                 </ul>
             {% else %}
-                <p class="text-sm text-gray-600">No posts available.</p>
+                <p>No posts available.</p>
             {% endif %}
         </section>
     </main>
