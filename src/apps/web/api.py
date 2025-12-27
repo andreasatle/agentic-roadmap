@@ -1,6 +1,7 @@
+import apps.web.bootstrap
 from io import BytesIO
 
-from fastapi import FastAPI, HTTPException, Request
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -16,9 +17,10 @@ from apps.web.schemas import (
     IntentParseRequest,
     IntentSaveRequest,
 )
+from apps.web.security import require_admin
 from domain.intent import load_intent_from_yaml
-from dotenv import load_dotenv
-load_dotenv(override=True)
+
+
 
 BASE_DIR = Path(__file__).resolve().parent
 static_dir = BASE_DIR / "static"
@@ -60,7 +62,10 @@ def save_intent(payload: IntentSaveRequest):
 
 
 @app.post("/document/generate")
-def generate_document_route(payload: DocumentGenerateRequest) -> dict[str, str]:
+def generate_document_route(
+    payload: DocumentGenerateRequest,
+    _: None = Depends(require_admin),
+    ) -> dict[str, str]:
     intent = payload.intent
     result = generate_document(
         goal=intent.structural_intent.document_goal,
