@@ -1,0 +1,44 @@
+structural_intent:
+  document_goal: "Explain how the act of implementing Planner\u2013Worker\u2013Critic\
+    \ controllers led the author to implicitly adopt the same control structure in\
+    \ their own development workflow, effectively treating ChatGPT and Codex as planner\
+    \ and worker agents under a human supervisor role.\n"
+  audience: 'Experienced software engineers and AI practitioners interested in agentic
+    systems, control structures, and reflective development practices.
+
+    '
+  tone: 'Reflective and analytical; focused on mechanism and insight rather than outcome
+    or success narrative.
+
+    '
+  required_sections:
+  - Initial goal of implementing PWC controllers
+  - How controller design shaped interaction patterns
+  - Treating ChatGPT as planner and Codex as worker
+  - The author assuming the supervisor role
+  - Critique as an explicit control phase
+  - How tooling design fed back into human behavior
+  forbidden_sections:
+  - Step-by-step implementation guides
+  - Claims of autonomous or self-directed agents
+  - Tool marketing or productivity hype
+semantic_constraints:
+  must_include:
+  - The idea that control abstractions influenced behavior outside the codebase
+  - A clear mapping between PWC roles and real development interactions
+  - An explanation that the workflow emerged implicitly, not by deliberate design
+  - The notion that the framework functioned as a cognitive scaffold
+  must_avoid:
+  - Framing the experience as a success story or case study
+  - Suggesting that the tools possessed agency or intent
+  - Generalizing the workflow as a best practice for all developers
+  required_mentions:
+  - "Planner\u2013Worker\u2013Critic"
+  - controller
+  - supervision
+  - critique
+  - feedback loop
+stylistic_preferences:
+  humor_level: none
+  formality: professional
+  narrative_voice: first-person

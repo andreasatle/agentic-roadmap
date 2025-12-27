@@ -1,0 +1,33 @@
+structural_intent:
+  document_goal: 'Reflect on the experience of building agentic systems that initially
+    feel empowering but gradually introduce a loss of control, and explain what meaningful
+    control actually means in practice when designing such systems.
+
+    '
+  audience: engineers
+  tone: reflective
+  required_sections:
+  - Introduction
+  - The Initial Appeal of Agentic Systems
+  - When Control Starts Slipping
+  - What Control Actually Means
+  - Regaining Control Through Constraints
+  - Closing Thoughts
+  forbidden_sections: []
+semantic_constraints:
+  must_include:
+  - loss of control
+  - trust in automation
+  - responsibility
+  - control is not autonomy
+  - constraints as design tools
+  - system-level intelligence
+  must_avoid:
+  - marketing language
+  - buzzwords
+  - hype about autonomy
+  required_mentions: []
+stylistic_preferences:
+  humor_level: low
+  formality: neutral
+  narrative_voice: first-person
