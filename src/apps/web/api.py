@@ -112,8 +112,8 @@ def save_intent(payload: IntentSaveRequest):
 @app.post("/document/generate")
 def generate_document_route(
     payload: DocumentGenerateRequest,
-    _: None = Depends(require_admin),
     request: Request,
+    _: None = Depends(require_admin),
     ) -> dict[str, str]:
     intent = payload.intent
     result = generate_document(
