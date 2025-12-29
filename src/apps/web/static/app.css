@@ -161,3 +161,9 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+/* Fix Save Article filename width to match Save Intent */
+#save-article .inline-controls input {
+  flex: 0 0 auto;
+  width: 16rem;
+}

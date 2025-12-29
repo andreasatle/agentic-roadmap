@@ -385,16 +385,20 @@ END OF INTENT UI CONTRACT
         <article id="article-text"></article>
 
         <section id="save-article">
-          <h2>Save Article</h2>
-          <div class="inline-controls">
-            <input
-              type="text"
-              id="article-filename"
-              placeholder="article.md"
-              aria-label="Article filename"
-            />
-            <button class="btn" onclick="saveDocument()">Save Article</button>
-          </div>
+          <section class="action-row">
+            <div class="actions-left">
+              <span class="save-label">Save Article</span>
+              <div class="inline-controls">
+                <input
+                  type="text"
+                  id="article-filename"
+                  placeholder="article.md"
+                  aria-label="Article filename"
+                />
+                <button class="btn" onclick="saveDocument()">Save</button>
+              </div>
+            </div>
+          </section>
         </section>
       </section>
 
