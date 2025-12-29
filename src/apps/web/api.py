@@ -34,6 +34,11 @@ app.mount("/static", StaticFiles(directory=static_dir), name="static")
 templates = Jinja2Templates(directory=templates_dir)
 
 
+@app.on_event("startup")
+def validate_generated_dir() -> None:
+    apps.web.bootstrap.validate_generated_dir()
+
+
 @app.get("/", response_class=HTMLResponse)
 def read_home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
