@@ -2,6 +2,7 @@ let currentIntent = null;
 let currentMarkdown = null;
 let currentView = "intent";
 let isGenerating = false;
+let isClearing = false;
 
 function $(id) {
   return document.getElementById(id);
@@ -153,6 +154,7 @@ function uploadIntent(event) {
 }
 
 async function applyIntentChanges() {
+  if (isClearing) return;
   try {
     const intent = readIntentFromForm();
     currentIntent = intent;
@@ -302,3 +304,33 @@ function setView(view) {
   intent.hidden = view !== "intent";
   content.hidden = view !== "content";
 }
+
+function clearIntent() {
+  isClearing = true;
+  currentIntent = null;
+  currentMarkdown = null;
+  Object.values(intentFields).forEach((el) => {
+    if (el) {
+      el.value = "";
+    }
+  });
+  const fileInput = $("intent-file");
+  if (fileInput) {
+    fileInput.value = "";
+  }
+  setError("");
+  setArticleStatus("");
+  setView("intent");
+  isClearing = false;
+}
+
+window.clearIntent = clearIntent;
+
+function openIntentFile() {
+  const fileInput = $("intent-file");
+  if (fileInput) {
+    fileInput.click();
+  }
+}
+
+window.openIntentFile = openIntentFile;

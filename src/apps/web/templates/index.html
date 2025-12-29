@@ -141,11 +141,12 @@ END OF INTENT UI CONTRACT
               <h2>Intent Form</h2>
             </div>
             <div class="intent-header-right">
-              <label class="file-upload btn">
-                Load Intent YAML File
-                <input type="file" id="intent-file" hidden />
-              </label>
-              <a id="to-content" class="btn btn--ghost">View Generated</a>
+              <button type="button" class="btn btn--danger" onclick="clearIntent()">Clear Fields</button>
+              <button type="button" class="btn btn--primary" onclick="openIntentFile()">Load Intent YAML File</button>
+              <input type="file" id="intent-file" hidden />
+              <button type="button" id="to-content" class="btn btn--ghost" onclick="setView('content')">
+                View Generated
+              </button>
             </div>
           </header>
 
@@ -362,11 +363,13 @@ END OF INTENT UI CONTRACT
                   placeholder="intent.yaml"
                   aria-label="Intent filename"
                 />
-                <button class="btn" id="save-intent-btn" onclick="saveIntent()">Save</button>
+                <button type="button" class="btn btn--primary" id="save-intent-btn" onclick="saveIntent()">
+                  Save
+                </button>
               </div>
             </div>
             <div class="actions-right">
-              <button class="btn" id="generate-document-btn" onclick="generateDocument()">
+              <button type="button" class="btn btn--primary" id="generate-document-btn" onclick="generateDocument()">
                 Generate Document
               </button>
             </div>
@@ -379,7 +382,9 @@ END OF INTENT UI CONTRACT
         <header class="document-header">
           <div class="header-inner">
             <h2>Generated Document</h2>
-            <a id="to-intent" class="btn btn--ghost">Edit Intent</a>
+            <button type="button" id="to-intent" class="btn btn--ghost" onclick="setView('intent')">
+              Edit Intent
+            </button>
           </div>
         </header>
         <article id="article-text"></article>
@@ -395,7 +400,7 @@ END OF INTENT UI CONTRACT
                   placeholder="article.md"
                   aria-label="Article filename"
                 />
-                <button class="btn" onclick="saveDocument()">Save</button>
+                <button type="button" class="btn btn--primary" onclick="saveDocument()">Save</button>
               </div>
             </div>
           </section>

@@ -12,8 +12,10 @@
 
   --border-subtle: #2a2a30;
 
-  --accent-blue: #2f80ff;
-  --accent-blue-hover: #1f6fe0;
+  --accent-blue: #2a6fd6;
+  --accent-blue-hover: #1f5fb8;
+  --accent-red: #c24a3a;
+  --accent-red-hover: #a43e31;
 }
 
 /* Page */
@@ -87,41 +89,50 @@ label {
   color: #fff;
 }
 
-/* Primary action buttons */
+/* Buttons */
 .btn {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--accent-blue);
-  color: #fff;
   padding: 0.4rem 0.75rem;
   font-size: 0.9rem;
   font-weight: 500;
-  border: none;
+  line-height: 1;
+  border: 1px solid transparent;
   border-radius: 4px;
   cursor: pointer;
   text-decoration: none;
   user-select: none;
 }
 
-.btn:hover {
+.btn--primary {
+  background: var(--accent-blue);
+  color: #fff;
+  border-color: transparent;
+}
+
+.btn--primary:hover {
   background: var(--accent-blue-hover);
 }
 
 .btn--ghost {
   background: transparent;
   color: var(--accent-blue);
-  border: 1px solid var(--accent-blue);
+  border-color: var(--accent-blue);
 }
 
 .btn--ghost:hover {
   background: rgba(47, 128, 255, 0.15);
 }
 
-/* Ensure anchor buttons keep button text color */
-a.btn,
-a.btn:visited {
+.btn--danger {
+  background: var(--accent-red);
   color: #fff;
+  border: none;
+}
+
+.btn--danger:hover {
+  background: var(--accent-red-hover);
 }
 
 /* Error output */
