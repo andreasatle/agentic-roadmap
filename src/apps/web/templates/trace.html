@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Architecture — Execution Trace</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <link rel="stylesheet" href="/static/theme-dark.css">
+</head>
+<body>
+    <main class="container">
+
+        <!-- Navigation (EXACT pattern used elsewhere) -->
+        <p>
+            <a href="/">Home</a> ·
+            <a href="/architecture">Architecture</a> ·
+            <a href="/architecture/authority">Authority</a> ·
+            <a href="/architecture/trace">Execution Trace</a> ·
+            <a href="/architecture/dogma">Dogma</a>
+        </p>
+
+        <header>
+            <h1>Execution Trace</h1>
+            <h2>
+                A single, bounded execution from request to termination.
+            </h2>
+            <p>
+                This page walks through one complete Controller execution.
+                Every step shown here corresponds directly to code paths
+                in <code>Controller.__call__</code>.
+            </p>
+        </header>
+
+        <section>
+            <h2>Input</h2>
+            <p>
+                Each execution begins with exactly one explicit task.
+                The Controller accepts no collections, no implicit queues,
+                and no background work.
+            </p>
+            <pre><code>
+ControllerRequest {
+  domain: {
+    task: &lt;DomainTask&gt;
+  }
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h2>State 1 — PLAN</h2>
+            <p>
+                The Controller invokes the Planner once to determine
+                <em>which worker</em> should handle the task.
+            </p>
+            <ul>
+                <li>Planner input is schema-validated</li>
+                <li>Planner output must echo the original task</li>
+                <li>No looping, retries bounded by the dispatcher</li>
+            </ul>
+            <pre><code>
+{
+  state: "PLAN",
+  agent_id: "&lt;planner-id&gt;",
+  output: {
+    task: &lt;DomainTask&gt;,
+    worker_id: "&lt;worker-name&gt;"
+  }
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h2>State 2 — WORK</h2>
+            <p>
+                The selected Worker is invoked with a strictly typed
+                <code>WorkerInput</code>. The Worker must choose exactly one path:
+            </p>
+            <ul>
+                <li>Return a result, or</li>
+                <li>Request a single tool invocation</li>
+            </ul>
+            <pre><code>
+{
+  state: "WORK",
+  agent_id: "&lt;worker-id&gt;",
+  output: {
+    result: &lt;WorkerResult&gt;
+    // OR
+    tool_request: {
+      tool_name: "...",
+      args: &lt;TypedArgs&gt;
+    }
+  }
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h2>State 3 — TOOL (optional)</h2>
+            <p>
+                If a tool is requested, the Controller invokes it exactly once
+                via the <code>ToolRegistry</code>.
+            </p>
+            <ul>
+                <li>Tools are deterministic and typed</li>
+                <li>Agents never invoke tools directly</li>
+                <li>Multiple tool requests are rejected</li>
+            </ul>
+            <pre><code>
+{
+  state: "TOOL",
+  tool_name: "&lt;tool&gt;",
+  input: &lt;ToolArgs&gt;,
+  output: &lt;ToolResult&gt;
+}
+            </code></pre>
+            <p>
+                After the tool completes, the Worker is invoked once more
+                with the tool result.
+            </p>
+        </section>
+
+        <section>
+            <h2>State 4 — CRITIC</h2>
+            <p>
+                The Critic evaluates the Worker’s result against the original plan.
+                It does not modify state or retry execution.
+            </p>
+            <pre><code>
+{
+  state: "CRITIC",
+  agent_id: "&lt;critic-id&gt;",
+  output: {
+    decision: "ACCEPT" | "REJECT",
+    feedback: { ... } // required on REJECT
+  }
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h2>State 5 — END</h2>
+            <p>
+                The Controller terminates unconditionally.
+                The result is an immutable response object.
+            </p>
+            <pre><code>
+ControllerResponse {
+  task: &lt;DomainTask&gt;,
+  worker_id: "&lt;worker-name&gt;",
+  worker_output: &lt;WorkerOutput&gt;,
+  critic_decision: &lt;Decision&gt;,
+  trace: [ ... ]
+}
+            </code></pre>
+        </section>
+
+        <section>
+            <h2>Key Guarantees</h2>
+            <ul>
+                <li>Exactly one task per execution</li>
+                <li>Finite, explicit state transitions</li>
+                <li>No hidden retries or loops</li>
+                <li>All side effects isolated</li>
+                <li>Full trace available for audit or replay</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Why This Matters</h2>
+            <p>
+                This traceability makes the system:
+            </p>
+            <ul>
+                <li>Auditable</li>
+                <li>Testable</li>
+                <li>Cost-predictable</li>
+                <li>Resistant to agent misbehavior</li>
+            </ul>
+            <p>
+                The trace is not a debugging artifact —
+                it is a first-class architectural output.
+            </p>
+        </section>
+
+    </main>
+</body>
+</html>

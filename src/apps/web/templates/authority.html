@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Architecture — Authority Boundaries</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <link rel="stylesheet" href="/static/theme-dark.css">
+</head>
+<body>
+    <main class="container">
+
+        <!-- Navigation (match site-wide pattern exactly) -->
+        <p>
+            <a href="/">Home</a> ·
+            <a href="/architecture">Architecture</a> ·
+            <a href="/architecture/authority">Authority</a> ·
+            <a href="/architecture/trace">Execution Trace</a> ·
+            <a href="/architecture/dogma">Dogma</a>
+        </p>
+
+        <header>
+            <h1>Authority Boundaries</h1>
+            <h2>
+                Explicit trust, responsibility, and control boundaries
+                across the agentic execution stack.
+            </h2>
+            <p>
+                This page defines which components are trusted, which are not,
+                and where authority explicitly begins and ends.
+            </p>
+        </header>
+
+        <section>
+            <h2>Core Principle</h2>
+            <p>
+                The system is designed around a single rule:
+            </p>
+            <p>
+                <strong>LLM agents are never trusted.</strong>
+            </p>
+            <p>
+                All authority resides in deterministic, typed, and auditable
+                components. Agents produce suggestions; they do not execute power.
+            </p>
+        </section>
+
+        <section>
+            <h2>Authority Map</h2>
+            <ul>
+                <li>
+                    <strong>Controller</strong><br>
+                    Owns execution order, state transitions, and termination.
+                    Enforces the finite state machine and execution bounds.
+                </li>
+                <li>
+                    <strong>AgentDispatcher</strong><br>
+                    Owns schema validation and retry limits at agent boundaries.
+                    Does not interpret intent or results.
+                </li>
+                <li>
+                    <strong>ToolRegistry</strong><br>
+                    Owns all side effects. Tools are deterministic, typed,
+                    and invoked explicitly by the Controller only.
+                </li>
+                <li>
+                    <strong>Agents (Planner / Worker / Critic)</strong><br>
+                    Untrusted. Emit JSON only. No side effects, no control flow,
+                    no retries, no state mutation.
+                </li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>What Agents Are Not Allowed To Do</h2>
+            <ul>
+                <li>Advance workflow state</li>
+                <li>Invoke tools directly</li>
+                <li>Retry themselves</li>
+                <li>Spawn other agents</li>
+                <li>Mutate domain or system state</li>
+                <li>Decide termination or acceptance</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Controller Authority</h2>
+            <p>
+                The Controller is the sole authority responsible for:
+            </p>
+            <ul>
+                <li>Enforcing PLAN → WORK → TOOL → CRITIC → END</li>
+                <li>Validating agent outputs via schemas</li>
+                <li>Routing execution between agents</li>
+                <li>Invoking tools exactly once per request</li>
+                <li>Producing an immutable execution trace</li>
+            </ul>
+            <p>
+                The Controller executes exactly one task per request.
+                Any looping or retry policy is external by design.
+            </p>
+        </section>
+
+        <section>
+            <h2>Why This Matters</h2>
+            <p>
+                By making authority explicit:
+            </p>
+            <ul>
+                <li>Failures are deterministic and inspectable</li>
+                <li>Security boundaries are enforceable</li>
+                <li>Agent misbehavior cannot escalate</li>
+                <li>Auditing and replay are straightforward</li>
+            </ul>
+            <p>
+                This architecture favors predictability and governance
+                over emergent autonomy.
+            </p>
+        </section>
+
+    </main>
+</body>
+</html>

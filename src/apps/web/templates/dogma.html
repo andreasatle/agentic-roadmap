@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Architecture — Dogma</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <link rel="stylesheet" href="/static/theme-dark.css">
+</head>
+<body>
+    <main class="container">
+
+        <!-- Navigation (EXACT pattern) -->
+        <p>
+            <a href="/">Home</a> ·
+            <a href="/architecture">Architecture</a> ·
+            <a href="/architecture/authority">Authority</a> ·
+            <a href="/architecture/trace">Execution Trace</a> ·
+            <a href="/architecture/dogma">Dogma</a>
+        </p>
+
+        <header>
+            <h1>Design Dogma</h1>
+            <h2>
+                Restricting agents is the key to controlling them.
+            </h2>
+        </header>
+
+        <section>
+            <h2>The Core Claim</h2>
+            <p>
+                LLM-based agents are not controllable because they are intelligent.
+                They are uncontrollable because they are given too much freedom.
+            </p>
+            <p>
+                This system is built on a single, explicit belief:
+            </p>
+            <blockquote>
+                <strong>Agent reliability increases as agent freedom decreases.</strong>
+            </blockquote>
+            <p>
+                Control does not emerge from better prompts.
+                It emerges from <em>structural restriction</em>.
+            </p>
+        </section>
+
+        <section>
+            <h2>What “Restriction” Means Here</h2>
+            <p>
+                Restriction is not about limiting model capability.
+                It is about limiting <em>authority</em>.
+            </p>
+            <ul>
+                <li>Agents cannot decide what to do next</li>
+                <li>Agents cannot loop or retry</li>
+                <li>Agents cannot invoke tools directly</li>
+                <li>Agents cannot mutate domain state</li>
+                <li>Agents cannot exceed their schema</li>
+            </ul>
+            <p>
+                Agents produce proposals. The system decides.
+            </p>
+        </section>
+
+        <section>
+            <h2>Why Autonomy Fails in Practice</h2>
+            <p>
+                Fully autonomous agents fail for predictable reasons:
+            </p>
+            <ul>
+                <li>Unbounded loops with no convergence criteria</li>
+                <li>Tool misuse and cascading side effects</li>
+                <li>Silent prompt drift over long executions</li>
+                <li>Cost blowups with no hard stop</li>
+                <li>Post-hoc rationalization instead of traceability</li>
+            </ul>
+            <p>
+                These are not implementation bugs.
+                They are <em>architectural consequences</em>.
+            </p>
+        </section>
+
+        <section>
+            <h2>The Counter-Intuitive Result</h2>
+            <p>
+                Restricting agents does not make systems weaker.
+                It makes them usable.
+            </p>
+            <ul>
+                <li>Predictable cost</li>
+                <li>Auditable execution</li>
+                <li>Deterministic failure modes</li>
+                <li>Clear ownership of decisions</li>
+                <li>Testable behavior</li>
+            </ul>
+            <p>
+                Intelligence is preserved.
+                <br>
+                Chaos is removed.
+            </p>
+        </section>
+
+        <section>
+            <h2>How This Dogma Manifests Architecturally</h2>
+            <ul>
+                <li>
+                    <strong>Controller as authority</strong><br>
+                    Agents never advance workflow.
+                </li>
+                <li>
+                    <strong>Explicit FSM</strong><br>
+                    PLAN → WORK → TOOL → CRITIC → END, no exceptions.
+                </li>
+                <li>
+                    <strong>Schema-first boundaries</strong><br>
+                    Invalid outputs halt execution.
+                </li>
+                <li>
+                    <strong>Single-task execution</strong><br>
+                    No background agents, no queues, no recursion.
+                </li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>What This Is Not</h2>
+            <ul>
+                <li>Not an AutoGPT-style autonomous agent</li>
+                <li>Not a “self-improving” system</li>
+                <li>Not a prompt orchestration demo</li>
+                <li>Not optimized for exploration</li>
+            </ul>
+            <p>
+                It is optimized for correctness.
+            </p>
+        </section>
+
+        <section>
+            <h2>Closing Position</h2>
+            <p>
+                If an agent can surprise you, it can fail silently.
+            </p>
+            <p>
+                This system is designed so that nothing surprising can happen —
+                only allowed transitions, explicit failures, and traceable decisions.
+            </p>
+            <p>
+                That is not a limitation.
+                <br>
+                It is the point.
+            </p>
+        </section>
+
+    </main>
+</body>
+</html>

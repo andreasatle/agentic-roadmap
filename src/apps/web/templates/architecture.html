@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Architecture</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <link rel="stylesheet" href="/static/theme-dark.css">
+</head>
+<body>
+    <main class="container">
+
+        <!-- Home navigation (EXACTLY like other pages) -->
+        <p>
+            <a href="/">Home</a> ·
+            <a href="/architecture">Architecture</a> ·
+            <a href="/architecture/authority">Authority</a> ·
+            <a href="/architecture/trace">Execution Trace</a> ·
+            <a href="/architecture/dogma">Dogma</a>
+        </p>
+
+        <header>
+            <h1>Agentic Control Plane — Architecture</h1>
+            <h2>
+                A deterministic, controller-driven execution model with explicit state
+                transitions and strongly typed boundaries.
+            </h2>
+            <p>
+                This page describes the core architecture of the agentic execution engine.
+                It reflects the system as implemented — not a conceptual or aspirational design.
+            </p>
+        </header>
+
+        <section>
+            <h2>Architecture Overview</h2>
+            <p>
+                The system is built around a <strong>Controller</strong> with well-defined input
+                and output contracts. The Controller is a pure, finite executor that coordinates
+                agent calls, tool execution, and validation through an explicit state machine.
+            </p>
+            <p>
+                Agents are treated as <em>untrusted</em>. All side effects occur outside the Controller.
+            </p>
+        </section>
+
+        <section>
+            <h2>System Structure</h2>
+            <pre><code>
+Caller / API
+    |
+    v
++----------------------+
+|      Controller      |
+|  Pure FSM Executor   |
+|  PLAN → WORK → TOOL  |
+|        → CRITIC      |
+|        → END         |
++----------------------+
+    |           |
+    |           v
+    |      AgentDispatcher
+    |      (schema + retries)
+    |
+    v
++----------------------+
+|    ToolRegistry      |
+|  Typed, deterministic|
+|  external side effects
++----------------------+
+
+(State is explicit and external)
+            </code></pre>
+        </section>
+
+        <section>
+            <h2>Architectural Invariants</h2>
+            <ul>
+                <li><strong>Pure Controller:</strong> No hidden state and no side effects.</li>
+                <li><strong>Finite execution:</strong> Exactly one task per request.</li>
+                <li><strong>Explicit FSM:</strong> PLAN → WORK → TOOL → CRITIC → END.</li>
+                <li><strong>Untrusted agents:</strong> Agents emit JSON only.</li>
+                <li><strong>Typed boundaries:</strong> All agent and tool interactions are schema-validated.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>What This System Does <em>Not</em> Allow</h2>
+            <ul>
+                <li>No autonomous looping or self-advancing workflows.</li>
+                <li>No tool execution inside agents.</li>
+                <li>No hidden retries or implicit control flow.</li>
+                <li>No mutation of domain state by the Controller.</li>
+                <li>No non-deterministic failure modes.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Architectural Tradeoffs</h2>
+            <ul>
+                <li>
+                    <strong>Central Controller vs autonomous agents</strong><br>
+                    Chosen for determinism, auditability, and testability.<br>
+                    <em>Tradeoff:</em> reduced emergent behavior.
+                </li>
+                <li>
+                    <strong>Explicit FSM vs implicit chaining</strong><br>
+                    Chosen to make execution traceable and bounded.<br>
+                    <em>Tradeoff:</em> more up-front structure.
+                </li>
+                <li>
+                    <strong>External tools vs agent-native tools</strong><br>
+                    Chosen to isolate side effects and enforce contracts.<br>
+                    <em>Tradeoff:</em> less agent autonomy.
+                </li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Failure Modes Explicitly Handled</h2>
+            <ul>
+                <li>Schema-invalid agent outputs.</li>
+                <li>Unknown worker or tool identifiers.</li>
+                <li>Multiple tool requests in a single execution.</li>
+                <li>Invalid planner or critic outputs.</li>
+                <li>Non-terminating execution attempts.</li>
+            </ul>
+        </section>
+
+        <section>
+            <h2>Production Boundary</h2>
+            <p>
+                This system is a prototype. Production deployment would require:
+            </p>
+            <ul>
+                <li>Durable persistence and replayable state.</li>
+                <li>End-to-end observability and alerting.</li>
+                <li>Secrets management and execution isolation.</li>
+                <li>Versioned agent and tool contracts.</li>
+                <li>Concurrency, quota, and cost controls.</li>
+            </ul>
+        </section>
+
+    </main>
+</body>
+</html>

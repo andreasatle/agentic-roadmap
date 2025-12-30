@@ -222,3 +222,31 @@ def get_blog_post(request: Request, post_id: str, include_drafts: bool = False, 
         "content": content,
         "intent": intent,
     }
+
+@app.get("/architecture", response_class=HTMLResponse)
+def read_architecture(request: Request):
+    return templates.TemplateResponse(
+        "architecture.html",
+        {"request": request},
+    )
+
+@app.get("/architecture/authority", response_class=HTMLResponse)
+def read_authority(request: Request):
+    return templates.TemplateResponse(
+        "authority.html",
+        {"request": request},
+    )
+
+@app.get("/architecture/trace", response_class=HTMLResponse)
+def read_trace(request: Request):
+    return templates.TemplateResponse(
+        "trace.html",
+        {"request": request},
+    )
+
+@app.get("/architecture/dogma", response_class=HTMLResponse)
+def read_dogma(request: Request):
+    return templates.TemplateResponse(
+        "dogma.html",
+        {"request": request},
+    )
