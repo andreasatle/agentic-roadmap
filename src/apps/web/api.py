@@ -3,8 +3,9 @@ import json
 import logging
 import os
 from io import BytesIO
+from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Request, Depends
+from fastapi import FastAPI, HTTPException, Request, Depends, Query
 from fastapi.responses import HTMLResponse, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -89,6 +90,27 @@ def read_home(request: Request):
 @app.get("/writer", response_class=HTMLResponse)
 def read_writer(request: Request):
     return templates.TemplateResponse("index.html", {"request": request})
+
+
+@app.get("/me")
+def read_me(request: Request):
+    resume_html = markdown.markdown(
+        (BASE_DIR / "content" / "resume.md").read_text(encoding="utf-8"),
+        extensions=BLOG_MARKDOWN_EXTENSIONS,
+    )
+    profile_html = markdown.markdown(
+        (BASE_DIR / "content" / "profile.md").read_text(encoding="utf-8"),
+        extensions=BLOG_MARKDOWN_EXTENSIONS,
+    )
+
+    return templates.TemplateResponse(
+        "me.html",
+        {
+            "request": request,
+            "resume_html": resume_html,
+            "profile_html": profile_html,
+        },
+    )
 
 
 @app.post("/intent/parse")

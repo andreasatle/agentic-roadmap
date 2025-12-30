@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Me</title>
+    <link rel="stylesheet" href="/static/app.css" />
+    <link rel="stylesheet" href="/static/theme-dark.css" />
+  </head>
+  <body>
+    <main class="container">
+      <header class="page-header compact header-inner">
+        <a href="/">Home</a>
+        <h1>Andreas Atle</h1>
+        <button class="btn btn--ghost" id="me-toggle" onclick="toggleMeView()">
+          {% if view == "profile" %}Resume{% else %}Profile{% endif %}
+        </button>
+      </header>
+
+      <section id="resume-view"{% if view == "profile" %} hidden{% endif %}>
+        <article>
+          {{ resume_html | safe }}
+        </article>
+      </section>
+
+      <section id="profile-view"{% if view != "profile" %} hidden{% endif %}>
+        <article>
+          {{ profile_html | safe }}
+        </article>
+      </section>
+
+      <script>
+        function toggleMeView() {
+          const resumeView = document.getElementById("resume-view");
+          const profileView = document.getElementById("profile-view");
+          const toggleButton = document.getElementById("me-toggle");
+          resumeView.hidden = !resumeView.hidden;
+          profileView.hidden = !profileView.hidden;
+          toggleButton.textContent = resumeView.hidden ? "Resume" : "Profile";
+        }
+      </script>
+    </main>
+  </body>
+</html>
