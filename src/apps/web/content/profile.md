@@ -1,4 +1,4 @@
-## Profile
+# Profile - Andreas Atle
 
 I work on **controlled, production-grade AI systems**, with a focus on **agentic architectures that are constrained, auditable, and predictable**.
 
