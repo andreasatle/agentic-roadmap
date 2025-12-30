@@ -2,35 +2,84 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Welcome</title>
+    <title>Andreas Atle</title>
     <link rel="stylesheet" href="/static/app.css">
     <link rel="stylesheet" href="/static/theme-dark.css">
 </head>
 <body>
     <main class="container">
         <header>
-            <h1>Welcome to Andreas Atle's Homepage</h1>
+            <h1>Andreas Atle</h1>
+
+            <h2>
+                Agentic AI platform architect focused on deterministic orchestration,
+                explicit constraints, and operational guardrails.
+            </h2>
+
+            <ul>
+                <li>
+                    <strong>Agent orchestration:</strong>
+                    Planner–worker coordination with explicit state transitions
+                </li>
+                <li>
+                    <strong>Constraints &amp; guardrails:</strong>
+                    Schema validation, bounded tools, explicit failure semantics
+                </li>
+                <li>
+                    <strong>System evaluation:</strong>
+                    Detect and prevent hallucination, drift, and runaway execution
+                </li>
+                <li>
+                    <strong>Operational readiness:</strong>
+                    Observability, reproducibility, and governance-first design
+                </li>
+            </ul>
+
             <p>
-                Build documents with an intent-driven writer and browse generated posts in a simple blog.
+                <em>
+                    No autonomous looping, uncontrolled tool execution,
+                    or free-form agent spawning.
+                </em>
+            </p>
+
+            <p>
+                This site demonstrates these principles through an intent-driven
+                document writer and a simple publishing workflow.
             </p>
         </header>
 
         <section>
             <h2>What you can do</h2>
             <ul>
-                <li>Create intent envelopes and generate documents via the Document Writer UI.</li>
-                <li>Browse published outputs in the Blog.</li>
+                <li>
+                    Create intent envelopes and generate documents via the
+                    Document Writer UI.
+                </li>
+                <li>
+                    Browse published outputs in the Blog.
+                </li>
             </ul>
         </section>
 
         <section class="primary-actions">
-            <button type="button" class="btn btn--primary" onclick="window.location.href='/writer'">
+            <button
+                type="button"
+                class="btn btn--primary"
+                onclick="window.location.href='/writer'">
                 Go to Document Writer
             </button>
-            <button type="button" class="btn btn--primary" onclick="window.location.href='/blog'">
+
+            <button
+                type="button"
+                class="btn btn--primary"
+                onclick="window.location.href='/blog'">
                 Go to Blog
             </button>
-            <button type="button" class="btn btn--primary" onclick="window.location.href='/me'">
+
+            <button
+                type="button"
+                class="btn btn--primary"
+                onclick="window.location.href='/me'">
                 About Me
             </button>
         </section>
