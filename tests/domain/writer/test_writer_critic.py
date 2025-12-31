@@ -1,8 +1,8 @@
 import pytest
 
-from domain.writer.critic import make_critic
-from domain.writer.schemas import WriterCriticInput, WriterCriticOutput
-from domain.writer.types import DraftSectionTask, WriterResult
+from domain.document_writer.writer.critic import make_critic
+from domain.document_writer.writer.schemas import WriterCriticInput, WriterCriticOutput
+from domain.document_writer.writer.types import DraftSectionTask, WriterResult
 
 
 def _critic():

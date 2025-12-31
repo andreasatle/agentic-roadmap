@@ -1,9 +1,9 @@
 from agentic.tool_registry import ToolRegistry
-from domain.writer.dispatcher import WriterDispatcher
-from domain.writer.planner import make_planner
-from domain.writer.draft_worker import make_draft_worker
-from domain.writer.refine_worker import make_refine_worker
-from domain.writer.critic import make_critic
+from domain.document_writer.writer.dispatcher import WriterDispatcher
+from domain.document_writer.writer.planner import make_planner
+from domain.document_writer.writer.draft_worker import make_draft_worker
+from domain.document_writer.writer.refine_worker import make_refine_worker
+from domain.document_writer.writer.critic import make_critic
 
 
 def make_agent_dispatcher(

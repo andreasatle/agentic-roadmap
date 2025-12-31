@@ -2,18 +2,17 @@ from __future__ import annotations
 
 import pytest
 
-from domain.writer.planner import make_planner
-from domain.writer.schemas import (
+from domain.document_writer.writer.planner import make_planner
+from domain.document_writer.writer.schemas import (
     DraftWorkerInput,
     RefineWorkerInput,
     WriterPlannerInput,
     WriterWorkerOutput,
 )
-from domain.writer.types import DraftSectionTask, RefineSectionTask
+from domain.document_writer.writer.types import DraftSectionTask, RefineSectionTask
 
 
 def test_planner_rejects_state_payload():
-    planner = make_planner(model="dummy")
     planner_input = WriterPlannerInput(
         task=DraftSectionTask(node_id="Intro", section_name="Intro", purpose="intro", requirements=[""]),
     )

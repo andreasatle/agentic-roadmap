@@ -1,6 +1,6 @@
 from agentic.agents.openai import OpenAIAgent
-from domain.writer.schemas import RefineWorkerInput, WriterWorkerOutput
-from domain.writer.types import RefineSectionTask
+from domain.document_writer.writer.schemas import RefineWorkerInput, WriterWorkerOutput
+from domain.document_writer.writer.types import RefineSectionTask
 
 
 PROMPT_REFINE_WORKER = """ROLE:

@@ -1,7 +1,7 @@
 from domain.document_writer.document.types import DocumentNode, DocumentTree
 from domain.document_writer.document.content import ContentStore
 from domain.document_writer.intent.types import IntentEnvelope, GlobalSemanticConstraints
-from domain.writer.intent_audit import audit_intent_satisfaction
+from domain.document_writer.writer.intent_audit import audit_intent_satisfaction
 
 
 def _tree_with_single_child(text: str) -> tuple[DocumentTree, ContentStore]:

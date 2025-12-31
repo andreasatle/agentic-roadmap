@@ -8,8 +8,8 @@ from domain.document_writer.document.planner import make_planner
 from domain.document_writer.document.schemas import DocumentPlannerOutput
 from domain.document_writer.document.types import DocumentNode, DocumentTree
 from domain.document_writer.intent.types import IntentEnvelope
-from domain.writer import make_agent_dispatcher as make_writer_dispatcher, make_tool_registry as make_writer_tool_registry
-from domain.writer.api import execute_document
+from domain.document_writer.writer import make_agent_dispatcher as make_writer_dispatcher, make_tool_registry as make_writer_tool_registry
+from domain.document_writer.writer.api import execute_document
 
 
 def _assemble_markdown(node: DocumentNode, store: ContentStore, depth: int = 0) -> list[str]:

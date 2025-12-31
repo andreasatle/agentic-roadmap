@@ -2,8 +2,8 @@
 import pytest
 
 
-from domain.writer.schemas import DraftWorkerInput
-from domain.writer.types import DraftSectionTask
+from domain.document_writer.writer.schemas import DraftWorkerInput
+from domain.document_writer.writer.types import DraftSectionTask
 
 
 def test_worker_input_disallows_project_state():

@@ -1,6 +1,6 @@
 from agentic.agents.openai import OpenAIAgent
-from domain.writer.schemas import DraftWorkerInput, WriterWorkerOutput
-from domain.writer.types import DraftSectionTask
+from domain.document_writer.writer.schemas import DraftWorkerInput, WriterWorkerOutput
+from domain.document_writer.writer.types import DraftSectionTask
 
 
 PROMPT_DRAFT_WORKER = """ROLE:

@@ -2,7 +2,7 @@ import re
 
 from agentic.agents.openai import OpenAIAgent
 from agentic.logging_config import get_logger
-from domain.writer.schemas import WriterCriticInput, WriterCriticOutput
+from domain.document_writer.writer.schemas import WriterCriticInput, WriterCriticOutput
 
 
 PROMPT_CRITIC = """ROLE:

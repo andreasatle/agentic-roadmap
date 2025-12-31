@@ -1,4 +1,4 @@
-# src/domain/writer/README.md
+# src/domain/document_writer/writer/README.md
 
 ## Writer Domain
 

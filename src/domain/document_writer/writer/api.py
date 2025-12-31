@@ -1,12 +1,12 @@
 from agentic.controller import ControllerDomainInput, ControllerRequest, run_controller
 from agentic.tool_registry import ToolRegistry
 from agentic.agent_dispatcher import AgentDispatcher
-from domain.writer.types import DraftSectionTask, RefineSectionTask, WriterTask
+from domain.document_writer.writer.types import DraftSectionTask, RefineSectionTask, WriterTask
 from domain.document_writer.document.types import DocumentTree
 from domain.document_writer.document.content import ContentStore
-from domain.writer.emission import emit_writer_tasks
+from domain.document_writer.writer.emission import emit_writer_tasks
 from domain.document_writer.intent.types import IntentEnvelope
-from domain.writer.intent_audit import audit_intent_satisfaction, IntentAuditResult
+from domain.document_writer.writer.intent_audit import audit_intent_satisfaction, IntentAuditResult
 from dataclasses import dataclass
 
 
