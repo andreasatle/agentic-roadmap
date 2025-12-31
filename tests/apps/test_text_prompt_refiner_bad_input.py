@@ -1,4 +1,4 @@
-from domain.intent.text_prompt_refiner import (
+from domain.document_writer.intent.text_prompt_refiner import (
     TextPromptRefinerController,
     TextPromptRefinerInput,
 )

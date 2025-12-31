@@ -5,7 +5,7 @@ from agentic.analysis_controller import (
 )
 from domain.document.schemas import DocumentPlannerInput
 from domain.document.types import DocumentTree
-from domain.intent.types import IntentEnvelope
+from domain.document_writer.intent.types import IntentEnvelope
 from dataclasses import dataclass
 
 

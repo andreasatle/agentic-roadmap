@@ -5,7 +5,7 @@ from domain.writer.types import DraftSectionTask, RefineSectionTask, WriterTask
 from domain.document.types import DocumentTree
 from domain.document.content import ContentStore
 from domain.writer.emission import emit_writer_tasks
-from domain.intent.types import IntentEnvelope
+from domain.document_writer.intent.types import IntentEnvelope
 from domain.writer.intent_audit import audit_intent_satisfaction, IntentAuditResult
 from dataclasses import dataclass
 

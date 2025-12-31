@@ -1,6 +1,6 @@
 from domain.document.types import DocumentNode, DocumentTree
 from domain.document.content import ContentStore
-from domain.intent.types import IntentEnvelope, GlobalSemanticConstraints
+from domain.document_writer.intent.types import IntentEnvelope, GlobalSemanticConstraints
 from domain.writer.intent_audit import audit_intent_satisfaction
 
 

@@ -9,7 +9,7 @@ from domain.writer import (
 from domain.writer.api import execute_document
 from domain.document.types import DocumentTree, DocumentNode
 from domain.document.content import ContentStore
-from domain.intent import load_intent_from_file
+from domain.document_writer.intent import load_intent_from_file
 
 
 def _pretty_print_run(run: dict) -> None:

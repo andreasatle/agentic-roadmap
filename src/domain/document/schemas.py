@@ -3,7 +3,7 @@ from typing import Any
 from pydantic import BaseModel
 
 from domain.document.types import DocumentTree, DocumentTask
-from domain.intent.types import IntentEnvelope
+from domain.document_writer.intent.types import IntentEnvelope
 
 
 class DocumentPlannerInput(BaseModel):

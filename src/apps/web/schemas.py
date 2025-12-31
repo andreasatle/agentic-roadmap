@@ -1,6 +1,6 @@
 from pydantic import BaseModel, Field
 
-from domain.intent.types import IntentEnvelope
+from domain.document_writer.intent.types import IntentEnvelope
 
 
 class IntentParseRequest(BaseModel):

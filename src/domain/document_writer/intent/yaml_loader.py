@@ -6,7 +6,7 @@ This is a thin parser only: it performs no inference, execution, or authority.
 from pathlib import Path
 import yaml
 
-from domain.intent.types import IntentEnvelope
+from domain.document_writer.intent.types import IntentEnvelope
 
 
 def _ensure_dict(data) -> dict:

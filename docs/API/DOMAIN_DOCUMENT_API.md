@@ -7,7 +7,7 @@ This subtree is **NOT semantically closed**.
 
 The snapshot references types not defined in this snapshot:
 
-- `domain.intent.types.IntentEnvelope` (required to type the `intent` field and to interpret “advisory intent” semantics).
+- `domain.document_writer.intent.types.IntentEnvelope` (required to type the `intent` field and to interpret “advisory intent” semantics).
 - `agentic.agent_dispatcher.AgentDispatcher` (used as a required dependency in `api.analyze()` and constructed in `main.py`; its required interface is not defined here).
 - `agentic.analysis_controller.AnalysisControllerRequest` and `run_analysis_controller` (the execution semantics of analysis are delegated to Agentic; not defined here).
 

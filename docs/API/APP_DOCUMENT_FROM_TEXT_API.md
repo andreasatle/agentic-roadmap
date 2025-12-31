@@ -7,7 +7,7 @@ This subtree is **NOT semantically closed**.
 
 The snapshot depends on the following external APIs whose contracts are not defined here:
 
-- `domain.intent.*`  
+- `domain.document_writer.intent.*`  
   (`make_text_intent_controller`, `IntentEnvelope`, text refiner semantics)
 - `domain.document.*`  
   (`make_planner`, `analyze`, `DocumentPlannerOutput`, `DocumentTree`, `DocumentNode`)

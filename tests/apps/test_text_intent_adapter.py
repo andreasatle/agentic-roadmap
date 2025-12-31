@@ -1,5 +1,5 @@
-from domain.intent.controller import TextIntentController
-from domain.intent.types import IntentEnvelope, StructuralIntent, GlobalSemanticConstraints, StylisticPreferences
+from domain.document_writer.intent.controller import TextIntentController
+from domain.document_writer.intent.types import IntentEnvelope, StructuralIntent, GlobalSemanticConstraints, StylisticPreferences
 
 
 class FakeAgent:

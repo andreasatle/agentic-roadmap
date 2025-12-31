@@ -7,7 +7,7 @@ from domain.document.content import ContentStore
 from domain.document.planner import make_planner
 from domain.document.schemas import DocumentPlannerOutput
 from domain.document.types import DocumentNode, DocumentTree
-from domain.intent.types import IntentEnvelope
+from domain.document_writer.intent.types import IntentEnvelope
 from domain.writer import make_agent_dispatcher as make_writer_dispatcher, make_tool_registry as make_writer_tool_registry
 from domain.writer.api import execute_document
 

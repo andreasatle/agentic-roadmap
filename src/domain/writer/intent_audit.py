@@ -4,7 +4,7 @@ from pydantic import BaseModel, Field
 
 from domain.document.types import DocumentTree
 from domain.document.content import ContentStore
-from domain.intent.types import IntentEnvelope
+from domain.document_writer.intent.types import IntentEnvelope
 
 
 class IntentAuditResult(BaseModel):

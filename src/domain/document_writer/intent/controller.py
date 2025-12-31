@@ -6,7 +6,7 @@ from agentic.logging_config import get_logger
 from agentic.protocols import AgentProtocol
 from pydantic import BaseModel
 
-from domain.intent.types import IntentEnvelope
+from domain.document_writer.intent.types import IntentEnvelope
 
 logger = get_logger("intent.adapter")
 

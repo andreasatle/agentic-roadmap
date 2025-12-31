@@ -3,8 +3,8 @@ from pathlib import Path
 from dotenv import load_dotenv
 import yaml
 
-from domain.intent import make_text_intent_controller
-from domain.intent.text_prompt_refiner import make_text_prompt_refiner_controller
+from domain.document_writer.intent import make_text_intent_controller
+from domain.document_writer.intent.text_prompt_refiner import make_text_prompt_refiner_controller
 from domain.document.planner import make_planner
 from domain.document.api import analyze
 from domain.document.content import ContentStore

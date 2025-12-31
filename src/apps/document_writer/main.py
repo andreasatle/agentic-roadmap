@@ -1,7 +1,7 @@
 import argparse
 from pathlib import Path
 from dotenv import load_dotenv
-from domain.intent import load_intent_from_file
+from domain.document_writer.intent import load_intent_from_file
 from agentic.logging_config import get_logger
 from apps.document_writer.service import generate_document
 

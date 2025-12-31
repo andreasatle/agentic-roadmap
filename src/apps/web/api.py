@@ -23,7 +23,7 @@ from apps.web.schemas import (
 )
 from apps.web.persistence import persist_generation
 from apps.web.security import require_admin
-from domain.intent import load_intent_from_yaml
+from domain.document_writer.intent import load_intent_from_yaml
 
 
 

@@ -1,4 +1,4 @@
-from domain.intent.types import IntentEnvelope
+from domain.document_writer.intent.types import IntentEnvelope
 from domain.writer.types import WriterTask
 
 

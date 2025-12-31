@@ -27,8 +27,8 @@ The following symbols are referenced but **not defined** in this subtree:
 
 | Dependency                                       | Usage               | Semantics                                              |
 | ------------------------------------------------ | ------------------- | ------------------------------------------------------ |
-| `domain.intent.load_intent_from_yaml`            | Intent parsing      | Unknown validation, normalization, and error semantics |
-| `domain.intent.types.IntentEnvelope`             | Core intent schema  | Structure partially inferred via usage only            |
+| `domain.document_writer.intent.load_intent_from_yaml`            | Intent parsing      | Unknown validation, normalization, and error semantics |
+| `domain.document_writer.intent.types.IntentEnvelope`             | Core intent schema  | Structure partially inferred via usage only            |
 | `apps.document_writer.service.generate_document` | Document generation | Execution model, determinism, cost, retries unknown    |
 | `result.markdown`                                | Generation output   | Assumed to be a string                                 |
 
