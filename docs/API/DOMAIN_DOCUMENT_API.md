@@ -35,7 +35,7 @@ The Writer domain (external) is assumed to consume `DocumentTree` as read-only c
 
 ## 2. Core public API surface
 
-### 2.1 `domain.document.api.analyze(...)`
+### 2.1 `domain.document_writer.document.api.analyze(...)`
 
 #### Signature (normative)
 ```python
@@ -92,7 +92,7 @@ A dataclass wrapper:
 
 ---
 
-### 2.3 `domain.document.content.ContentStore`
+### 2.3 `domain.document_writer.document.content.ContentStore`
 
 #### Type
 

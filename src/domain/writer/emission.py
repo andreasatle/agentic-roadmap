@@ -1,5 +1,5 @@
-from domain.document.types import DocumentTree, DocumentNode
-from domain.document.content import ContentStore
+from domain.document_writer.document.types import DocumentTree, DocumentNode
+from domain.document_writer.document.content import ContentStore
 from domain.writer.types import DraftSectionTask, RefineSectionTask, WriterTask
 from domain.writer.intent_projection import apply_advisory_intent
 from domain.document_writer.intent.types import IntentEnvelope

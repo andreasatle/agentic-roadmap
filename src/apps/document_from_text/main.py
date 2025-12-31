@@ -5,15 +5,15 @@ import yaml
 
 from domain.document_writer.intent import make_text_intent_controller
 from domain.document_writer.intent.text_prompt_refiner import make_text_prompt_refiner_controller
-from domain.document.planner import make_planner
-from domain.document.api import analyze
-from domain.document.content import ContentStore
-from domain.document.types import DocumentTree, DocumentNode
+from domain.document_writer.document.planner import make_planner
+from domain.document_writer.document.api import analyze
+from domain.document_writer.document.content import ContentStore
+from domain.document_writer.document.types import DocumentTree, DocumentNode
 from domain.writer import make_agent_dispatcher as make_writer_dispatcher, make_tool_registry as make_writer_tool_registry
 from domain.writer.api import execute_document
 from agentic.agent_dispatcher import AgentDispatcher
 from agentic.logging_config import get_logger
-from domain.document.schemas import DocumentPlannerOutput
+from domain.document_writer.document.schemas import DocumentPlannerOutput
 
 logger = get_logger("apps.document_from_text")
 

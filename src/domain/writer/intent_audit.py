@@ -2,8 +2,8 @@ from typing import Iterable
 
 from pydantic import BaseModel, Field
 
-from domain.document.types import DocumentTree
-from domain.document.content import ContentStore
+from domain.document_writer.document.types import DocumentTree
+from domain.document_writer.document.content import ContentStore
 from domain.document_writer.intent.types import IntentEnvelope
 
 

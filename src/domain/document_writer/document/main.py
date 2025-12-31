@@ -1,12 +1,12 @@
 import argparse
 from dotenv import load_dotenv
-from domain.document.planner import make_planner
-from domain.document.types import DocumentTree
-from domain.document.api import analyze
+from domain.document_writer.document.planner import make_planner
+from domain.document_writer.document.types import DocumentTree
+from domain.document_writer.document.api import analyze
 from agentic.agent_dispatcher import AgentDispatcher
 from agentic.logging_config import get_logger
 
-logger = get_logger("domain.document.main")
+logger = get_logger("domain.document_writer.document.main")
 
 
 def _pretty_print_run(run: dict, trace: bool = False) -> None:

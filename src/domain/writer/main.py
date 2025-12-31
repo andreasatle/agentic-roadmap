@@ -7,8 +7,8 @@ from domain.writer import (
     make_tool_registry,
 )
 from domain.writer.api import execute_document
-from domain.document.types import DocumentTree, DocumentNode
-from domain.document.content import ContentStore
+from domain.document_writer.document.types import DocumentTree, DocumentNode
+from domain.document_writer.document.content import ContentStore
 from domain.document_writer.intent import load_intent_from_file
 
 

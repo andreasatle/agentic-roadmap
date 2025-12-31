@@ -2,7 +2,7 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from domain.document.types import DocumentTree, DocumentTask
+from domain.document_writer.document.types import DocumentTree
 from domain.document_writer.intent.types import IntentEnvelope
 
 

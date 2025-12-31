@@ -9,9 +9,9 @@ The snapshot depends on the following external APIs whose contracts are not defi
 
 - `domain.document_writer.intent.*`  
   (`make_text_intent_controller`, `IntentEnvelope`, text refiner semantics)
-- `domain.document.*`  
+- `domain.document_writer.document.*`  
   (`make_planner`, `analyze`, `DocumentPlannerOutput`, `DocumentTree`, `DocumentNode`)
-- `domain.writer.*`  
+- `domain.document_writer.writer.*`  
   (`execute_document`, writer dispatcher semantics, intent audit behavior)
 - `agentic.agent_dispatcher.AgentDispatcher`  
   (planner-only vs full dispatcher execution semantics)

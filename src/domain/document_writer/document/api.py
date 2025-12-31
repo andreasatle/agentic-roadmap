@@ -3,8 +3,8 @@ from agentic.analysis_controller import (
     AnalysisControllerRequest,
     run_analysis_controller,
 )
-from domain.document.schemas import DocumentPlannerInput
-from domain.document.types import DocumentTree
+from domain.document_writer.document.schemas import DocumentPlannerInput
+from domain.document_writer.document.types import DocumentTree
 from domain.document_writer.intent.types import IntentEnvelope
 from dataclasses import dataclass
 
