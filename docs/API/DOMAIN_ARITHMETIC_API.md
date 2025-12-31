@@ -6,7 +6,7 @@
 
 ## 1. Scope and Closure
 
-This document defines the **normative API, contracts, and execution semantics** of the **Arithmetic domain** (`src/domain/arithmetic`).
+This document defines the **normative API, contracts, and execution semantics** of the **Arithmetic domain** (`src/experiments/arithmetic`).
 
 * This document is **authoritative** for the provided snapshot only.
 * Any behavior not specified here is **undefined**.

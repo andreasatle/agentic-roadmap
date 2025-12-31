@@ -1,5 +1,5 @@
 from agentic.agents.openai import OpenAIAgent
-from domain.arithmetic.types import ArithmeticCriticInput, ArithmeticCriticOutput
+from experiments.arithmetic.types import ArithmeticCriticInput, ArithmeticCriticOutput
 
 
 PROMPT_CRITIC = """ROLE:

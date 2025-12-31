@@ -1,4 +1,4 @@
-from domain.arithmetic.types import (
+from experiments.arithmetic.types import (
     ArithmeticTask,
     ArithmeticResult,
     AddArgs,
@@ -13,10 +13,10 @@ from domain.arithmetic.types import (
     ArithmeticCriticOutput,
     ArithmeticDispatcher,
 )
-from domain.arithmetic.planner import make_planner
-from domain.arithmetic.worker import make_worker
-from domain.arithmetic.critic import make_critic
-from domain.arithmetic.factory import make_agent_dispatcher, make_tool_registry
+from experiments.arithmetic.planner import make_planner
+from experiments.arithmetic.worker import make_worker
+from experiments.arithmetic.critic import make_critic
+from experiments.arithmetic.factory import make_agent_dispatcher, make_tool_registry
 
 __all__ = [
     "ArithmeticTask",

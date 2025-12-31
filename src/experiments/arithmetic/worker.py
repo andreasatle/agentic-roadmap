@@ -1,7 +1,7 @@
 from pathlib import Path
 
 from agentic.agents.openai import OpenAIAgent
-from domain.arithmetic.types import ArithmeticWorkerInput, ArithmeticWorkerOutput
+from experiments.arithmetic.types import ArithmeticWorkerInput, ArithmeticWorkerOutput
 
 
 PROMPT_WORKER_ADDSUB = """ROLE:

@@ -1,15 +1,15 @@
 from agentic.tool_registry import ToolRegistry
-from domain.arithmetic.types import (
+from experiments.arithmetic.types import (
     ArithmeticDispatcher,
     WORKER_CAPABILITIES,
     AddArgs,
     SubArgs,
     MulArgs,
 )
-from domain.arithmetic.planner import make_planner
-from domain.arithmetic.worker import make_worker
-from domain.arithmetic.critic import make_critic
-from domain.arithmetic.tools import add, sub, mul
+from experiments.arithmetic.planner import make_planner
+from experiments.arithmetic.worker import make_worker
+from experiments.arithmetic.critic import make_critic
+from experiments.arithmetic.tools import add, sub, mul
 def make_agent_dispatcher(
     model: str = "gpt-4.1-mini",
     max_retries: int = 3,

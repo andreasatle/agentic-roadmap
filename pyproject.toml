@@ -22,7 +22,7 @@ include = ["agentic*", "domain*"]
 
 [project.scripts]
 agentic = "agentic.main:main"
-agentic-arithmetic = "domain.arithmetic.main:main"
+agentic-arithmetic = "experiments.arithmetic.main:main"
 agentic-sentiment = "domain.sentiment.main:main"
 agentic-coder = "domain.coder.main:main"
 agentic-document-writer = "apps.document_writer.main:main"

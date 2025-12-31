@@ -1,5 +1,5 @@
 
-from domain.arithmetic.types import AddArgs, SubArgs, MulArgs, ArithmeticResult
+from experiments.arithmetic.types import AddArgs, SubArgs, MulArgs, ArithmeticResult
 
 
 def add(args: AddArgs) -> ArithmeticResult:

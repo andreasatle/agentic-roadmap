@@ -1,7 +1,7 @@
 from agentic.controller import ControllerDomainInput, ControllerRequest, run_controller
 from agentic.tool_registry import ToolRegistry
 from agentic.agent_dispatcher import AgentDispatcher
-from domain.arithmetic.types import ArithmeticTask
+from experiments.arithmetic.types import ArithmeticTask
 
 
 def run(

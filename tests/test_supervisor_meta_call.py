@@ -4,7 +4,7 @@ from pydantic import ValidationError
 
 from agentic.controller import Controller, ControllerRequest, ControllerDomainInput
 from agentic.tool_registry import ToolRegistry
-from domain.arithmetic.types import (
+from experiments.arithmetic.types import (
     ArithmeticCriticInput,
     ArithmeticCriticOutput,
     ArithmeticPlannerInput,

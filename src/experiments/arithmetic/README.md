@@ -1,4 +1,4 @@
-# src/domain/arithmetic/README.md
+# src/experiments/arithmetic/README.md
 
 ## Arithmetic Domain
 

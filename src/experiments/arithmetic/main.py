@@ -3,9 +3,9 @@ import argparse
 
 from dotenv import load_dotenv
 
-from domain.arithmetic import make_agent_dispatcher, make_tool_registry
-from domain.arithmetic.types import ArithmeticTask
-from domain.arithmetic.api import run
+from experiments.arithmetic import make_agent_dispatcher, make_tool_registry
+from experiments.arithmetic.types import ArithmeticTask
+from experiments.arithmetic.api import run
 
 
 def _pretty_print_run(run: dict, trace: str = False) -> None:

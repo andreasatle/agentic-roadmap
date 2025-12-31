@@ -1,5 +1,5 @@
 from agentic.agents.openai import OpenAIAgent
-from domain.arithmetic.types import (
+from experiments.arithmetic.types import (
     ArithmeticPlannerInput,
     ArithmeticPlannerOutput,
 )

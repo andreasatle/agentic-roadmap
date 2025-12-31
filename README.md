@@ -133,7 +133,7 @@ Coder was implemented earlier in the project before the context/content distinct
 
 ---
 
-# src/domain/arithmetic/README.md
+# src/experiments/arithmetic/README.md
 
 ## Arithmetic Domain
 
