@@ -1,3 +1,5 @@
+"""Normative v1 contract pipeline. All other pipelines are deprecated and non-normative."""
+
 from apps.legal_document_ingest.conditioning.views import spatial_ordered_token_ids
 from apps.legal_document_ingest.contract.validate import (
     ContractValidationResult,
