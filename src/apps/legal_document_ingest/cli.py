@@ -3,7 +3,7 @@ import json
 from pathlib import Path
 
 from apps.legal_document_ingest.ocr.tesseract_adapter import TesseractAdapter
-from apps.legal_document_ingest.pipeline.run import run_extraction
+from apps.legal_document_ingest.pipeline.v1 import run_extraction_v1
 
 
 def main() -> None:
@@ -13,7 +13,7 @@ def main() -> None:
 
     adapter = TesseractAdapter()
     bundle = adapter.run(Path(args.pdf_path))
-    result = run_extraction(bundle)
+    result = run_extraction_v1(bundle)
     print(json.dumps(result.model_dump()))
 
 

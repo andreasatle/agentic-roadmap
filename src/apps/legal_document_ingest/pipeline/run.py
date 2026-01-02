@@ -1,4 +1,5 @@
-"""Phase 6.1 deterministic extraction pipeline."""
+"""Legacy pre-contract pipeline. Deprecated and non-normative.
+Retained for backward compatibility only."""
 
 from apps.legal_document_ingest.conditioning.views import spatial_ordered_token_ids
 from apps.legal_document_ingest.detection.anchors import detect_anchor_candidates
