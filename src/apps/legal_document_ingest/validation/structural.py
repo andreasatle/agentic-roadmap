@@ -8,6 +8,12 @@ from pydantic import BaseModel, ConfigDict
 from apps.legal_document_ingest.detection.spans import CandidateSpan
 from apps.legal_document_ingest.ocr.models import EvidenceBundle, OcrToken
 from apps.legal_document_ingest.qualification.patterns import has_legal_pattern_signal
+from apps.legal_document_ingest.qualification.noise import (
+    address_dominant,
+    contains_consideration_clause,
+    contains_notary_block,
+    table_like_structure,
+)
 
 
 class ValidatedSpan(BaseModel):
@@ -60,6 +66,14 @@ def validate_candidate_spans(
                 failures.append("HEADING_INTRUSION")
             if not has_legal_pattern_signal(span_tokens):
                 failures.append("NO_LEGAL_PATTERN_SIGNAL")
+            if contains_notary_block(span_tokens):
+                failures.append("NOTARY_BLOCK_DETECTED")
+            if contains_consideration_clause(span_tokens):
+                failures.append("CONSIDERATION_CLAUSE")
+            if address_dominant(span_tokens):
+                failures.append("ADDRESS_DOMINANT")
+            if table_like_structure(span_tokens):
+                failures.append("TABLE_STRUCTURE")
 
         results.append(
             ValidatedSpan(
