@@ -3,7 +3,7 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from agentic.schemas import Decision, Feedback, PlannerOutput, WorkerOutput
 
-from domain.document_writer.writer.types import DraftSectionTask, RefineSectionTask, WriterResult, WriterTask
+from document_writer.domain.writer.types import DraftSectionTask, RefineSectionTask, WriterResult, WriterTask
 
 
 class WriterPlannerInput(BaseModel):

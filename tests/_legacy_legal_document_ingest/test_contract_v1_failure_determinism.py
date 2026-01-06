@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from apps.legal_document_ingest.ocr.tesseract_adapter import TesseractAdapter
-from apps.legal_document_ingest.pipeline.v1 import run_extraction_v1
+from legal_document_ingest.apps.ocr.tesseract_adapter import TesseractAdapter
+from legal_document_ingest.apps.pipeline.v1 import run_extraction_v1
 
 
 FAIL_PDF = Path("tests/fixtures/fail_conflicting_bearings.pdf")

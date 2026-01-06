@@ -10,7 +10,7 @@ FAIL_PDF = Path("tests/fixtures/fail_conflicting_bearings.pdf")
 
 def _run_cli(pdf_path: Path) -> str:
     result = subprocess.run(
-        [sys.executable, "-m", "apps.legal_document_ingest.cli", str(pdf_path)],
+        [sys.executable, "-m", "legal_document_ingest.apps.cli", str(pdf_path)],
         capture_output=True,
         text=True,
         check=True,

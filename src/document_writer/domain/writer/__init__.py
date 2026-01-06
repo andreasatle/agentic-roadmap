@@ -1,5 +1,5 @@
-from domain.document_writer.writer.types import DraftSectionTask, RefineSectionTask, WriterResult, WriterTask
-from domain.document_writer.writer.schemas import (
+from document_writer.domain.writer.types import DraftSectionTask, RefineSectionTask, WriterResult, WriterTask
+from document_writer.domain.writer.schemas import (
     WriterPlannerInput,
     WriterPlannerOutput,
     DraftWorkerInput,
@@ -8,12 +8,12 @@ from domain.document_writer.writer.schemas import (
     WriterCriticInput,
     WriterCriticOutput,
 )
-from domain.document_writer.writer.dispatcher import WriterDispatcher
-from domain.document_writer.writer.planner import make_planner
-from domain.document_writer.writer.draft_worker import make_draft_worker
-from domain.document_writer.writer.refine_worker import make_refine_worker
-from domain.document_writer.writer.critic import make_critic
-from domain.document_writer.writer.factory import make_agent_dispatcher, make_tool_registry
+from document_writer.domain.writer.dispatcher import WriterDispatcher
+from document_writer.domain.writer.planner import make_planner
+from document_writer.domain.writer.draft_worker import make_draft_worker
+from document_writer.domain.writer.refine_worker import make_refine_worker
+from document_writer.domain.writer.critic import make_critic
+from document_writer.domain.writer.factory import make_agent_dispatcher, make_tool_registry
 
 __all__ = [
     "WriterTask",

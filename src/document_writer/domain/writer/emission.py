@@ -1,8 +1,8 @@
-from domain.document_writer.document.types import DocumentTree, DocumentNode
-from domain.document_writer.document.content import ContentStore
-from domain.document_writer.writer.types import DraftSectionTask, RefineSectionTask, WriterTask
-from domain.document_writer.writer.intent_projection import apply_advisory_intent
-from domain.document_writer.intent.types import IntentEnvelope
+from document_writer.domain.document.types import DocumentTree, DocumentNode
+from document_writer.domain.document.content import ContentStore
+from document_writer.domain.writer.types import DraftSectionTask, RefineSectionTask, WriterTask
+from document_writer.domain.writer.intent_projection import apply_advisory_intent
+from document_writer.domain.intent.types import IntentEnvelope
 
 
 def emit_writer_tasks(

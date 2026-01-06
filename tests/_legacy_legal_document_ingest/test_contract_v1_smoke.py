@@ -1,7 +1,7 @@
 from pathlib import Path
 
-from apps.legal_document_ingest.pipeline.v1 import run_extraction_v1
-from apps.legal_document_ingest.ocr.tesseract_adapter import TesseractAdapter
+from legal_document_ingest.apps.pipeline.v1 import run_extraction_v1
+from legal_document_ingest.apps.ocr.tesseract_adapter import TesseractAdapter
 
 
 PASS_PDF = Path("tests/fixtures/pass_clean_legal_description.pdf")

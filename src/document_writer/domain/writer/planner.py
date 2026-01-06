@@ -1,6 +1,6 @@
 from agentic.agents.openai import OpenAIAgent
-from domain.document_writer.writer.schemas import WriterPlannerInput, WriterPlannerOutput
-from domain.document_writer.writer.types import DraftSectionTask, RefineSectionTask
+from document_writer.domain.writer.schemas import WriterPlannerInput, WriterPlannerOutput
+from document_writer.domain.writer.types import DraftSectionTask, RefineSectionTask
 
 
 PROMPT_PLANNER = """ROLE:

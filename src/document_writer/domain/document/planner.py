@@ -1,5 +1,5 @@
 from agentic.agents.openai import OpenAIAgent
-from domain.document_writer.document.schemas import DocumentPlannerInput, DocumentPlannerOutput
+from document_writer.domain.document.schemas import DocumentPlannerInput, DocumentPlannerOutput
 
 
 PROMPT_PLANNER = """ROLE:

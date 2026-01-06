@@ -2,7 +2,7 @@
 from agentic.agent_dispatcher import AgentDispatcher
 from agentic.controller import Controller, ControllerDomainInput, ControllerRequest
 from agentic.tool_registry import ToolRegistry
-from domain.document_writer.writer.schemas import (
+from document_writer.domain.writer.schemas import (
     WriterPlannerInput,
     WriterPlannerOutput,
     DraftWorkerInput,
@@ -10,7 +10,7 @@ from domain.document_writer.writer.schemas import (
     WriterCriticInput,
     WriterCriticOutput,
 )
-from domain.document_writer.writer.types import DraftSectionTask, WriterResult
+from document_writer.domain.writer.types import DraftSectionTask, WriterResult
 
 
 class SequenceAgent:

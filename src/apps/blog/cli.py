@@ -2,8 +2,8 @@ import argparse
 from pathlib import Path
 
 from apps.blog.post import BlogPost
-from apps.document_writer.service import generate_document
-from domain.document_writer.intent import load_intent_from_yaml
+from document_writer.apps.service import generate_document
+from document_writer.domain.intent import load_intent_from_yaml
 from dotenv import load_dotenv
 load_dotenv(override=True)
 

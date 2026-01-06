@@ -3,7 +3,7 @@ import sys
 
 import pytest
 
-from domain.document_writer.writer.main import main as writer_main
+from document_writer.domain.writer.main import main as writer_main
 
 
 def test_writer_raises_without_structure(monkeypatch):

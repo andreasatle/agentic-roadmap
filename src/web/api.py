@@ -1,4 +1,4 @@
-import apps.web.bootstrap
+import web.bootstrap
 import json
 import logging
 import os
@@ -13,17 +13,17 @@ import yaml
 import markdown
 from pathlib import Path
 
-from apps.document_writer.service import generate_document
+from document_writer.apps.service import generate_document
 from apps.blog.storage import list_posts, read_post_meta, read_post_content, read_post_intent
-from apps.web.schemas import (
+from web.schemas import (
     DocumentGenerateRequest,
     DocumentSaveRequest,
     IntentParseRequest,
     IntentSaveRequest,
 )
-from apps.web.persistence import persist_generation
-from apps.web.security import require_admin
-from domain.document_writer.intent import load_intent_from_yaml
+from web.persistence import persist_generation
+from web.security import require_admin
+from document_writer.domain.intent import load_intent_from_yaml
 
 
 
@@ -41,7 +41,7 @@ logger = logging.getLogger(__name__)
 
 @app.on_event("startup")
 def validate_generated_dir() -> None:
-    apps.web.bootstrap.validate_generated_dir()
+    web.bootstrap.validate_generated_dir()
 
 
 @app.get("/admin/generations")

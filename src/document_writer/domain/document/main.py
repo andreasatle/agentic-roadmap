@@ -1,11 +1,11 @@
 from dotenv import load_dotenv
-from domain.document_writer.document.planner import make_planner
-from domain.document_writer.document.api import analyze
-from domain.document_writer.intent.types import IntentEnvelope
+from document_writer.domain.document.planner import make_planner
+from document_writer.domain.document.api import analyze
+from document_writer.domain.intent.types import IntentEnvelope
 from agentic.agent_dispatcher import AgentDispatcher
 from agentic.logging_config import get_logger
 
-logger = get_logger("domain.document_writer.document.main")
+logger = get_logger("document_writer.domain.document.main")
 
 
 def _pretty_print_run(run: dict, trace: bool = False) -> None:

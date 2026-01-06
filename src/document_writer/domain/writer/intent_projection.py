@@ -1,5 +1,5 @@
-from domain.document_writer.intent.types import IntentEnvelope
-from domain.document_writer.writer.types import WriterTask
+from document_writer.domain.intent.types import IntentEnvelope
+from document_writer.domain.writer.types import WriterTask
 
 
 def apply_advisory_intent(task: WriterTask, intent: IntentEnvelope | None) -> WriterTask:

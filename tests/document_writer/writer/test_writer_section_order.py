@@ -2,8 +2,8 @@
 import pytest
 
 
-from domain.document_writer.writer.schemas import WriterWorkerOutput
-from domain.document_writer.writer.types import WriterResult
+from document_writer.domain.writer.schemas import WriterWorkerOutput
+from document_writer.domain.writer.types import WriterResult
 
 
 def test_worker_output_enforces_single_branch():

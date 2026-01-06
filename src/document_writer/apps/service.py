@@ -2,14 +2,14 @@ from dataclasses import dataclass
 from typing import Any
 
 from agentic.agent_dispatcher import AgentDispatcher
-from domain.document_writer.document.api import analyze
-from domain.document_writer.document.content import ContentStore
-from domain.document_writer.document.planner import make_planner
-from domain.document_writer.document.schemas import DocumentPlannerOutput
-from domain.document_writer.document.types import DocumentNode, DocumentTree
-from domain.document_writer.intent.types import IntentEnvelope
-from domain.document_writer.writer import make_agent_dispatcher as make_writer_dispatcher, make_tool_registry as make_writer_tool_registry
-from domain.document_writer.writer.api import execute_document
+from document_writer.domain.document.api import analyze
+from document_writer.domain.document.content import ContentStore
+from document_writer.domain.document.planner import make_planner
+from document_writer.domain.document.schemas import DocumentPlannerOutput
+from document_writer.domain.document.types import DocumentNode, DocumentTree
+from document_writer.domain.intent.types import IntentEnvelope
+from document_writer.domain.writer import make_agent_dispatcher as make_writer_dispatcher, make_tool_registry as make_writer_tool_registry
+from document_writer.domain.writer.api import execute_document
 
 
 def _assemble_markdown(node: DocumentNode, store: ContentStore, depth: int = 0) -> list[str]:

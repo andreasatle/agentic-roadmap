@@ -1,5 +1,5 @@
 import pytest
-from apps.legal_document_ingest.main import main
+from legal_document_ingest.apps.main import main
 
 @pytest.fixture
 def extraction_result():

@@ -2,14 +2,14 @@
 import argparse
 from dotenv import load_dotenv
 
-from domain.document_writer.writer import (
+from document_writer.domain.writer import (
     make_agent_dispatcher,
     make_tool_registry,
 )
-from domain.document_writer.writer.api import execute_document
-from domain.document_writer.document.types import DocumentTree, DocumentNode
-from domain.document_writer.document.content import ContentStore
-from domain.document_writer.intent import load_intent_from_file
+from document_writer.domain.writer.api import execute_document
+from document_writer.domain.document.types import DocumentTree, DocumentNode
+from document_writer.domain.document.content import ContentStore
+from document_writer.domain.intent import load_intent_from_file
 
 
 def _pretty_print_run(run: dict) -> None:

@@ -13,7 +13,7 @@ fi
 # mkdir -p "$AGENTIC_GENERATED_DIR"
 
 # Run FastAPI app
-uv run uvicorn apps.web.api:app \
+uv run uvicorn web.api:app \
   --host 127.0.0.1 \
   --port 8000 \
   --reload

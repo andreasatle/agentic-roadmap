@@ -2,8 +2,8 @@ from typing import Any
 
 from pydantic import BaseModel
 
-from domain.document_writer.document.types import DocumentTree
-from domain.document_writer.intent.types import IntentEnvelope
+from document_writer.domain.document.types import DocumentTree
+from document_writer.domain.intent.types import IntentEnvelope
 
 
 class DocumentPlannerInput(BaseModel):
