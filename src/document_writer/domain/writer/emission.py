@@ -36,6 +36,8 @@ def emit_writer_tasks(
                 defines=node.defines,
                 assumes=node.assumes,
             )
+        if task.defines != node.defines or task.assumes != node.assumes:
+            raise ValueError("Writer task definition authority must match DocumentNode metadata.")
         tasks.append(task)
         for child in node.children:
             visit(child)
