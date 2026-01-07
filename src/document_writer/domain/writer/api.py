@@ -3,6 +3,7 @@ from agentic.tool_registry import ToolRegistry
 from agentic.agent_dispatcher import AgentDispatcher
 from document_writer.domain.writer.types import DraftSectionTask, RefineSectionTask, WriterTask
 from document_writer.domain.document.types import DocumentTree
+from document_writer.domain.document.validation import validate_definition_authority
 from document_writer.domain.document.content import ContentStore
 from document_writer.domain.writer.emission import emit_writer_tasks
 from document_writer.domain.intent.types import IntentEnvelope
@@ -57,6 +58,7 @@ def execute_document(
     intent: IntentEnvelope | None = None,
     applies_thesis_rule: bool = False,
 ) -> WriterExecutionResult:
+    validate_definition_authority(document_tree)
     tasks = emit_writer_tasks(
         document_tree,
         content_store,
