@@ -1,6 +1,6 @@
 
 from typing import Annotated, Literal
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from document_writer.domain.document.types import ConceptId
 
@@ -38,6 +38,16 @@ class BaseSectionTask(BaseModel):
         default_factory=list,
         description="Concept identifiers assumed in this section.",
     )
+
+    @model_validator(mode="after")
+    def validate_definition_authority(self) -> "BaseSectionTask":
+        overlap = set(self.defines) & set(self.assumes)
+        if overlap:
+            ordered = sorted(str(concept) for concept in overlap)
+            raise ValueError(
+                "defines/assumes overlap: " + ", ".join(ordered)
+            )
+        return self
 
 
 class DraftSectionTask(BaseSectionTask):
