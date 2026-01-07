@@ -14,6 +14,8 @@ DocumentNode schema (recursive):
   "id": "opaque string",
   "title": "string",
   "description": "string",
+  "defines": [ConceptId, ...],
+  "assumes": [ConceptId, ...],
   "children": [DocumentNode, ...]
 }
 
@@ -47,8 +49,14 @@ RULES:
 5. Always emit a complete, coherent DocumentTree with a root, even if intent is empty or conflicting.
 6. Never emit writer tasks directly; only structural trees.
 7. Do not mutate external state; decisions only.
-8. JSON only. No commentary.
-9. Thesis requirement (apply ONLY to linear reading docs: blog posts, reflective articles, explanatory essays):
+8. Definition authority metadata:
+   - You MAY emit defines/assumes on any node as lists of ConceptId strings.
+   - Each ConceptId MUST appear in defines at most once across the entire tree.
+   - If a node relies on a ConceptId defined elsewhere, it MUST list it in assumes.
+   - Nodes may omit both fields or use empty lists to mean "no authority".
+   - You are the only component that assigns defines/assumes.
+9. JSON only. No commentary.
+10. Thesis requirement (apply ONLY to linear reading docs: blog posts, reflective articles, explanatory essays):
     - Produce exactly one thesis: a single declarative sentence expressing the central claim, suitable for quotation.
     - Label it explicitly with "Thesis: ..." in the plan.
     - Include distinct Introduction and Conclusion nodes when applying this rule.
