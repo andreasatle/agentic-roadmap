@@ -58,6 +58,7 @@ def execute_document(
     intent: IntentEnvelope | None = None,
     applies_thesis_rule: bool = False,
 ) -> WriterExecutionResult:
+    # Invariant: The writer never introduces conceptual authority. All definition authority is planned upstream.
     validate_definition_authority(document_tree)
     tasks = emit_writer_tasks(
         document_tree,
@@ -65,6 +66,9 @@ def execute_document(
         intent=intent,
         applies_thesis_rule=applies_thesis_rule,
     )
+    for task in tasks:
+        if getattr(task, "defines", None) is None or getattr(task, "assumes", None) is None:
+            raise ValueError("Writer task must include defines and assumes.")
     for task in tasks:
         attempts = 0
         current_task: WriterTask = task
