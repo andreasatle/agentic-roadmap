@@ -1,4 +1,4 @@
-from typing import Any, Literal
+from typing import Any, Literal, NewType
 from pydantic import BaseModel, Field, model_validator
 
 
@@ -55,6 +55,9 @@ class DocumentTask(BaseModel):
         return self
 
 
+ConceptId = NewType("ConceptId", str)
+
+
 class DocumentNode(BaseModel):
     """Immutable structural node for the document outline.
 
@@ -67,6 +70,8 @@ class DocumentNode(BaseModel):
     id: str
     title: str
     description: str
+    defines: list[ConceptId] = Field(default_factory=list)
+    assumes: list[ConceptId] = Field(default_factory=list)
     children: list["DocumentNode"] = Field(default_factory=list)
 
 
