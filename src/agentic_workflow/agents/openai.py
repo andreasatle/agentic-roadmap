@@ -3,7 +3,7 @@ from typing import Generic, Final
 from uuid import uuid4
 from openai import OpenAI
 
-from agentic.protocols import InputSchema, OutputSchema
+from agentic_workflow.protocols import InputSchema, OutputSchema
 
 
 @dataclass

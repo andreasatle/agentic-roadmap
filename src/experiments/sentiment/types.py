@@ -2,8 +2,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from agentic.agent_dispatcher import AgentDispatcher
-from agentic.schemas import Decision, PlannerOutput, WorkerInput, WorkerOutput
+from agentic_workflow.agent_dispatcher import AgentDispatcher
+from agentic_workflow.schemas import Decision, PlannerOutput, WorkerInput, WorkerOutput
 
 
 class SentimentTask(BaseModel):

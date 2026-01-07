@@ -1,4 +1,4 @@
-from agentic.tool_registry import ToolRegistry
+from agentic_workflow.tool_registry import ToolRegistry
 from experiments.sentiment.types import SentimentDispatcher
 from experiments.sentiment.planner import make_planner
 from experiments.sentiment.worker import make_worker

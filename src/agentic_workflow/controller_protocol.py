@@ -1,7 +1,7 @@
 
 from typing import Protocol
 
-from agentic.controller import ControllerRequest, ControllerResponse
+from agentic_workflow.controller import ControllerRequest, ControllerResponse
 
 
 class ControllerProtocol(Protocol):

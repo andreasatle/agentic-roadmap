@@ -1,4 +1,4 @@
-from agentic.agents.openai import OpenAIAgent
+from agentic_workflow.agents.openai import OpenAIAgent
 from document_writer.domain.writer.schemas import RefineWorkerInput, WriterWorkerOutput
 from document_writer.domain.writer.types import RefineSectionTask
 

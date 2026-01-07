@@ -3,10 +3,10 @@ import argparse
 from dotenv import load_dotenv
 
 from experiments.coder import make_agent_dispatcher, make_tool_registry
-from agentic.controller import ControllerDomainInput, ControllerRequest, run_controller
+from agentic_workflow.controller import ControllerDomainInput, ControllerRequest, run_controller
 from experiments.coder.types import CodeTask
 
-from agentic.logging_config import get_logger
+from agentic_workflow.logging_config import get_logger
 logger = get_logger("experiments.coder.main")
 
 def _pretty_print_run(run: dict, trace: bool = False) -> None:

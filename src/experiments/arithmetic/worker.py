@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from agentic.agents.openai import OpenAIAgent
+from agentic_workflow.agents.openai import OpenAIAgent
 from experiments.arithmetic.types import ArithmeticWorkerInput, ArithmeticWorkerOutput
 
 

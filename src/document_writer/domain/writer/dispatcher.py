@@ -1,4 +1,4 @@
-from agentic.agent_dispatcher import AgentDispatcher
+from agentic_workflow.agent_dispatcher import AgentDispatcher
 
 from .types import WriterResult, WriterTask
 from .schemas import WriterCriticOutput

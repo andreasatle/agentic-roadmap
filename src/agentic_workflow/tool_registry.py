@@ -1,5 +1,5 @@
 from typing import Generic
-from agentic.protocols import ToolProtocol, ToolArgs, ToolOutput
+from agentic_workflow.protocols import ToolProtocol, ToolArgs, ToolOutput
 
 class ToolRegistry(Generic[ToolArgs, ToolOutput]):
     """Strongly typed registry for deterministic tools."""

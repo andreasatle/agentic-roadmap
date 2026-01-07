@@ -1,7 +1,7 @@
 import re
 
-from agentic.agents.openai import OpenAIAgent
-from agentic.logging_config import get_logger
+from agentic_workflow.agents.openai import OpenAIAgent
+from agentic_workflow.logging_config import get_logger
 from document_writer.domain.writer.schemas import WriterCriticInput, WriterCriticOutput
 
 

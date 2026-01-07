@@ -1,7 +1,7 @@
 from typing import Self
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
-from agentic.schemas import Decision, Feedback, PlannerOutput, WorkerOutput
+from agentic_workflow.schemas import Decision, Feedback, PlannerOutput, WorkerOutput
 
 from document_writer.domain.writer.types import DraftSectionTask, RefineSectionTask, WriterResult, WriterTask
 

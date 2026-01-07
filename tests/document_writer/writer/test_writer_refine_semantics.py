@@ -1,7 +1,7 @@
 
-from agentic.agent_dispatcher import AgentDispatcher
-from agentic.controller import Controller, ControllerDomainInput, ControllerRequest
-from agentic.tool_registry import ToolRegistry
+from agentic_workflow.agent_dispatcher import AgentDispatcher
+from agentic_workflow.controller import Controller, ControllerDomainInput, ControllerRequest
+from agentic_workflow.tool_registry import ToolRegistry
 from document_writer.domain.writer.schemas import (
     WriterPlannerInput,
     WriterPlannerOutput,

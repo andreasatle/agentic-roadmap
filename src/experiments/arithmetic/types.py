@@ -1,8 +1,8 @@
 from typing import Literal, Union
 
 from pydantic import BaseModel, ConfigDict, model_validator
-from agentic.schemas import Decision, PlannerOutput, WorkerInput, WorkerOutput
-from agentic.agent_dispatcher import AgentDispatcher
+from agentic_workflow.schemas import Decision, PlannerOutput, WorkerInput, WorkerOutput
+from agentic_workflow.agent_dispatcher import AgentDispatcher
 
 
 class ArithmeticTask(BaseModel):

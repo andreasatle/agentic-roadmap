@@ -14,8 +14,8 @@ Any behavior diverging from this contract is a bug.
 from typing import Any, Self
 from pydantic import BaseModel, ConfigDict, model_validator
 
-from agentic.agent_dispatcher import AgentDispatcher
-from agentic.controller_types import ControllerState as State
+from agentic_workflow.agent_dispatcher import AgentDispatcher
+from agentic_workflow.controller_types import ControllerState as State
 
 
 # =========================

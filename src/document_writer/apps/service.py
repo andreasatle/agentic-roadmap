@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Any
 
-from agentic.agent_dispatcher import AgentDispatcher
+from agentic_workflow.agent_dispatcher import AgentDispatcher
 from document_writer.domain.document.api import analyze
 from document_writer.domain.document.content import ContentStore
 from document_writer.domain.document.planner import make_planner

@@ -1,4 +1,4 @@
-from agentic.agents.openai import OpenAIAgent
+from agentic_workflow.agents.openai import OpenAIAgent
 from experiments.coder.types import CoderCriticInput, CoderCriticOutput
 
 

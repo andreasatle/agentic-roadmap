@@ -1,7 +1,7 @@
 
 import json
 
-from agentic.controller import ControllerResponse
+from agentic_workflow.controller import ControllerResponse
 
 
 def test_supervisor_response_is_json_serializable():

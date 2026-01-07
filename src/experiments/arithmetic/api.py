@@ -1,6 +1,6 @@
-from agentic.controller import ControllerDomainInput, ControllerRequest, run_controller
-from agentic.tool_registry import ToolRegistry
-from agentic.agent_dispatcher import AgentDispatcher
+from agentic_workflow.controller import ControllerDomainInput, ControllerRequest, run_controller
+from agentic_workflow.tool_registry import ToolRegistry
+from agentic_workflow.agent_dispatcher import AgentDispatcher
 from experiments.arithmetic.types import ArithmeticTask
 
 

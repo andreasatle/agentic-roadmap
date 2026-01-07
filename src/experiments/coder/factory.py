@@ -1,4 +1,4 @@
-from agentic.tool_registry import ToolRegistry
+from agentic_workflow.tool_registry import ToolRegistry
 from experiments.coder.types import CoderDispatcher
 from experiments.coder.planner import make_planner
 from experiments.coder.worker import make_worker

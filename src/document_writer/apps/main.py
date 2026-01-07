@@ -2,7 +2,7 @@ import argparse
 from pathlib import Path
 from dotenv import load_dotenv
 from document_writer.domain.intent import load_intent_from_file
-from agentic.logging_config import get_logger
+from agentic_workflow.logging_config import get_logger
 from document_writer.apps.service import generate_document
 
 logger = get_logger("document_writer.domain.document.main")

@@ -1,4 +1,4 @@
-from agentic.tool_registry import ToolRegistry
+from agentic_workflow.tool_registry import ToolRegistry
 from document_writer.domain.writer.dispatcher import WriterDispatcher
 from document_writer.domain.writer.planner import make_planner
 from document_writer.domain.writer.draft_worker import make_draft_worker
