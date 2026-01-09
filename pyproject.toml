@@ -28,9 +28,6 @@ agentic-arithmetic = "experiments.arithmetic.main:main"
 agentic-sentiment = "experiments.sentiment.main:main"
 agentic-coder = "experiments.coder.main:main"
 agentic-document-writer = "document_writer.apps.main:main"
-agentic-document-writer-ui = "apps.document_writer.ui:main"
-agentic-document-from-text = "apps.document_from_text.main:main"
-agentic-legal-doc = "apps.legal_document_ingest.main:main"
 blog = "apps.blog.cli:main"
 
 [build-system]
