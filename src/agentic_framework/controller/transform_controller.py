@@ -23,7 +23,7 @@ class TransformControllerRequest(BaseModel):
 
 
 class TransformControllerResponse(BaseModel):
-    """Immutable result of a single transform execution."""
+    """Immutable result of a single transform execution. Trace is optional and may be empty depending on dispatcher usage."""
 
     model_config = ConfigDict(frozen=True)
 
