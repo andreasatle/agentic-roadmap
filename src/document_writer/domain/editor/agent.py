@@ -3,7 +3,7 @@ from typing import Self
 from pydantic import BaseModel, ConfigDict, model_validator
 
 from agentic_framework.agents.openai import OpenAIAgent
-from apps.agent_editor.api import AgentEditorRequest
+from document_writer.domain.editor.api import AgentEditorRequest
 
 
 PROMPT_EDITOR = """ROLE:

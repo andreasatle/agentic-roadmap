@@ -2,7 +2,7 @@ from agentic_framework.agent_dispatcher import AgentDispatcher
 from agentic_framework.agents.openai import OpenAIAgent
 from agentic_framework.controller.transform_controller import TransformController, TransformControllerRequest
 
-from apps.agent_editor.api import AgentEditorRequest, AgentEditorResponse
+from document_writer.domain.editor.api import AgentEditorRequest, AgentEditorResponse
 
 
 def edit_document(

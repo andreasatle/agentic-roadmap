@@ -15,9 +15,9 @@ from pathlib import Path
 
 from agentic_framework.agent_dispatcher import AgentDispatcherBase
 from document_writer.apps.service import generate_document
-from apps.agent_editor.agent import make_editor_agent
-from apps.agent_editor.api import AgentEditorRequest, AgentEditorResponse
-from apps.agent_editor.service import edit_document
+from document_writer.domain.editor.agent import make_editor_agent
+from document_writer.domain.editor.api import AgentEditorRequest, AgentEditorResponse
+from document_writer.domain.editor.service import edit_document
 from apps.blog.storage import list_posts, read_post_meta, read_post_content, read_post_intent
 from web.schemas import (
     DocumentGenerateRequest,
