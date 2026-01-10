@@ -23,3 +23,8 @@ class DocumentSaveRequest(BaseModel):
 
 class TitleSuggestRequest(BaseModel):
     content: str
+
+
+class TitleSetRequest(BaseModel):
+    post_id: str
+    title: str

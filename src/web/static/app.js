@@ -69,6 +69,20 @@ function setSuggestedTitle(title) {
   }
 }
 
+function setFinalTitle(title) {
+  const target = $("final-title");
+  if (target) {
+    target.textContent = title || "";
+  }
+}
+
+function setTitleControlsEnabled(enabled) {
+  const input = $("title-input");
+  const btn = $("set-title-btn");
+  if (input) input.disabled = !enabled;
+  if (btn) btn.disabled = !enabled;
+}
+
 function renderIntent(intent) {
   const s = intent.structural_intent || {};
   const sem = intent.semantic_constraints || {};
@@ -207,6 +221,7 @@ async function generateBlogPost() {
   setView("content");
   setArticleStatus("Generating…");
   setSuggestedTitle("");
+  setFinalTitle("");
   isGenerating = true;
   try {
     const resp = await fetch("/blog/generate", {
@@ -233,6 +248,7 @@ async function generateBlogPost() {
     } else {
       suggestTitle(currentMarkdown);
     }
+    setTitleControlsEnabled(!!currentPostId);
     setError("");
   } catch (err) {
     setArticleStatus("Failed to generate blog post. See error.");
@@ -241,6 +257,42 @@ async function generateBlogPost() {
   } finally {
     isGenerating = false;
     setIntentDisabled(false);
+  }
+}
+
+async function setTitle() {
+  if (!currentPostId) {
+    setError("No post available to set title.");
+    return;
+  }
+  const input = $("title-input");
+  const title = (input?.value || "").trim();
+  if (!title) {
+    setError("Title cannot be empty.");
+    return;
+  }
+  try {
+    const resp = await fetch("/blog/set-title", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ post_id: currentPostId, title }),
+    });
+    if (resp.status === 409) {
+      setError("Title already set.");
+      setTitleControlsEnabled(false);
+      return;
+    }
+    if (!resp.ok) {
+      const detail = await resp.text();
+      setError(detail || "Failed to set title.");
+      return;
+    }
+    const data = await resp.json();
+    setFinalTitle(`Title: ${data.title}`);
+    setTitleControlsEnabled(false);
+    setError("");
+  } catch (err) {
+    setError(err?.message || "Error setting title.");
   }
 }
 
@@ -311,8 +363,10 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   $("to-content")?.addEventListener("click", () => setView("content"));
   $("to-intent")?.addEventListener("click", () => setView("intent"));
+  $("set-title-btn")?.addEventListener("click", setTitle);
   setView("intent");
   setArticleStatus("No blog post generated yet. Click Generate Blog Post.");
+  setTitleControlsEnabled(false);
 });
 
 document.addEventListener("click", (event) => {
@@ -352,6 +406,8 @@ function clearIntent() {
   setError("");
   setArticleStatus("");
   setSuggestedTitle("");
+  setFinalTitle("");
+  setTitleControlsEnabled(false);
   setView("intent");
   isClearing = false;
 }

@@ -7,6 +7,10 @@ import yaml
 from apps.blog.types import BlogPostMeta
 
 
+class TitleAlreadySetError(ValueError):
+    pass
+
+
 def create_post(
     *,
     title: str | None,
@@ -110,3 +114,18 @@ def read_post_intent(post_id: str, posts_root: str = "posts") -> dict:
         return data
     except Exception as exc:
         raise ValueError(f"Invalid intent.yaml for post {post_id}: {exc}") from exc
+
+
+def set_post_title(post_id: str, title: str, posts_root: str = "posts") -> BlogPostMeta:
+    clean_title = (title or "").strip()
+    if not clean_title:
+        raise ValueError("Title must be a non-empty string")
+    meta = read_post_meta(post_id, posts_root)
+    existing_title = (meta.title or "").strip()
+    if existing_title:
+        raise TitleAlreadySetError("Title already set")
+    meta.title = clean_title
+    post_dir = _post_dir(post_id, posts_root)
+    meta_path = post_dir / "meta.yaml"
+    meta_path.write_text(yaml.safe_dump(meta.model_dump(), sort_keys=False, default_flow_style=False))
+    return meta

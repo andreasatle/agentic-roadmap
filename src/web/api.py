@@ -19,12 +19,21 @@ from document_writer.domain.editor.agent import make_editor_agent
 from document_writer.domain.editor.api import AgentEditorRequest, AgentEditorResponse
 from document_writer.domain.editor.service import edit_document
 from document_writer.apps.title_suggester import suggest_title
-from apps.blog.storage import create_post, list_posts, read_post_meta, read_post_content, read_post_intent
+from apps.blog.storage import (
+    TitleAlreadySetError,
+    create_post,
+    list_posts,
+    read_post_meta,
+    read_post_content,
+    read_post_intent,
+    set_post_title,
+)
 from web.schemas import (
     DocumentGenerateRequest,
     DocumentSaveRequest,
     IntentParseRequest,
     IntentSaveRequest,
+    TitleSetRequest,
     TitleSuggestRequest,
 )
 from web.security import require_admin, security
@@ -171,6 +180,23 @@ def suggest_blog_title_route(
     require_admin(creds)
     title = suggest_title(payload.content)
     return {"suggested_title": title}
+
+
+@app.post("/blog/set-title")
+def set_blog_title_route(
+    payload: TitleSetRequest,
+    creds = Depends(security),
+) -> dict[str, str]:
+    require_admin(creds)
+    try:
+        meta = set_post_title(payload.post_id, payload.title)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Post not found")
+    except TitleAlreadySetError:
+        raise HTTPException(status_code=409, detail="Title already set")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return {"post_id": meta.post_id, "title": meta.title or ""}
 
 
 @app.post("/document/save")

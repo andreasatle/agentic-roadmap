@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>{{ meta.title or '' }}</title>
+    <title>{{ meta.title or '(untitled)' }}</title>
     <link rel="stylesheet" href="/static/app.css">
     <link rel="stylesheet" href="/static/theme-dark.css">
 </head>
@@ -10,7 +10,7 @@
     <main class="container">
         <p><a href="/">Home</a></p>
         <header>
-            <h1>{{ meta.title or '' }}</h1>
+            <h1>{{ meta.title or '(untitled)' }}</h1>
             <div>By {{ meta.author }} · {{ meta.created_at }} · Status: {{ meta.status }}</div>
             <a href="/blog?include_drafts={{ 'true' if include_drafts else 'false' }}">Back to Blog</a>
         </header>
