@@ -5,6 +5,7 @@ let suggestedTitleValue = "";
 let titleCommitted = false;
 let isEditingContent = false;
 let editRequestInFlight = false;
+let policyEditInFlight = false;
 let currentView = "intent";
 let isGenerating = false;
 let isClearing = false;
@@ -98,6 +99,27 @@ function setEditControlsEnabled(enabled) {
   const applyBtn = $("apply-edit-btn");
   if (editBtn) editBtn.disabled = !enabled;
   if (applyBtn) applyBtn.disabled = !enabled;
+}
+
+function setPolicyEditControlsEnabled(enabled) {
+  const policyText = $("policy-text");
+  const runBtn = $("run-policy-edit-btn");
+  if (policyText) policyText.disabled = !enabled;
+  if (runBtn) runBtn.disabled = !enabled;
+}
+
+function setPolicyEditStatus(text) {
+  const target = $("policy-edit-status");
+  if (target) {
+    target.textContent = text || "";
+  }
+}
+
+function setPolicyEditResult(text) {
+  const target = $("policy-edit-result");
+  if (target) {
+    target.textContent = text || "";
+  }
 }
 
 function setEditMode(enabled) {
@@ -315,10 +337,16 @@ async function generateBlogPost() {
   setArticleStatus("Generating…");
   setSuggestedTitleValue("");
   setFinalTitle("");
+  setPolicyEditStatus("");
+  setPolicyEditResult("");
   titleCommitted = false;
   setEditMode(false);
   setEditControlsEnabled(false);
   setEditRequestState(false);
+  setPolicyEditControlsEnabled(false);
+  setPolicyEditStatus("");
+  setPolicyEditResult("");
+  policyEditInFlight = false;
   setGatedActionsEnabled(false);
   isGenerating = true;
   try {
@@ -349,6 +377,7 @@ async function generateBlogPost() {
     }
     setTitleControlsEnabled(!!currentPostId);
     setEditControlsEnabled(!!currentPostId);
+    setPolicyEditControlsEnabled(!!currentPostId);
     setError("");
   } catch (err) {
     setArticleStatus("Failed to generate blog post. See error.");
@@ -442,6 +471,60 @@ async function applyEdit() {
   }
 }
 
+async function runPolicyEdit() {
+  if (!currentPostId || policyEditInFlight) return;
+  const policyText = $("policy-text");
+  const policyValue = (policyText?.value || "").trim();
+  if (!policyValue) {
+    setPolicyEditStatus("Policy text is required.");
+    return;
+  }
+  policyEditInFlight = true;
+  setPolicyEditControlsEnabled(false);
+  setPolicyEditStatus("editing…");
+  setPolicyEditResult("");
+  try {
+    const resp = await fetch("/blog/edit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ post_id: currentPostId, policy_text: policyValue }),
+    });
+    if (!resp.ok) {
+      const detail = await resp.text();
+      setPolicyEditStatus(detail || "Edit failed.");
+      return;
+    }
+    const data = await resp.json();
+    currentMarkdown = data.content || "";
+    const articleArea = $("article-text");
+    if (articleArea) {
+      articleArea.innerHTML = marked.parse(currentMarkdown);
+    }
+    const changed = (data.changed_chunks || []).join(", ");
+    const rejected = (data.rejected_chunks || [])
+      .map((item) => `${item.chunk_index}: ${item.reason}`)
+      .join("\n");
+    const resultLines = [
+      `Revision: ${data.revision_id}`,
+      `Changed chunks: ${changed || "none"}`,
+    ];
+    if (rejected) {
+      resultLines.push(`Rejected:\n${rejected}`);
+    }
+    setPolicyEditStatus("edit applied");
+    setPolicyEditResult(resultLines.join("\n"));
+    if (policyText) {
+      policyText.value = "";
+    }
+    setError("");
+  } catch (err) {
+    setPolicyEditStatus(err?.message || "Edit failed.");
+  } finally {
+    policyEditInFlight = false;
+    setPolicyEditControlsEnabled(!!currentPostId);
+  }
+}
+
 async function suggestTitle(content) {
   if (!content) {
     setSuggestedTitleValue("");
@@ -511,12 +594,17 @@ document.addEventListener("DOMContentLoaded", () => {
   $("use-suggested-title")?.addEventListener("change", applySuggestedTitle);
   $("edit-content-btn")?.addEventListener("click", toggleEditContent);
   $("apply-edit-btn")?.addEventListener("click", applyEdit);
+  $("run-policy-edit-btn")?.addEventListener("click", runPolicyEdit);
   setView("intent");
   setArticleStatus("No blog post generated yet. Click Generate Blog Post.");
   setTitleControlsEnabled(false);
   setEditControlsEnabled(false);
   setEditMode(false);
   setGatedActionsEnabled(false);
+  setPolicyEditControlsEnabled(false);
+  setPolicyEditStatus("");
+  setPolicyEditResult("");
+  policyEditInFlight = false;
   updateSuggestedTitleAction();
 });
 
@@ -547,6 +635,7 @@ function resetPostView() {
   titleCommitted = false;
   isEditingContent = false;
   editRequestInFlight = false;
+  policyEditInFlight = false;
   const article = $("article-text");
   if (article) {
     article.textContent = "";
@@ -554,6 +643,10 @@ function resetPostView() {
   const editor = $("article-editor");
   if (editor) {
     editor.value = "";
+  }
+  const policyText = $("policy-text");
+  if (policyText) {
+    policyText.value = "";
   }
   setError("");
   setArticleStatus("No blog post generated yet. Click Generate Blog Post.");
@@ -563,6 +656,9 @@ function resetPostView() {
   setEditControlsEnabled(false);
   setEditMode(false);
   setGatedActionsEnabled(false);
+  setPolicyEditControlsEnabled(false);
+  setPolicyEditStatus("");
+  setPolicyEditResult("");
   setView("intent");
 }
 
@@ -575,6 +671,7 @@ function clearIntent() {
   titleCommitted = false;
   isEditingContent = false;
   editRequestInFlight = false;
+  policyEditInFlight = false;
   setEditMode(false);
   Object.values(intentFields).forEach((el) => {
     if (el) {
@@ -585,6 +682,10 @@ function clearIntent() {
   if (fileInput) {
     fileInput.value = "";
   }
+  const policyText = $("policy-text");
+  if (policyText) {
+    policyText.value = "";
+  }
   setError("");
   setArticleStatus("");
   setSuggestedTitleValue("");
@@ -592,6 +693,9 @@ function clearIntent() {
   setTitleControlsEnabled(false);
   setEditControlsEnabled(false);
   setGatedActionsEnabled(false);
+  setPolicyEditControlsEnabled(false);
+  setPolicyEditStatus("");
+  setPolicyEditResult("");
   setView("intent");
   isClearing = false;
 }

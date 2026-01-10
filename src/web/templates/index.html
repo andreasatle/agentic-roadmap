@@ -406,6 +406,17 @@ END OF INTENT UI CONTRACT
         <textarea id="article-editor" hidden></textarea>
         <section class="action-row">
           <div class="actions-left">
+            <span class="save-label">Edit With Policy</span>
+            <div class="inline-controls">
+              <button type="button" class="btn btn--primary" id="run-policy-edit-btn">Run Edit</button>
+            </div>
+          </div>
+        </section>
+        <textarea id="policy-text" placeholder="Policy text" aria-label="Policy text"></textarea>
+        <div id="policy-edit-status"></div>
+        <pre id="policy-edit-result"></pre>
+        <section class="action-row">
+          <div class="actions-left">
             <span class="save-label">Set Title</span>
             <div class="inline-controls">
               <input type="text" id="title-input" placeholder="Optional title" aria-label="Title" />
