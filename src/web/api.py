@@ -31,6 +31,7 @@ from apps.blog.storage import (
 from web.schemas import (
     DocumentGenerateRequest,
     DocumentSaveRequest,
+    EditContentRequest,
     IntentParseRequest,
     IntentSaveRequest,
     TitleSetRequest,
@@ -46,6 +47,8 @@ static_dir = BASE_DIR / "static"
 templates_dir = BASE_DIR / "templates"
 
 BLOG_MARKDOWN_EXTENSIONS = ["fenced_code", "tables"]
+# No-op policy: editor pipeline runs only to enforce invariants; future policies may replace it.
+EDIT_CONTENT_POLICY = "Return the document unchanged."
 
 app = FastAPI()
 app.mount("/static", StaticFiles(directory=static_dir), name="static")
@@ -197,6 +200,35 @@ def set_blog_title_route(
     except ValueError as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     return {"post_id": meta.post_id, "title": meta.title or ""}
+
+
+@app.post("/blog/edit-content")
+def edit_blog_content_route(
+    payload: EditContentRequest,
+    creds = Depends(security),
+) -> dict[str, str]:
+    require_admin(creds)
+    try:
+        intent = read_post_intent(payload.post_id)
+        content_path = Path("posts") / payload.post_id / "content.md"
+        if not content_path.exists():
+            raise FileNotFoundError(f"content.md not found for post {payload.post_id}")
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Post not found")
+    try:
+        response = edit_document(
+            AgentEditorRequest(
+                document=payload.content,
+                editing_policy=EDIT_CONTENT_POLICY,
+                intent=intent,
+            ),
+            dispatcher=editor_dispatcher,
+            editor_agent=editor_agent,
+        )
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    content_path.write_text(response.edited_document)
+    return {"post_id": payload.post_id, "content": response.edited_document}
 
 
 @app.post("/document/save")

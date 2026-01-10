@@ -3,6 +3,8 @@ let currentMarkdown = null;
 let currentPostId = null;
 let suggestedTitleValue = "";
 let titleCommitted = false;
+let isEditingContent = false;
+let editRequestInFlight = false;
 let currentView = "intent";
 let isGenerating = false;
 let isClearing = false;
@@ -89,6 +91,33 @@ function setTitleControlsEnabled(enabled) {
   const btn = $("set-title-btn");
   if (input) input.disabled = !enabled;
   if (btn) btn.disabled = !enabled;
+}
+
+function setEditControlsEnabled(enabled) {
+  const editBtn = $("edit-content-btn");
+  const applyBtn = $("apply-edit-btn");
+  if (editBtn) editBtn.disabled = !enabled;
+  if (applyBtn) applyBtn.disabled = !enabled;
+}
+
+function setEditMode(enabled) {
+  isEditingContent = enabled;
+  const article = $("article-text");
+  const editor = $("article-editor");
+  const applyBtn = $("apply-edit-btn");
+  const editBtn = $("edit-content-btn");
+  if (article) article.hidden = enabled;
+  if (editor) {
+    editor.hidden = !enabled;
+    if (enabled) editor.value = currentMarkdown || "";
+  }
+  if (applyBtn) applyBtn.hidden = !enabled;
+  if (editBtn) editBtn.textContent = enabled ? "Cancel edit" : "Edit content";
+}
+
+function setEditRequestState(inFlight) {
+  editRequestInFlight = inFlight;
+  setEditControlsEnabled(!inFlight);
 }
 
 function setGatedActionsEnabled(enabled) {
@@ -287,6 +316,9 @@ async function generateBlogPost() {
   setSuggestedTitleValue("");
   setFinalTitle("");
   titleCommitted = false;
+  setEditMode(false);
+  setEditControlsEnabled(false);
+  setEditRequestState(false);
   setGatedActionsEnabled(false);
   isGenerating = true;
   try {
@@ -308,6 +340,7 @@ async function generateBlogPost() {
     if (articleArea) {
       articleArea.innerHTML = marked.parse(currentMarkdown);
     }
+    setEditMode(false);
     setView("content");
     if (data.suggested_title) {
       setSuggestedTitleValue(data.suggested_title);
@@ -315,6 +348,7 @@ async function generateBlogPost() {
       suggestTitle(currentMarkdown);
     }
     setTitleControlsEnabled(!!currentPostId);
+    setEditControlsEnabled(!!currentPostId);
     setError("");
   } catch (err) {
     setArticleStatus("Failed to generate blog post. See error.");
@@ -364,6 +398,47 @@ async function setTitle() {
     setError("");
   } catch (err) {
     setError(err?.message || "Error setting title.");
+  }
+}
+
+function toggleEditContent() {
+  if (!currentPostId || editRequestInFlight) return;
+  setEditMode(!isEditingContent);
+}
+
+async function applyEdit() {
+  if (!currentPostId || editRequestInFlight) return;
+  if (!isEditingContent) return;
+  const editor = $("article-editor");
+  const rawContent = editor?.value || "";
+  if (!rawContent.trim()) {
+    setError("Content cannot be empty.");
+    return;
+  }
+  setEditRequestState(true);
+  try {
+    const resp = await fetch("/blog/edit-content", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ post_id: currentPostId, content: rawContent }),
+    });
+    if (!resp.ok) {
+      const detail = await resp.text();
+      setError(detail || "Failed to apply edit.");
+      return;
+    }
+    const data = await resp.json();
+    currentMarkdown = data.content || "";
+    const articleArea = $("article-text");
+    if (articleArea) {
+      articleArea.innerHTML = marked.parse(currentMarkdown);
+    }
+    setEditMode(false);
+    setError("");
+  } catch (err) {
+    setError(err?.message || "Error applying edit.");
+  } finally {
+    setEditRequestState(false);
   }
 }
 
@@ -434,9 +509,13 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   $("set-title-btn")?.addEventListener("click", setTitle);
   $("use-suggested-title")?.addEventListener("change", applySuggestedTitle);
+  $("edit-content-btn")?.addEventListener("click", toggleEditContent);
+  $("apply-edit-btn")?.addEventListener("click", applyEdit);
   setView("intent");
   setArticleStatus("No blog post generated yet. Click Generate Blog Post.");
   setTitleControlsEnabled(false);
+  setEditControlsEnabled(false);
+  setEditMode(false);
   setGatedActionsEnabled(false);
   updateSuggestedTitleAction();
 });
@@ -466,15 +545,23 @@ function resetPostView() {
   currentPostId = null;
   suggestedTitleValue = "";
   titleCommitted = false;
+  isEditingContent = false;
+  editRequestInFlight = false;
   const article = $("article-text");
   if (article) {
     article.textContent = "";
+  }
+  const editor = $("article-editor");
+  if (editor) {
+    editor.value = "";
   }
   setError("");
   setArticleStatus("No blog post generated yet. Click Generate Blog Post.");
   setSuggestedTitleValue("");
   setFinalTitle("");
   setTitleControlsEnabled(false);
+  setEditControlsEnabled(false);
+  setEditMode(false);
   setGatedActionsEnabled(false);
   setView("intent");
 }
@@ -486,6 +573,9 @@ function clearIntent() {
   currentPostId = null;
   suggestedTitleValue = "";
   titleCommitted = false;
+  isEditingContent = false;
+  editRequestInFlight = false;
+  setEditMode(false);
   Object.values(intentFields).forEach((el) => {
     if (el) {
       el.value = "";
@@ -500,6 +590,7 @@ function clearIntent() {
   setSuggestedTitleValue("");
   setFinalTitle("");
   setTitleControlsEnabled(false);
+  setEditControlsEnabled(false);
   setGatedActionsEnabled(false);
   setView("intent");
   isClearing = false;

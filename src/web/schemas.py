@@ -28,3 +28,8 @@ class TitleSuggestRequest(BaseModel):
 class TitleSetRequest(BaseModel):
     post_id: str
     title: str
+
+
+class EditContentRequest(BaseModel):
+    post_id: str
+    content: str
