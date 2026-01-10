@@ -144,9 +144,6 @@ END OF INTENT UI CONTRACT
               <button type="button" class="btn btn--danger" onclick="clearIntent()">Clear Fields</button>
               <button type="button" class="btn btn--primary" onclick="openIntentFile()">Load Intent YAML File</button>
               <input type="file" id="intent-file" hidden />
-              <button type="button" id="to-content" class="btn btn--ghost" onclick="setView('content')">
-                View Generated
-              </button>
             </div>
           </header>
 
@@ -381,9 +378,9 @@ END OF INTENT UI CONTRACT
       <section id="content-view" hidden>
         <header class="document-header">
           <div class="header-inner">
-            <h2>Generated Document</h2>
-            <button type="button" id="to-intent" class="btn btn--ghost" onclick="setView('intent')">
-              Edit Intent
+            <h2>Generated Blog Post</h2>
+            <button type="button" id="new-post-btn" class="btn btn--ghost" onclick="resetPostView()">
+              New Post
             </button>
           </div>
         </header>

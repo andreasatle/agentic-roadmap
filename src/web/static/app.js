@@ -218,7 +218,6 @@ async function generateBlogPost() {
     return;
   }
   setIntentDisabled(true);
-  setView("content");
   setArticleStatus("Generating…");
   setSuggestedTitle("");
   setFinalTitle("");
@@ -233,7 +232,6 @@ async function generateBlogPost() {
       const detail = await resp.text();
       setArticleStatus("Failed to generate blog post. See error.");
       setError(detail || "Failed to generate blog post.");
-      setView("intent");
       return;
     }
     const data = await resp.json();
@@ -243,6 +241,7 @@ async function generateBlogPost() {
     if (articleArea) {
       articleArea.innerHTML = marked.parse(currentMarkdown);
     }
+    setView("content");
     if (data.suggested_title) {
       setSuggestedTitle(`Suggested title: ${data.suggested_title}`);
     } else {
@@ -253,7 +252,6 @@ async function generateBlogPost() {
   } catch (err) {
     setArticleStatus("Failed to generate blog post. See error.");
     setError(err?.message || "Error generating blog post.");
-    setView("intent");
   } finally {
     isGenerating = false;
     setIntentDisabled(false);
@@ -361,8 +359,6 @@ document.addEventListener("DOMContentLoaded", () => {
   if (intentForm) {
     intentForm.addEventListener("input", applyIntentChanges);
   }
-  $("to-content")?.addEventListener("click", () => setView("content"));
-  $("to-intent")?.addEventListener("click", () => setView("intent"));
   $("set-title-btn")?.addEventListener("click", setTitle);
   setView("intent");
   setArticleStatus("No blog post generated yet. Click Generate Blog Post.");
@@ -389,6 +385,21 @@ function setView(view) {
   content.hidden = view !== "content";
 }
 
+function resetPostView() {
+  currentMarkdown = null;
+  currentPostId = null;
+  const article = $("article-text");
+  if (article) {
+    article.textContent = "";
+  }
+  setError("");
+  setArticleStatus("No blog post generated yet. Click Generate Blog Post.");
+  setSuggestedTitle("");
+  setFinalTitle("");
+  setTitleControlsEnabled(false);
+  setView("intent");
+}
+
 function clearIntent() {
   isClearing = true;
   currentIntent = null;
@@ -413,6 +424,7 @@ function clearIntent() {
 }
 
 window.clearIntent = clearIntent;
+window.resetPostView = resetPostView;
 
 function openIntentFile() {
   const fileInput = $("intent-file");
