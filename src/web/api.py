@@ -14,18 +14,17 @@ import markdown
 from pathlib import Path
 
 from agentic_framework.agent_dispatcher import AgentDispatcherBase
-from document_writer.apps.service import generate_document
+from document_writer.apps.service import generate_document as generate_blog_post
 from document_writer.domain.editor.agent import make_editor_agent
 from document_writer.domain.editor.api import AgentEditorRequest, AgentEditorResponse
 from document_writer.domain.editor.service import edit_document
-from apps.blog.storage import list_posts, read_post_meta, read_post_content, read_post_intent
+from apps.blog.storage import create_post, list_posts, read_post_meta, read_post_content, read_post_intent
 from web.schemas import (
     DocumentGenerateRequest,
     DocumentSaveRequest,
     IntentParseRequest,
     IntentSaveRequest,
 )
-from web.persistence import persist_generation
 from web.security import require_admin, security
 from document_writer.domain.intent import load_intent_from_yaml
 
@@ -137,26 +136,24 @@ def save_intent(payload: IntentSaveRequest):
     return StreamingResponse(buffer, media_type="text/yaml", headers=headers)
 
 
-@app.post("/document/generate")
-def generate_document_route(
+@app.post("/blog/generate")
+def generate_blog_post_route(
     payload: DocumentGenerateRequest,
-    request: Request,
-    _: None = Depends(require_admin),
+    creds = Depends(security),
     ) -> dict[str, str]:
+    require_admin(creds)
     intent = payload.intent
-    result = generate_document(
+    blog_result = generate_blog_post(
         intent=intent,
         trace=False,
     )
-    persist_generation(
-        intent=intent,
-        markdown=result.markdown,
-        request_meta={
-            "request_ip": request.client.host if request.client else None,
-            "user_agent": request.headers.get("user-agent"),
-        },
+    create_post(
+        title=None,
+        author=creds.username,
+        intent=intent.model_dump(),
+        content=blog_result.markdown,
     )
-    return {"markdown": result.markdown}
+    return {"markdown": blog_result.markdown}
 
 
 @app.post("/document/save")

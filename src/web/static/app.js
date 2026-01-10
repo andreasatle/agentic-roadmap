@@ -44,10 +44,10 @@ function setIntentDisabled(flag) {
     fileInput.classList.toggle("opacity-60", flag);
     fileInput.classList.toggle("cursor-not-allowed", flag);
   }
-  const generateBtn = $("generate-document-btn");
+  const generateBtn = $("generate-blog-post-btn");
   if (generateBtn) {
     generateBtn.disabled = flag;
-    generateBtn.textContent = flag ? "Generating…" : "Generate Document";
+    generateBtn.textContent = flag ? "Generating…" : "Generate Blog Post";
     generateBtn.classList.toggle("bg-green-700", flag);
     generateBtn.classList.toggle("cursor-not-allowed", flag);
     generateBtn.classList.toggle("opacity-80", flag);
@@ -190,7 +190,7 @@ async function saveIntent() {
   }
 }
 
-async function generateDocument() {
+async function generateBlogPost() {
   if (!currentIntent) {
     setError("No intent to generate from. Load or apply changes first.");
     return;
@@ -200,15 +200,15 @@ async function generateDocument() {
   setArticleStatus("Generating…");
   isGenerating = true;
   try {
-    const resp = await fetch("/document/generate", {
+    const resp = await fetch("/blog/generate", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ intent: currentIntent }),
     });
     if (!resp.ok) {
       const detail = await resp.text();
-      setArticleStatus("Failed to generate document. See error.");
-      setError(detail || "Failed to generate document.");
+      setArticleStatus("Failed to generate blog post. See error.");
+      setError(detail || "Failed to generate blog post.");
       setView("intent");
       return;
     }
@@ -220,8 +220,8 @@ async function generateDocument() {
     }
     setError("");
   } catch (err) {
-    setArticleStatus("Failed to generate document. See error.");
-    setError(err?.message || "Error generating document.");
+    setArticleStatus("Failed to generate blog post. See error.");
+    setError(err?.message || "Error generating blog post.");
     setView("intent");
   } finally {
     isGenerating = false;
@@ -274,7 +274,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("to-content")?.addEventListener("click", () => setView("content"));
   $("to-intent")?.addEventListener("click", () => setView("intent"));
   setView("intent");
-  setArticleStatus("No document generated yet. Click Generate Document.");
+  setArticleStatus("No blog post generated yet. Click Generate Blog Post.");
 });
 
 document.addEventListener("click", (event) => {
