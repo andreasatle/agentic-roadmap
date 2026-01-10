@@ -102,6 +102,71 @@ def read_post_content(post_id: str, posts_root: str = "posts") -> str:
     return content_path.read_text()
 
 
+def write_post_content(post_id: str, content: str, posts_root: str = "posts") -> None:
+    post_dir = _post_dir(post_id, posts_root)
+    content_path = post_dir / "content.md"
+    content_path.write_text(content)
+
+
+def ensure_draft(post_id: str, posts_root: str = "posts") -> None:
+    meta = read_post_meta(post_id, posts_root)
+    if meta.status != "draft":
+        raise RuntimeError(f"Cannot edit non-draft post: {post_id}")
+
+
+def next_revision_id(post_id: str, posts_root: str = "posts") -> int:
+    post_dir = _post_dir(post_id, posts_root)
+    meta_path = post_dir / "meta.yaml"
+    if meta_path.exists():
+        meta_payload = yaml.safe_load(meta_path.read_text()) or {}
+        if not isinstance(meta_payload, dict):
+            raise ValueError(f"Invalid meta.yaml for post {post_id}")
+        revisions = meta_payload.get("revisions")
+        if revisions is not None:
+            if not isinstance(revisions, list):
+                raise ValueError(f"Invalid revisions for post {post_id}")
+            revision_ids: list[int] = []
+            for entry in revisions:
+                if not isinstance(entry, dict):
+                    raise ValueError(f"Invalid revision entry for post {post_id}")
+                revision_id = entry.get("revision_id")
+                if not isinstance(revision_id, int):
+                    raise ValueError(f"Invalid revision_id for post {post_id}")
+                revision_ids.append(revision_id)
+            return max(revision_ids, default=0) + 1
+    revisions_dir = post_dir / "revisions"
+    if not revisions_dir.exists():
+        return 1
+    revision_ids: list[int] = []
+    for entry in revisions_dir.glob("*.md"):
+        stem = entry.stem
+        if "_" in stem:
+            stem = stem.split("_", 1)[0]
+        if stem.isdigit():
+            revision_ids.append(int(stem))
+    return max(revision_ids, default=0) + 1
+
+
+def append_revision_meta(post_id: str, revision_entry: dict, posts_root: str = "posts") -> None:
+    if not isinstance(revision_entry, dict):
+        raise ValueError("revision_entry must be a dict")
+    post_dir = _post_dir(post_id, posts_root)
+    meta_path = post_dir / "meta.yaml"
+    if not meta_path.exists():
+        raise FileNotFoundError(f"meta.yaml not found for post {post_id}")
+    meta_payload = yaml.safe_load(meta_path.read_text()) or {}
+    if not isinstance(meta_payload, dict):
+        raise ValueError(f"Invalid meta.yaml for post {post_id}")
+    revisions = meta_payload.get("revisions")
+    if revisions is None:
+        revisions = []
+    elif not isinstance(revisions, list):
+        raise ValueError(f"Invalid revisions for post {post_id}")
+    revisions.append(dict(revision_entry))
+    meta_payload["revisions"] = revisions
+    meta_path.write_text(yaml.safe_dump(meta_payload, sort_keys=False, default_flow_style=False))
+
+
 def read_post_intent(post_id: str, posts_root: str = "posts") -> dict:
     post_dir = _post_dir(post_id, posts_root)
     intent_path = post_dir / "intent.yaml"
