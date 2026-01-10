@@ -14,7 +14,7 @@ class BlogPost(BaseModel):
     status: Literal["draft", "published"] = "draft"
     created_at: datetime | None = None
 
-    def persist(self, posts_root: str = "posts") -> str:
+    def persist(self, posts_root: str = "posts") -> tuple[str, str]:
         if self.created_at is None:
             self.created_at = datetime.now(timezone.utc).replace(microsecond=0)
         return create_post(

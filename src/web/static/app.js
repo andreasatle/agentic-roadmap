@@ -1,5 +1,6 @@
 let currentIntent = null;
 let currentMarkdown = null;
+let currentPostId = null;
 let currentView = "intent";
 let isGenerating = false;
 let isClearing = false;
@@ -221,12 +222,17 @@ async function generateBlogPost() {
       return;
     }
     const data = await resp.json();
-    currentMarkdown = data.markdown || "";
+    currentPostId = data.post_id || null;
+    currentMarkdown = data.content || "";
     const articleArea = $("article-text");
     if (articleArea) {
       articleArea.innerHTML = marked.parse(currentMarkdown);
     }
-    suggestTitle(currentMarkdown);
+    if (data.suggested_title) {
+      setSuggestedTitle(`Suggested title: ${data.suggested_title}`);
+    } else {
+      suggestTitle(currentMarkdown);
+    }
     setError("");
   } catch (err) {
     setArticleStatus("Failed to generate blog post. See error.");
@@ -333,6 +339,7 @@ function clearIntent() {
   isClearing = true;
   currentIntent = null;
   currentMarkdown = null;
+  currentPostId = null;
   Object.values(intentFields).forEach((el) => {
     if (el) {
       el.value = "";

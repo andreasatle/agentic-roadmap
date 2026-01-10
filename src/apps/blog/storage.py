@@ -14,11 +14,11 @@ def create_post(
     intent: dict,
     content: str,
     posts_root: str = "posts",
-) -> str:
+) -> tuple[str, str]:
     """
     Creates a new blog post directory and writes meta.yaml, intent.yaml, content.md.
 
-    Returns the absolute path to the created post directory.
+    Returns (post_id, absolute_path).
     """
     timestamp = datetime.now(timezone.utc).replace(microsecond=0)
     ts_str = timestamp.strftime("%Y-%m-%dT%H-%M-%SZ")
@@ -48,7 +48,7 @@ def create_post(
     intent_path.write_text(yaml.safe_dump(intent, sort_keys=False, default_flow_style=False))
     content_path.write_text(content)
 
-    return str(post_dir.resolve())
+    return post_id, str(post_dir.resolve())
 
 
 def list_posts(*, posts_root: str = "posts", include_drafts: bool = False) -> list[BlogPostMeta]:

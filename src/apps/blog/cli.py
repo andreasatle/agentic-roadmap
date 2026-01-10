@@ -61,7 +61,8 @@ def generate(args):
         status=args.status,
     )
 
-    path = post.persist()
+    post_id, path = post.persist()
+    print(f"Blog post created: {post_id}")
     print(f"Blog post created at: {path}")
 
 

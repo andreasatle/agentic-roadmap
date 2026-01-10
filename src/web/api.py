@@ -149,13 +149,18 @@ def generate_blog_post_route(
         intent=intent,
         trace=False,
     )
-    create_post(
+    post_id, _ = create_post(
         title=None,
         author=creds.username,
         intent=intent.model_dump(),
         content=blog_result.markdown,
     )
-    return {"markdown": blog_result.markdown}
+    suggested_title = suggest_title(blog_result.markdown)
+    return {
+        "post_id": post_id,
+        "content": blog_result.markdown,
+        "suggested_title": suggested_title,
+    }
 
 
 @app.post("/blog/suggest-title")
