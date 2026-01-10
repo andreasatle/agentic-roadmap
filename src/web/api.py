@@ -19,6 +19,7 @@ from document_writer.domain.editor.agent import make_editor_agent
 from document_writer.domain.editor.api import AgentEditorRequest, AgentEditorResponse
 from document_writer.domain.editor.service import edit_document
 from document_writer.apps.title_suggester import suggest_title
+from apps.blog.edit_service import apply_policy_edit
 from apps.blog.storage import (
     TitleAlreadySetError,
     create_post,
@@ -238,13 +239,25 @@ def edit_blog_post_route(
     payload: BlogEditRequest,
     creds = Depends(security),
 ) -> BlogEditResponse:
-    """
-    v2 edit contract (not implemented).
-    Hard rules: draft-only, title unchanged, no publish, no regeneration,
-    editor output authoritative only after validation.
-    """
     require_admin(creds)
-    raise HTTPException(status_code=501, detail="Not implemented")
+    try:
+        meta = read_post_meta(payload.post_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if meta.status != "draft":
+        raise HTTPException(status_code=409, detail="Post is not draft")
+    if payload.policy_text is not None:
+        policy_text = payload.policy_text
+    else:
+        policies_dir = BASE_DIR / "apps" / "blog" / "policies"
+        policy_path = policies_dir / f"{payload.policy_id}.txt"
+        if not policy_path.exists():
+            raise HTTPException(status_code=400, detail="Policy not found")
+        policy_text = policy_path.read_text()
+    if not policy_text.strip():
+        raise HTTPException(status_code=400, detail="Policy text must be non-empty")
+    result = apply_policy_edit(payload.post_id, policy_text)
+    return result
 
 
 @app.post("/document/save")
