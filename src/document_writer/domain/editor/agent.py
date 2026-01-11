@@ -9,6 +9,7 @@ from document_writer.domain.editor.api import AgentEditorRequest
 # Invariant: single isolated chunk in, single chunk out; preserve verbatim unless policy forces change.
 PROMPT_EDITOR = """ROLE:
 You are the editor for a single isolated text chunk. Apply the editing policy to the chunk.
+Apply the editing policy exactly. Return the edited document only.
 
 INPUT (JSON):
 {
