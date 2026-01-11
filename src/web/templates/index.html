@@ -384,13 +384,16 @@ END OF INTENT UI CONTRACT
             </button>
           </div>
         </header>
-        <div id="suggested-title"></div>
-        <section class="action-row" id="suggested-title-action" hidden>
+        <div id="suggested-title" class="inline-controls">
+          <span id="suggested-title-text"></span>
+          <button type="button" class="btn btn--ghost" id="use-suggested-title" hidden>Use</button>
+        </div>
+        <section class="action-row">
           <div class="actions-left">
-            <span class="save-label">Use Suggested Title</span>
+            <span class="save-label">Set Title</span>
             <div class="inline-controls">
-              <input type="checkbox" id="use-suggested-title" />
-              <label for="use-suggested-title">Use suggested title</label>
+              <input type="text" id="title-input" placeholder="Optional title" aria-label="Title" />
+              <button type="button" class="btn btn--primary" id="set-title-btn">Set Title</button>
             </div>
           </div>
         </section>
@@ -415,15 +418,6 @@ END OF INTENT UI CONTRACT
         <textarea id="policy-text" placeholder="Policy text" aria-label="Policy text"></textarea>
         <div id="policy-edit-status"></div>
         <pre id="policy-edit-result"></pre>
-        <section class="action-row">
-          <div class="actions-left">
-            <span class="save-label">Set Title</span>
-            <div class="inline-controls">
-              <input type="text" id="title-input" placeholder="Optional title" aria-label="Title" />
-              <button type="button" class="btn btn--primary" id="set-title-btn">Set Title</button>
-            </div>
-          </div>
-        </section>
         <div id="final-title"></div>
         <article id="article-text"></article>
 

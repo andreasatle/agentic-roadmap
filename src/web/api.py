@@ -157,23 +157,26 @@ def save_intent(payload: IntentSaveRequest):
 def generate_blog_post_route(
     payload: DocumentGenerateRequest,
     creds = Depends(security),
-    ) -> dict[str, str]:
+    ) -> dict[str, str | None]:
     require_admin(creds)
     intent = payload.intent
     blog_result = generate_blog_post(
         intent=intent,
         trace=False,
     )
+    markdown = blog_result.markdown
     post_id, _ = create_post(
         title=None,
         author=creds.username or "system",
         intent=intent.model_dump(),
-        content=blog_result.markdown,
+        content=markdown,
     )
-    suggested_title = suggest_title(blog_result.markdown)
+    suggested_title = None
+    if isinstance(markdown, str) and markdown.strip():
+        suggested_title = suggest_title(markdown)
     return {
         "post_id": post_id,
-        "content": blog_result.markdown,
+        "content": markdown,
         "suggested_title": suggested_title,
     }
 

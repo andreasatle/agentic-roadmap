@@ -68,7 +68,7 @@ function setArticleStatus(text) {
 }
 
 function setSuggestedTitle(title) {
-  const target = $("suggested-title");
+  const target = $("suggested-title-text");
   if (target) {
     target.textContent = title || "";
   }
@@ -77,6 +77,10 @@ function setSuggestedTitle(title) {
 function setSuggestedTitleValue(title) {
   suggestedTitleValue = (title || "").trim();
   setSuggestedTitle(suggestedTitleValue ? `Suggested title: ${suggestedTitleValue}` : "");
+  const titleInput = $("title-input");
+  if (titleInput && suggestedTitleValue && !titleCommitted && !titleInput.value.trim()) {
+    titleInput.value = suggestedTitleValue;
+  }
   updateSuggestedTitleAction();
 }
 
@@ -148,22 +152,21 @@ function setGatedActionsEnabled(enabled) {
 }
 
 function updateSuggestedTitleAction() {
-  const wrapper = $("suggested-title-action");
-  const checkbox = $("use-suggested-title");
+  const button = $("use-suggested-title");
   const shouldShow = !!suggestedTitleValue && !titleCommitted;
-  if (wrapper) wrapper.hidden = !shouldShow;
-  if (checkbox) checkbox.disabled = !shouldShow;
+  if (button) {
+    button.hidden = !shouldShow;
+    button.disabled = !shouldShow;
+  }
 }
 
 async function applySuggestedTitle() {
-  const checkbox = $("use-suggested-title");
-  if (!checkbox || !checkbox.checked) return;
+  const button = $("use-suggested-title");
+  if (!button) return;
   if (!suggestedTitleValue) {
-    checkbox.checked = false;
     return;
   }
   if (!currentPostId) {
-    checkbox.checked = false;
     setError("No post available to set title.");
     return;
   }
@@ -181,7 +184,6 @@ async function applySuggestedTitle() {
       return;
     }
     if (!resp.ok) {
-      checkbox.checked = false;
       const detail = await resp.text();
       setError(detail || "Failed to set title.");
       return;
@@ -194,7 +196,6 @@ async function applySuggestedTitle() {
     updateSuggestedTitleAction();
     setError("");
   } catch (err) {
-    checkbox.checked = false;
     setError(err?.message || "Error setting title.");
   }
 }
@@ -591,7 +592,7 @@ document.addEventListener("DOMContentLoaded", () => {
     intentForm.addEventListener("input", applyIntentChanges);
   }
   $("set-title-btn")?.addEventListener("click", setTitle);
-  $("use-suggested-title")?.addEventListener("change", applySuggestedTitle);
+  $("use-suggested-title")?.addEventListener("click", applySuggestedTitle);
   $("edit-content-btn")?.addEventListener("click", toggleEditContent);
   $("apply-edit-btn")?.addEventListener("click", applyEdit);
   $("run-policy-edit-btn")?.addEventListener("click", runPolicyEdit);
