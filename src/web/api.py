@@ -355,6 +355,40 @@ def edit_blog_post_route(
     return result
 
 
+@app.get("/blog/revisions")
+def list_blog_revisions(
+    post_id: str,
+    creds = Depends(security),
+) -> list[dict[str, object]]:
+    require_admin(creds)
+    try:
+        read_post_meta(post_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Post not found")
+    meta_path = Path("posts") / post_id / "meta.yaml"
+    meta_payload = yaml.safe_load(meta_path.read_text()) or {}
+    if not isinstance(meta_payload, dict):
+        raise HTTPException(status_code=500, detail="Invalid meta.yaml")
+    revisions = meta_payload.get("revisions") or []
+    if not isinstance(revisions, list):
+        raise HTTPException(status_code=500, detail="Invalid revisions")
+    summaries: list[dict[str, object]] = []
+    for entry in revisions:
+        if not isinstance(entry, dict):
+            raise HTTPException(status_code=500, detail="Invalid revision entry")
+        summary: dict[str, object] = {
+            "revision_id": entry.get("revision_id"),
+            "actor": entry.get("actor"),
+            "delta_type": entry.get("delta_type"),
+            "status": entry.get("status"),
+        }
+        if "reason" in entry:
+            summary["reason"] = entry.get("reason")
+        summaries.append(summary)
+    summaries.sort(key=lambda item: item.get("revision_id") or 0)
+    return summaries
+
+
 @app.post("/document/save")
 def save_document(payload: DocumentSaveRequest):
     filename = (payload.filename or "article.md").strip() or "article.md"
