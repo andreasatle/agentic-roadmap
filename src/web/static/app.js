@@ -640,7 +640,7 @@ function setView(view) {
 
 async function loadExistingDraft(postId) {
   try {
-    const resp = await fetch(`/writer?post_id=${encodeURIComponent(postId)}`);
+    const resp = await fetch(`/blog/writer?post_id=${encodeURIComponent(postId)}`);
     if (!resp.ok) {
       return;
     }

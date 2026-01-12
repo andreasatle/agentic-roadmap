@@ -134,7 +134,7 @@ def read_home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
 
-@app.get("/writer", response_class=HTMLResponse)
+@app.get("/blog/writer", response_class=HTMLResponse)
 def read_writer(request: Request, post_id: str | None = None):
     if post_id:
         try:
