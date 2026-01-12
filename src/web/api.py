@@ -232,7 +232,7 @@ def set_blog_title_route(
             reason=reason,
             status="rejected",
         )
-        raise HTTPException(status_code=400, detail=reason)
+        raise HTTPException(status_code=400, detail={"rejection_reason": reason})
     writer.apply_delta(
         payload.post_id,
         actor={"type": "human", "id": creds.username or "admin"},
@@ -279,7 +279,7 @@ def edit_blog_content_route(
             reason=str(exc),
             status="rejected",
         )
-        raise HTTPException(status_code=400, detail=str(exc))
+        raise HTTPException(status_code=400, detail={"rejection_reason": str(exc)})
     if response.edited_document == before_content:
         writer.apply_delta(
             payload.post_id,
@@ -293,7 +293,11 @@ def edit_blog_content_route(
             reason="No content changes",
             status="rejected",
         )
-        return {"post_id": payload.post_id, "content": response.edited_document}
+        return {
+            "post_id": payload.post_id,
+            "content": response.edited_document,
+            "rejection_reason": "No content changes",
+        }
     snapshot_chunks = [
         {"index": chunk.index, "text": chunk.text}
         for chunk in split_markdown(response.edited_document)
