@@ -30,6 +30,7 @@ from apps.blog.storage import (
     read_post_meta,
     read_post_content,
     read_post_intent,
+    write_post_content,
 )
 from web.schemas import (
     DocumentGenerateRequest,
@@ -184,17 +185,18 @@ def generate_blog_post_route(
     ) -> dict[str, str | None]:
     require_admin(creds)
     intent = payload.intent
+    post_id, _ = create_post(
+        title=None,
+        author=creds.username or "system",
+        intent=intent.model_dump(),
+        content="",
+    )
     blog_result = generate_blog_post(
         intent=intent,
         trace=False,
     )
     markdown = blog_result.markdown
-    post_id, _ = create_post(
-        title=None,
-        author=creds.username or "system",
-        intent=intent.model_dump(),
-        content=markdown,
-    )
+    write_post_content(post_id, markdown)
     suggested_title = None
     if isinstance(markdown, str) and markdown.strip():
         suggested_title = suggest_title(markdown)
