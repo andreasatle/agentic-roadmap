@@ -29,6 +29,7 @@ class PostRevisionWriter:
         delta_type: str,
         delta_payload: dict,
         reason: str | None = None,
+        status: str = "applied",  # TEMP: supports explicit rejected deltas until formal validation exists.
     ) -> Any:
         """Apply a delta under single-writer authority and record intent."""
         forbidden_keys = {"status", "_content", "_snapshot_chunks"}
@@ -38,7 +39,8 @@ class PostRevisionWriter:
                 "delta_payload contains forbidden keys: "
                 + ", ".join(sorted(present_forbidden))
             )
-        status = "applied"
+        if status not in ("applied", "rejected"):
+            raise ValueError(f"Unknown status: {status}")
         record_payload = dict(delta_payload)
 
         post_dir = Path(self._posts_root) / post_id
@@ -75,6 +77,12 @@ class PostRevisionWriter:
         }
         if reason is not None:
             revision_entry["reason"] = reason
+
+        if delta_type == "title_changed" and status == "applied":
+            new_title = record_payload.get("new_title")
+            if not isinstance(new_title, str):
+                raise ValueError("title_changed requires delta_payload.new_title as string")
+            meta_payload["title"] = new_title
 
         revisions.append(revision_entry)
         meta_payload["revisions"] = revisions

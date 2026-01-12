@@ -24,13 +24,11 @@ from document_writer.apps.title_suggester import suggest_title
 from apps.blog.edit_service import apply_policy_edit
 from apps.blog.post_revision_writer import PostRevisionWriter
 from apps.blog.storage import (
-    TitleAlreadySetError,
     create_post,
     list_posts,
     read_post_meta,
     read_post_content,
     read_post_intent,
-    set_post_title,
 )
 from web.schemas import (
     DocumentGenerateRequest,
@@ -218,14 +216,30 @@ def set_blog_title_route(
 ) -> dict[str, str]:
     require_admin(creds)
     try:
-        meta = set_post_title(payload.post_id, payload.title)
+        meta = read_post_meta(payload.post_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Post not found")
-    except TitleAlreadySetError:
-        raise HTTPException(status_code=409, detail="Title already set")
-    except ValueError as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
-    return {"post_id": meta.post_id, "title": meta.title or ""}
+    writer = PostRevisionWriter()
+    old_title = meta.title
+    new_title = (payload.title or "").strip()
+    if not new_title:
+        reason = "Title must be a non-empty string"
+        writer.apply_delta(
+            payload.post_id,
+            actor={"type": "human", "id": creds.username or "admin"},
+            delta_type="title_changed",
+            delta_payload={"old_title": old_title, "new_title": new_title},
+            reason=reason,
+            status="rejected",
+        )
+        raise HTTPException(status_code=400, detail=reason)
+    writer.apply_delta(
+        payload.post_id,
+        actor={"type": "human", "id": creds.username or "admin"},
+        delta_type="title_changed",
+        delta_payload={"old_title": old_title, "new_title": new_title},
+    )
+    return {"post_id": meta.post_id, "title": new_title}
 
 
 @app.post("/blog/edit-content")
