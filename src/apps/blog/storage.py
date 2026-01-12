@@ -148,23 +148,9 @@ def next_revision_id(post_id: str, posts_root: str = "posts") -> int:
 
 
 def append_revision_meta(post_id: str, revision_entry: dict, posts_root: str = "posts") -> None:
-    if not isinstance(revision_entry, dict):
-        raise ValueError("revision_entry must be a dict")
-    post_dir = _post_dir(post_id, posts_root)
-    meta_path = post_dir / "meta.yaml"
-    if not meta_path.exists():
-        raise FileNotFoundError(f"meta.yaml not found for post {post_id}")
-    meta_payload = yaml.safe_load(meta_path.read_text()) or {}
-    if not isinstance(meta_payload, dict):
-        raise ValueError(f"Invalid meta.yaml for post {post_id}")
-    revisions = meta_payload.get("revisions")
-    if revisions is None:
-        revisions = []
-    elif not isinstance(revisions, list):
-        raise ValueError(f"Invalid revisions for post {post_id}")
-    revisions.append(dict(revision_entry))
-    meta_payload["revisions"] = revisions
-    meta_path.write_text(yaml.safe_dump(meta_payload, sort_keys=False, default_flow_style=False))
+    raise NotImplementedError(
+        "Revisions must be appended via PostRevisionWriter.apply_delta."
+    )
 
 
 def read_post_intent(post_id: str, posts_root: str = "posts") -> dict:
@@ -182,15 +168,6 @@ def read_post_intent(post_id: str, posts_root: str = "posts") -> dict:
 
 
 def set_post_title(post_id: str, title: str, posts_root: str = "posts") -> BlogPostMeta:
-    clean_title = (title or "").strip()
-    if not clean_title:
-        raise ValueError("Title must be a non-empty string")
-    meta = read_post_meta(post_id, posts_root)
-    existing_title = (meta.title or "").strip()
-    if existing_title:
-        raise TitleAlreadySetError("Title already set")
-    meta.title = clean_title
-    post_dir = _post_dir(post_id, posts_root)
-    meta_path = post_dir / "meta.yaml"
-    meta_path.write_text(yaml.safe_dump(meta.model_dump(), sort_keys=False, default_flow_style=False))
-    return meta
+    raise NotImplementedError(
+        "Title changes must go through PostRevisionWriter.apply_delta"
+    )
