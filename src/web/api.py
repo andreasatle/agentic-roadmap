@@ -251,9 +251,7 @@ def edit_blog_content_route(
     try:
         intent = read_post_intent(payload.post_id)
         content_path = Path("posts") / payload.post_id / "content.md"
-        if not content_path.exists():
-            raise FileNotFoundError(f"content.md not found for post {payload.post_id}")
-        before_content = content_path.read_text()
+        before_content = read_post_content(payload.post_id)
     except FileNotFoundError:
         raise HTTPException(status_code=404, detail="Post not found")
     writer = PostRevisionWriter()
@@ -296,6 +294,10 @@ def edit_blog_content_route(
             status="rejected",
         )
         return {"post_id": payload.post_id, "content": response.edited_document}
+    snapshot_chunks = [
+        {"index": chunk.index, "text": chunk.text}
+        for chunk in split_markdown(response.edited_document)
+    ]
     revision_id = writer.apply_delta(
         payload.post_id,
         actor={"type": "human", "id": creds.username or "admin"},
@@ -308,6 +310,13 @@ def edit_blog_content_route(
     )
     if not isinstance(revision_id, int):
         raise HTTPException(status_code=500, detail="Failed to record revision")
+    revisions_dir = Path("posts") / payload.post_id / "revisions"
+    revisions_dir.mkdir(parents=True, exist_ok=True)
+    for snapshot in snapshot_chunks:
+        index = snapshot["index"]
+        text = snapshot["text"]
+        snapshot_path = revisions_dir / f"{revision_id}_{index}.md"
+        snapshot_path.write_text(text)
     content_path.write_text(response.edited_document)
     return {"post_id": payload.post_id, "content": response.edited_document}
 

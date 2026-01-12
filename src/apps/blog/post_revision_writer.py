@@ -83,7 +83,6 @@ class PostRevisionWriter:
             if not isinstance(new_title, str):
                 raise ValueError("title_changed requires delta_payload.new_title as string")
             meta_payload["title"] = new_title
-
         revisions.append(revision_entry)
         meta_payload["revisions"] = revisions
         meta_path.write_text(yaml.safe_dump(meta_payload, sort_keys=False, default_flow_style=False))

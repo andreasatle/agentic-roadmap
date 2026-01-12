@@ -9,7 +9,7 @@ from agentic_framework.agent_dispatcher import AgentDispatcherBase
 from document_writer.domain.editor import edit_document, make_editor_agent, AgentEditorRequest
 from document_writer.domain.editor.chunking import Chunk, split_markdown, join_chunks
 
-from apps.blog.storage import read_post_intent, read_post_meta
+from apps.blog.storage import read_post_content, read_post_intent, read_post_meta
 from apps.blog.post_revision_writer import PostRevisionWriter
 
 
@@ -50,7 +50,7 @@ def apply_policy_edit(
     if meta.status != "draft":
         raise RuntimeError(f"Cannot edit non-draft post: {post_id}")
 
-    document = content_path.read_text()
+    document = read_post_content(post_id, posts_root)
     before_hash = _hash_text(document)
     intent = read_post_intent(post_id, posts_root)
     policy_hash = hashlib.sha256(policy_text.encode("utf-8")).hexdigest()
@@ -116,6 +116,10 @@ def apply_policy_edit(
     assert [c.index for c in updated_chunks] == list(range(len(updated_chunks)))
     updated_document = join_chunks(updated_chunks)
     after_hash = _hash_text(updated_document)
+    snapshot_chunks = [
+        {"index": chunk.index, "text": chunk.text}
+        for chunk in updated_chunks
+    ]
     revision_id = writer.apply_delta(
         post_id,
         actor={"type": "policy", "id": actor_id or "policy"},
@@ -128,6 +132,15 @@ def apply_policy_edit(
             "rejected_chunks": [chunk.model_dump() for chunk in rejected_chunks],
         },
     )
+    if not isinstance(revision_id, int):
+        raise ValueError("Revision id must be an int")
+    revisions_dir = post_dir / "revisions"
+    revisions_dir.mkdir(parents=True, exist_ok=True)
+    for snapshot in snapshot_chunks:
+        index = snapshot["index"]
+        text = snapshot["text"]
+        snapshot_path = revisions_dir / f"{revision_id}_{index}.md"
+        snapshot_path.write_text(text)
     content_path.write_text(updated_document)
 
     return EditResult(

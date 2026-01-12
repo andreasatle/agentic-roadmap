@@ -1,10 +1,12 @@
 from datetime import datetime, timezone
+import hashlib
 import secrets
 from pathlib import Path
 
 import yaml
 
 from apps.blog.types import BlogPostMeta
+from document_writer.domain.editor.chunking import Chunk, join_chunks
 
 
 def create_post(
@@ -94,7 +96,7 @@ def read_post_content(post_id: str, posts_root: str = "posts") -> str:
     post_dir = _post_dir(post_id, posts_root)
     content_path = post_dir / "content.md"
     if not content_path.exists():
-        raise FileNotFoundError(f"content.md not found for post {post_id}")
+        return _replay_post_content(post_id, posts_root)
     return content_path.read_text()
 
 
@@ -162,3 +164,81 @@ def read_post_intent(post_id: str, posts_root: str = "posts") -> dict:
     except Exception as exc:
         raise ValueError(f"Invalid intent.yaml for post {post_id}: {exc}") from exc
 
+
+def _replay_post_content(post_id: str, posts_root: str) -> str:
+    post_dir = _post_dir(post_id, posts_root)
+    meta_path = post_dir / "meta.yaml"
+    if not meta_path.exists():
+        raise FileNotFoundError(f"meta.yaml not found for post {post_id}")
+    meta_payload = yaml.safe_load(meta_path.read_text()) or {}
+    if not isinstance(meta_payload, dict):
+        raise ValueError(f"Invalid meta.yaml for post {post_id}")
+    revisions = meta_payload.get("revisions")
+    if not isinstance(revisions, list) or not revisions:
+        raise ValueError(f"No revisions available to replay content for post {post_id}")
+
+    current_revision_id: int | None = None
+    current_payload: dict | None = None
+
+    for entry in revisions:
+        if not isinstance(entry, dict):
+            raise ValueError(f"Invalid revision entry for post {post_id}")
+        if entry.get("status") != "applied":
+            continue
+        if entry.get("delta_type") != "content_chunks_modified":
+            continue
+        revision_id = entry.get("revision_id")
+        if not isinstance(revision_id, int):
+            raise ValueError(f"Invalid revision_id for post {post_id}")
+        payload = entry.get("delta_payload")
+        if not isinstance(payload, dict):
+            raise ValueError(f"Invalid delta_payload for post {post_id}")
+        current_revision_id = revision_id
+        current_payload = payload
+
+    if current_revision_id is None:
+        raise ValueError(f"No content deltas available to replay content for post {post_id}")
+
+    revisions_dir = post_dir / "revisions"
+    snapshots = sorted(
+        revisions_dir.glob(f"{current_revision_id}_*.md"),
+        key=lambda p: p.name,
+    )
+    if not snapshots:
+        raise ValueError(f"Missing snapshots for revision {current_revision_id} in post {post_id}")
+
+    chunks_by_index: dict[int, str] = {}
+    for snapshot_path in snapshots:
+        stem = snapshot_path.stem
+        if "_" not in stem:
+            raise ValueError(f"Invalid snapshot filename {snapshot_path}")
+        revision_str, index_str = stem.split("_", 1)
+        if revision_str != str(current_revision_id) or not index_str.isdigit():
+            raise ValueError(f"Invalid snapshot filename {snapshot_path}")
+        index = int(index_str)
+        chunks_by_index[index] = snapshot_path.read_text()
+
+    max_index = max(chunks_by_index)
+    expected_indices = list(range(max_index + 1))
+    if sorted(chunks_by_index.keys()) != expected_indices:
+        raise ValueError(f"Snapshot indices must be contiguous for post {post_id}")
+
+    chunks = [
+        Chunk(
+            index=i,
+            text=chunks_by_index[i],
+            trailing_separator="\n\n" if i < max_index else "",
+        )
+        for i in range(max_index + 1)
+    ]
+    content = join_chunks(chunks)
+    after_hash = None if current_payload is None else current_payload.get("after_hash")
+    if isinstance(after_hash, str):
+        current_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+        if current_hash != after_hash:
+            raise ValueError(
+                f"Revision replay hash mismatch for post {post_id} at revision {current_revision_id}"
+            )
+    content_path = post_dir / "content.md"
+    content_path.write_text(content)
+    return content
