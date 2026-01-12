@@ -7,10 +7,6 @@ import yaml
 from apps.blog.types import BlogPostMeta
 
 
-class TitleAlreadySetError(ValueError):
-    pass
-
-
 def create_post(
     *,
     title: str | None,
@@ -166,8 +162,3 @@ def read_post_intent(post_id: str, posts_root: str = "posts") -> dict:
     except Exception as exc:
         raise ValueError(f"Invalid intent.yaml for post {post_id}: {exc}") from exc
 
-
-def set_post_title(post_id: str, title: str, posts_root: str = "posts") -> BlogPostMeta:
-    raise NotImplementedError(
-        "Title changes must go through PostRevisionWriter.apply_delta"
-    )
