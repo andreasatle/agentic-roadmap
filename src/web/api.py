@@ -139,16 +139,39 @@ def read_writer(request: Request, post_id: str | None = None):
     if post_id:
         try:
             meta = read_post_meta(post_id)
+            content = read_post_content(post_id)
         except FileNotFoundError:
             raise HTTPException(status_code=404, detail="Post not found")
-        if meta.status != "draft":
-            raise HTTPException(status_code=409, detail="Post is not draft")
-        content = read_post_content(post_id)
+        meta_path = Path("posts") / post_id / "meta.yaml"
+        meta_payload = yaml.safe_load(meta_path.read_text()) or {}
+        if not isinstance(meta_payload, dict):
+            raise HTTPException(status_code=500, detail="Invalid meta.yaml")
+        revisions = meta_payload.get("revisions") or []
+        if not isinstance(revisions, list):
+            raise HTTPException(status_code=500, detail="Invalid revisions")
+        summaries: list[dict[str, object]] = []
+        for entry in revisions:
+            if not isinstance(entry, dict):
+                raise HTTPException(status_code=500, detail="Invalid revision entry")
+            summary: dict[str, object] = {
+                "revision_id": entry.get("revision_id"),
+                "actor": entry.get("actor"),
+                "delta_type": entry.get("delta_type"),
+                "status": entry.get("status"),
+                "reason": entry.get("reason"),
+            }
+            summaries.append(summary)
+        summaries.sort(key=lambda item: item.get("revision_id") or 0)
         return JSONResponse(
             {
                 "post_id": meta.post_id,
+                "meta": {
+                    "title": meta.title,
+                    "author": meta.author,
+                    "status": meta.status,
+                },
                 "content": content,
-                "suggested_title": None,
+                "revisions": summaries,
             }
         )
     return templates.TemplateResponse("index.html", {"request": request})

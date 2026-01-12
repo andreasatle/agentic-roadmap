@@ -1,6 +1,7 @@
 let currentIntent = null;
 let currentMarkdown = null;
 let currentPostId = null;
+let currentRevisions = [];
 let suggestedTitleValue = "";
 let titleCommitted = false;
 let isEditingContent = false;
@@ -671,14 +672,26 @@ async function loadExistingDraft(postId) {
     currentIntent = null;
     currentPostId = data.post_id || null;
     currentMarkdown = data.content || "";
+    currentRevisions = Array.isArray(data.revisions) ? data.revisions : [];
     const articleArea = $("article-text");
     if (articleArea) {
       articleArea.innerHTML = marked.parse(currentMarkdown);
+    }
+    const titleInput = $("title-input");
+    if (titleInput) {
+      titleInput.value = data?.meta?.title || "";
+    }
+    const authorInput = $("author-input");
+    if (authorInput) {
+      authorInput.value = data?.meta?.author || "";
     }
     setSuggestedTitleValue("");
     setFinalTitle("");
     setEditMode(false);
     setView("content");
+    setEditRequestState(false);
+    policyEditInFlight = false;
+    setPolicyEditControlsEnabled(!!currentPostId);
     setTitleControlsEnabled(!!currentPostId);
     setEditControlsEnabled(!!currentPostId);
     setPolicyEditControlsEnabled(!!currentPostId);
