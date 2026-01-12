@@ -280,7 +280,7 @@ def set_blog_title_route(
         reason = "Title must be a non-empty string"
         writer.apply_delta(
             payload.post_id,
-            actor={"type": "human", "id": creds.username or "admin"},
+            actor={"type": "human", "id": creds.username or "editor"},
             delta_type="title_changed",
             delta_payload={"new_title": new_title},
             reason=reason,
@@ -289,7 +289,7 @@ def set_blog_title_route(
         raise HTTPException(status_code=400, detail={"rejection_reason": reason})
     writer.apply_delta(
         payload.post_id,
-        actor={"type": "human", "id": creds.username or "admin"},
+        actor={"type": "human", "id": creds.username or "editor"},
         delta_type="title_changed",
         delta_payload={"new_title": new_title},
     )
@@ -309,7 +309,7 @@ def set_blog_author_route(
     writer = PostRevisionWriter()
     writer.apply_delta(
         payload.post_id,
-        actor={"type": "human", "id": creds.username or "admin"},
+        actor={"type": "human", "id": creds.username or "editor"},
         delta_type="author_changed",
         delta_payload={"new_author": payload.author},
     )
@@ -346,7 +346,7 @@ def edit_blog_content_route(
     except ValueError as exc:
         writer.apply_delta(
             payload.post_id,
-            actor={"type": "human", "id": creds.username or "admin"},
+            actor={"type": "human", "id": creds.username or "editor"},
             delta_type="content_free_edit",
             delta_payload={
                 "changed_chunks": _changed_chunk_indices(before_content, payload.content),
@@ -360,7 +360,7 @@ def edit_blog_content_route(
     except Exception as exc:
         writer.apply_delta(
             payload.post_id,
-            actor={"type": "human", "id": creds.username or "admin"},
+            actor={"type": "human", "id": creds.username or "editor"},
             delta_type="content_free_edit",
             delta_payload={
                 "changed_chunks": _changed_chunk_indices(before_content, payload.content),
@@ -374,7 +374,7 @@ def edit_blog_content_route(
     if response.edited_document == before_content:
         writer.apply_delta(
             payload.post_id,
-            actor={"type": "human", "id": creds.username or "admin"},
+            actor={"type": "human", "id": creds.username or "editor"},
             delta_type="content_free_edit",
             delta_payload={
                 "changed_chunks": [],
@@ -395,7 +395,7 @@ def edit_blog_content_route(
     ]
     revision_id = writer.apply_delta(
         payload.post_id,
-        actor={"type": "human", "id": creds.username or "admin"},
+        actor={"type": "human", "id": creds.username or "editor"},
         delta_type="content_free_edit",
         delta_payload={
             "changed_chunks": _changed_chunk_indices(before_content, response.edited_document),
