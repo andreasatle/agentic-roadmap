@@ -215,7 +215,35 @@ def generate_blog_post_route(
         trace=False,
     )
     markdown = blog_result.markdown
-    write_post_content(post_id, markdown)
+    content_path = Path("posts") / post_id / "content.md"
+    before_content = read_post_content(post_id)
+    before_hash = _hash_text(before_content)
+    after_hash = _hash_text(markdown)
+    snapshot_chunks = [
+        {"index": chunk.index, "text": chunk.text}
+        for chunk in split_markdown(markdown)
+    ]
+    writer = PostRevisionWriter()
+    revision_id = writer.apply_delta(
+        post_id,
+        actor={"type": "generator", "id": author},
+        delta_type="content_free_edit",
+        delta_payload={
+            "changed_chunks": _changed_chunk_indices(before_content, markdown),
+            "before_hash": before_hash,
+            "after_hash": after_hash,
+        },
+    )
+    if not isinstance(revision_id, int):
+        raise HTTPException(status_code=500, detail="Failed to record revision")
+    revisions_dir = Path("posts") / post_id / "revisions"
+    revisions_dir.mkdir(parents=True, exist_ok=True)
+    for snapshot in snapshot_chunks:
+        index = snapshot["index"]
+        text = snapshot["text"]
+        snapshot_path = revisions_dir / f"{revision_id}_{index}.md"
+        snapshot_path.write_text(text)
+    content_path.write_text(markdown)
     suggested_title = None
     if isinstance(markdown, str) and markdown.strip():
         suggested_title = suggest_title(markdown)
