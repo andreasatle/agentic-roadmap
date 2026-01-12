@@ -274,27 +274,41 @@ def edit_blog_content_route(
             actor={"type": "human", "id": creds.username or "admin"},
             delta_type="content_chunks_modified",
             delta_payload={
-                "status": "rejected",
                 "changed_chunks": _changed_chunk_indices(before_content, payload.content),
                 "before_hash": before_hash,
                 "after_hash": _hash_text(payload.content),
             },
             reason=str(exc),
+            status="rejected",
         )
         raise HTTPException(status_code=400, detail=str(exc))
-    if response.edited_document != before_content:
+    if response.edited_document == before_content:
         writer.apply_delta(
             payload.post_id,
             actor={"type": "human", "id": creds.username or "admin"},
             delta_type="content_chunks_modified",
             delta_payload={
-                "status": "applied",
-                "changed_chunks": _changed_chunk_indices(before_content, response.edited_document),
+                "changed_chunks": [],
                 "before_hash": before_hash,
-                "after_hash": _hash_text(response.edited_document),
-                "_content": response.edited_document,
+                "after_hash": before_hash,
             },
+            reason="No content changes",
+            status="rejected",
         )
+        return {"post_id": payload.post_id, "content": response.edited_document}
+    revision_id = writer.apply_delta(
+        payload.post_id,
+        actor={"type": "human", "id": creds.username or "admin"},
+        delta_type="content_chunks_modified",
+        delta_payload={
+            "changed_chunks": _changed_chunk_indices(before_content, response.edited_document),
+            "before_hash": before_hash,
+            "after_hash": _hash_text(response.edited_document),
+        },
+    )
+    if not isinstance(revision_id, int):
+        raise HTTPException(status_code=500, detail="Failed to record revision")
+    content_path.write_text(response.edited_document)
     return {"post_id": payload.post_id, "content": response.edited_document}
 
 

@@ -93,7 +93,6 @@ def apply_policy_edit(
             actor={"type": "policy", "id": actor_id or "policy"},
             delta_type="content_chunks_modified",
             delta_payload={
-                "status": "rejected",
                 "changed_chunks": [],
                 "before_hash": before_hash,
                 "after_hash": before_hash,
@@ -101,6 +100,7 @@ def apply_policy_edit(
                 "rejected_chunks": [],
             },
             reason=str(exc),
+            status="rejected",
         )
         raise
 
@@ -116,26 +116,19 @@ def apply_policy_edit(
     assert [c.index for c in updated_chunks] == list(range(len(updated_chunks)))
     updated_document = join_chunks(updated_chunks)
     after_hash = _hash_text(updated_document)
-    snapshot_chunks = [
-        {"index": chunk.index, "text": chunk.text}
-        for chunk in original_chunks
-        if chunk.index in changed_indices
-    ]
     revision_id = writer.apply_delta(
         post_id,
         actor={"type": "policy", "id": actor_id or "policy"},
         delta_type="content_chunks_modified",
         delta_payload={
-            "status": "applied",
             "changed_chunks": changed_indices,
             "before_hash": before_hash,
             "after_hash": after_hash,
             "policy_hash": policy_hash,
             "rejected_chunks": [chunk.model_dump() for chunk in rejected_chunks],
-            "_content": updated_document,
-            "_snapshot_chunks": snapshot_chunks,
         },
     )
+    content_path.write_text(updated_document)
 
     return EditResult(
         post_id=post_id,
