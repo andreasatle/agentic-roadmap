@@ -137,7 +137,14 @@ def read_home(request: Request):
 def read_editor_entry(request: Request, post_id: str | None = None, creds = Depends(security)):
     require_admin(creds)
     if post_id:
-        return templates.TemplateResponse("index.html", {"request": request})
+        return templates.TemplateResponse(
+            "blog_editor.html",
+            {
+                "request": request,
+                "post_id": post_id,
+                "mode": "edit",
+            },
+        )
     posts = list_posts(include_drafts=True)
     draft_posts = [post for post in posts if post.status == "draft"]
     return templates.TemplateResponse(
@@ -145,6 +152,7 @@ def read_editor_entry(request: Request, post_id: str | None = None, creds = Depe
         {
             "request": request,
             "draft_posts": draft_posts,
+            "mode": "entry",
         },
     )
 
