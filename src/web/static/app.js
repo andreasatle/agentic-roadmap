@@ -773,12 +773,15 @@ async function createNewPostFromIntent() {
 
 document.addEventListener("DOMContentLoaded", () => {
   const queryPostId = new URLSearchParams(window.location.search).get("post_id");
+  const queryMode = new URLSearchParams(window.location.search).get("mode");
   const isEditorEntry = window.location.pathname === "/blog/editor";
   if (queryPostId) {
     loadExistingDraft(queryPostId);
   }
   const intentContainer = $("intent-container");
-  if (!queryPostId && isEditorEntry) {
+  if (!queryPostId && isEditorEntry && queryMode === "create") {
+    showIntentEntry();
+  } else if (!queryPostId && isEditorEntry) {
     showEditorEntry();
     loadEditorEntry();
   } else if (!queryPostId) {

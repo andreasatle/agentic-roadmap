@@ -134,7 +134,12 @@ def read_home(request: Request):
 
 
 @app.get("/blog/editor")
-def read_editor_entry(request: Request, post_id: str | None = None, creds = Depends(security)):
+def read_editor_entry(
+    request: Request,
+    post_id: str | None = None,
+    mode: str | None = None,
+    creds = Depends(security),
+):
     require_admin(creds)
     if post_id:
         return templates.TemplateResponse(
@@ -143,6 +148,14 @@ def read_editor_entry(request: Request, post_id: str | None = None, creds = Depe
                 "request": request,
                 "post_id": post_id,
                 "mode": "edit",
+            },
+        )
+    if mode == "create":
+        return templates.TemplateResponse(
+            "blog_editor.html",
+            {
+                "request": request,
+                "mode": "create",
             },
         )
     posts = list_posts(include_drafts=True)
