@@ -610,7 +610,9 @@ async function suggestTitle(content) {
       body: JSON.stringify({ content }),
     });
     if (!resp.ok) {
+      const detail = await resp.text();
       setSuggestedTitleValue("");
+      setError(detail || "Failed to suggest title.");
       return;
     }
     const data = await resp.json();
@@ -618,6 +620,7 @@ async function suggestTitle(content) {
     setSuggestedTitleValue(title);
   } catch (err) {
     setSuggestedTitleValue("");
+    setError(err?.message || "Failed to suggest title.");
   }
 }
 
@@ -741,6 +744,8 @@ async function loadExistingDraft(postId) {
   try {
     const resp = await fetch(`/blog/writer?post_id=${encodeURIComponent(postId)}`);
     if (!resp.ok) {
+      const detail = await resp.text();
+      setError(detail || "Failed to load post.");
       return;
     }
     const data = await resp.json();
