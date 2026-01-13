@@ -30,7 +30,6 @@ from apps.blog.storage import (
     read_post_meta,
     read_post_content,
     read_post_intent,
-    write_post_content,
 )
 from web.schemas import (
     DocumentGenerateRequest,
@@ -137,63 +136,15 @@ def read_home(request: Request):
 @app.get("/blog/editor")
 def read_editor_entry(request: Request, post_id: str | None = None, creds = Depends(security)):
     require_admin(creds)
-    if post_id:
-        try:
-            meta = read_post_meta(post_id)
-            content = read_post_content(post_id)
-        except FileNotFoundError:
-            raise HTTPException(status_code=404, detail="Post not found")
-        meta_path = Path("posts") / post_id / "meta.yaml"
-        meta_payload = yaml.safe_load(meta_path.read_text()) or {}
-        if not isinstance(meta_payload, dict):
-            raise HTTPException(status_code=500, detail="Invalid meta.yaml")
-        revisions = meta_payload.get("revisions") or []
-        if not isinstance(revisions, list):
-            raise HTTPException(status_code=500, detail="Invalid revisions")
-        summaries: list[dict[str, object]] = []
-        for entry in revisions:
-            if not isinstance(entry, dict):
-                raise HTTPException(status_code=500, detail="Invalid revision entry")
-            summary: dict[str, object] = {
-                "revision_id": entry.get("revision_id"),
-                "actor": entry.get("actor"),
-                "delta_type": entry.get("delta_type"),
-                "status": entry.get("status"),
-                "reason": entry.get("reason"),
-            }
-            summaries.append(summary)
-        summaries.sort(key=lambda item: item.get("revision_id") or 0)
-        revision_ids = [
-            entry.get("revision_id")
-            for entry in revisions
-            if isinstance(entry, dict) and isinstance(entry.get("revision_id"), int)
-        ]
-        last_revision_id = max(revision_ids) if revision_ids else None
-        return JSONResponse(
-            {
-                "post_id": meta.post_id,
-                "status": meta.status,
-                "last_revision_id": last_revision_id,
-                "meta": {
-                    "title": meta.title,
-                    "author": meta.author,
-                    "status": meta.status,
-                },
-                "content": content,
-                "revisions": summaries,
-            }
-        )
     posts = list_posts(include_drafts=True)
-    draft_posts = [
+    draft_posts = [post for post in posts if post.status == "draft"]
+    return templates.TemplateResponse(
+        "blog_editor.html",
         {
-            "post_id": post.post_id,
-            "title": post.title,
-            "created_at": post.created_at.isoformat() if post.created_at is not None else None,
-        }
-        for post in posts
-        if post.status == "draft"
-    ]
-    return JSONResponse({"draft_posts": draft_posts})
+            "request": request,
+            "draft_posts": draft_posts,
+        },
+    )
 
 
 @app.get("/blog/writer")
