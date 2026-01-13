@@ -763,6 +763,9 @@ async function loadExistingDraft(postId) {
     if (articleArea) {
       articleArea.innerHTML = marked.parse(currentMarkdown);
     }
+    if (!currentMarkdown.trim()) {
+      setEditMode(true);
+    }
     const titleInput = $("title-input");
     if (titleInput) {
       titleInput.value = data?.meta?.title || "";
@@ -773,7 +776,9 @@ async function loadExistingDraft(postId) {
     }
     setSuggestedTitleValue("");
     setFinalTitle("");
-    setEditMode(false);
+    if (currentMarkdown.trim()) {
+      setEditMode(false);
+    }
     setView("content");
     setEditRequestState(false);
     policyEditInFlight = false;
