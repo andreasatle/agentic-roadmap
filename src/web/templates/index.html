@@ -135,7 +135,24 @@ END OF INTENT UI CONTRACT
         <p>Editor workspace for creating and editing posts.</p>
       </header>
 
-      <section id="intent-container">
+      <section id="editor-entry">
+        <header>
+          <h2>Editor Entry</h2>
+          <p>Select a draft post or create a new post from intent.</p>
+        </header>
+        <section>
+          <ul id="draft-post-list"></ul>
+        </section>
+        <section class="action-row">
+          <div class="actions-left">
+            <button type="button" class="btn btn--primary" id="create-from-intent-btn">
+              Create new post (from intent)
+            </button>
+          </div>
+        </section>
+      </section>
+
+      <section id="intent-container" hidden>
         <section id="intent-view">
         <section id="intent-form">
           <header class="intent-header">
@@ -368,7 +385,7 @@ END OF INTENT UI CONTRACT
               </div>
             </div>
             <div class="actions-right">
-              <button type="button" class="btn btn--primary" id="generate-blog-post-btn" onclick="generateBlogPost()">
+              <button type="button" class="btn btn--primary" id="generate-blog-post-btn" onclick="createNewPostFromIntent()">
                 Generate Blog Post
               </button>
             </div>

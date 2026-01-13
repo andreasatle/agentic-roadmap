@@ -179,6 +179,70 @@ function setInvariantIndicators(status, lastRevisionId) {
   }
 }
 
+function renderDraftPosts(draftPosts) {
+  const list = $("draft-post-list");
+  if (!list) return;
+  list.textContent = "";
+  if (!Array.isArray(draftPosts) || !draftPosts.length) {
+    const item = document.createElement("li");
+    item.textContent = "No draft posts available.";
+    list.appendChild(item);
+    return;
+  }
+  draftPosts.forEach((post) => {
+    const item = document.createElement("li");
+    const link = document.createElement("a");
+    link.href = `/blog/editor?post_id=${encodeURIComponent(post.post_id)}`;
+    link.textContent = post.title || "(untitled)";
+    item.appendChild(link);
+    if (post.created_at) {
+      const meta = document.createElement("div");
+      meta.textContent = `Created: ${post.created_at}`;
+      item.appendChild(meta);
+    }
+    list.appendChild(item);
+  });
+}
+
+function showEditorEntry() {
+  const entry = $("editor-entry");
+  if (entry) {
+    entry.hidden = false;
+  }
+  const intentContainer = $("intent-container");
+  if (intentContainer) {
+    intentContainer.hidden = true;
+  }
+  setView("intent");
+}
+
+function showIntentEntry() {
+  const entry = $("editor-entry");
+  if (entry) {
+    entry.hidden = true;
+  }
+  const intentContainer = $("intent-container");
+  if (intentContainer) {
+    intentContainer.hidden = false;
+  }
+  setView("intent");
+}
+
+async function loadEditorEntry() {
+  try {
+    const resp = await fetch("/blog/editor");
+    if (!resp.ok) {
+      const detail = await resp.text();
+      setError(detail || "Failed to load editor entry.");
+      return;
+    }
+    const data = await resp.json();
+    renderDraftPosts(data?.draft_posts || []);
+  } catch (err) {
+    setError(err?.message || "Failed to load editor entry.");
+  }
+}
+
 function updateEditModeButtons() {
   const freeBtn = $("mode-free-edit");
   const policyBtn = $("mode-policy-edit");
@@ -396,6 +460,10 @@ async function saveIntent() {
 }
 
 async function generateBlogPost() {
+  if (!currentPostId) {
+    setError("No post available to generate from.");
+    return;
+  }
   if (!currentIntent) {
     setError("No intent to generate from. Load or apply changes first.");
     return;
@@ -667,7 +735,34 @@ async function createNewPost() {
     }
     const data = await resp.json();
     if (data?.post_id) {
-      window.location.href = `/blog/writer?post_id=${encodeURIComponent(data.post_id)}`;
+      window.location.href = `/blog/editor?post_id=${encodeURIComponent(data.post_id)}`;
+    } else {
+      setError("Failed to create post.");
+    }
+  } catch (err) {
+    setError(err?.message || "Failed to create post.");
+  }
+}
+
+async function createNewPostFromIntent() {
+  if (!currentIntent) {
+    setError("No intent to generate from. Load or apply changes first.");
+    return;
+  }
+  try {
+    const resp = await fetch("/blog/create", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ intent: currentIntent }),
+    });
+    if (!resp.ok) {
+      const detail = await resp.text();
+      setError(detail || "Failed to create post.");
+      return;
+    }
+    const data = await resp.json();
+    if (data?.post_id) {
+      window.location.href = `/blog/editor?post_id=${encodeURIComponent(data.post_id)}`;
     } else {
       setError("Failed to create post.");
     }
@@ -678,16 +773,29 @@ async function createNewPost() {
 
 document.addEventListener("DOMContentLoaded", () => {
   const queryPostId = new URLSearchParams(window.location.search).get("post_id");
+  const isEditorEntry = window.location.pathname === "/blog/editor";
   if (queryPostId) {
     loadExistingDraft(queryPostId);
   }
   const intentContainer = $("intent-container");
-  if (intentContainer) {
+  if (!queryPostId && isEditorEntry) {
+    showEditorEntry();
+    loadEditorEntry();
+  } else if (!queryPostId) {
+    showIntentEntry();
+  }
+  if (queryPostId && intentContainer) {
     intentContainer.hidden = true;
   }
   const createBtn = $("create-post-btn");
   if (createBtn) {
     createBtn.addEventListener("click", createNewPost);
+  }
+  const createFromIntentBtn = $("create-from-intent-btn");
+  if (createFromIntentBtn) {
+    createFromIntentBtn.addEventListener("click", () => {
+      showIntentEntry();
+    });
   }
   const input = $("intent-file");
   if (input) {
@@ -705,8 +813,9 @@ document.addEventListener("DOMContentLoaded", () => {
   $("mode-free-edit")?.addEventListener("click", () => setCurrentEditMode("free"));
   $("mode-policy-edit")?.addEventListener("click", () => setCurrentEditMode("policy"));
   $("mode-metadata-edit")?.addEventListener("click", () => setCurrentEditMode("metadata"));
-  setView("content");
-  setArticleStatus("No blog post generated yet. Click Generate Blog Post.");
+  if (!queryPostId && !isEditorEntry) {
+    setArticleStatus("No blog post generated yet. Click Generate Blog Post.");
+  }
   setTitleControlsEnabled(false);
   setEditControlsEnabled(false);
   setEditMode(false);
@@ -742,7 +851,7 @@ function setView(view) {
 
 async function loadExistingDraft(postId) {
   try {
-    const resp = await fetch(`/blog/writer?post_id=${encodeURIComponent(postId)}`);
+    const resp = await fetch(`/blog/editor?post_id=${encodeURIComponent(postId)}`);
     if (!resp.ok) {
       const detail = await resp.text();
       setError(detail || "Failed to load post.");
@@ -750,6 +859,10 @@ async function loadExistingDraft(postId) {
     }
     const data = await resp.json();
     currentIntent = null;
+    const editorEntry = $("editor-entry");
+    if (editorEntry) {
+      editorEntry.hidden = true;
+    }
     const intentContainer = $("intent-container");
     if (intentContainer) {
       intentContainer.hidden = true;

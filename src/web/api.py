@@ -7,7 +7,7 @@ from io import BytesIO
 from typing import Literal
 
 from fastapi import FastAPI, HTTPException, Request, Depends, Query, Body
-from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse
+from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import yaml
@@ -134,8 +134,9 @@ def read_home(request: Request):
     return templates.TemplateResponse("home.html", {"request": request})
 
 
-@app.get("/blog/writer", response_class=HTMLResponse)
-def read_writer(request: Request, post_id: str | None = None):
+@app.get("/blog/editor")
+def read_editor_entry(request: Request, post_id: str | None = None, creds = Depends(security)):
+    require_admin(creds)
     if post_id:
         try:
             meta = read_post_meta(post_id)
@@ -182,7 +183,22 @@ def read_writer(request: Request, post_id: str | None = None):
                 "revisions": summaries,
             }
         )
-    return templates.TemplateResponse("index.html", {"request": request})
+    posts = list_posts(include_drafts=True)
+    draft_posts = [
+        {
+            "post_id": post.post_id,
+            "title": post.title,
+            "created_at": post.created_at,
+        }
+        for post in posts
+        if post.status == "draft"
+    ]
+    return JSONResponse({"draft_posts": draft_posts})
+
+
+@app.get("/blog/writer")
+def redirect_writer():
+    return RedirectResponse("/blog/editor", status_code=307)
 
 
 @app.get("/me")
