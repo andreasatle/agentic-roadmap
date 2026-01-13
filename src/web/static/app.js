@@ -682,8 +682,8 @@ document.addEventListener("DOMContentLoaded", () => {
     loadExistingDraft(queryPostId);
   }
   const intentContainer = $("intent-container");
-  if (!queryPostId && intentContainer) {
-    intentContainer.hidden = false;
+  if (intentContainer) {
+    intentContainer.hidden = true;
   }
   const createBtn = $("create-post-btn");
   if (createBtn) {
@@ -705,7 +705,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("mode-free-edit")?.addEventListener("click", () => setCurrentEditMode("free"));
   $("mode-policy-edit")?.addEventListener("click", () => setCurrentEditMode("policy"));
   $("mode-metadata-edit")?.addEventListener("click", () => setCurrentEditMode("metadata"));
-  setView("intent");
+  setView("content");
   setArticleStatus("No blog post generated yet. Click Generate Blog Post.");
   setTitleControlsEnabled(false);
   setEditControlsEnabled(false);
