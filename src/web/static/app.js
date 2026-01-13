@@ -96,22 +96,25 @@ function setFinalTitle(title) {
 function setTitleControlsEnabled(enabled) {
   const input = $("title-input");
   const btn = $("set-title-btn");
-  if (input) input.disabled = !enabled;
-  if (btn) btn.disabled = !enabled;
+  const canEnable = enabled && currentEditMode === "metadata";
+  if (input) input.disabled = !canEnable;
+  if (btn) btn.disabled = !canEnable;
 }
 
 function setEditControlsEnabled(enabled) {
   const editBtn = $("edit-content-btn");
   const applyBtn = $("apply-edit-btn");
-  if (editBtn) editBtn.disabled = !enabled;
-  if (applyBtn) applyBtn.disabled = !enabled;
+  const canEnable = enabled && currentEditMode === "free";
+  if (editBtn) editBtn.disabled = !canEnable;
+  if (applyBtn) applyBtn.disabled = !canEnable;
 }
 
 function setPolicyEditControlsEnabled(enabled) {
   const policyText = $("policy-text");
   const runBtn = $("run-policy-edit-btn");
-  if (policyText) policyText.disabled = !enabled;
-  if (runBtn) runBtn.disabled = !enabled;
+  const canEnable = enabled && currentEditMode === "policy";
+  if (policyText) policyText.disabled = !canEnable;
+  if (runBtn) runBtn.disabled = !canEnable;
 }
 
 function setPolicyEditStatus(text) {
@@ -695,7 +698,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setPolicyEditStatus("");
   setPolicyEditResult("");
   policyEditInFlight = false;
-  setCurrentEditMode("free");
+  updateEditModeButtons();
+  applyEditModeState();
   updateSuggestedTitleAction();
 });
 
