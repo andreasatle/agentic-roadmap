@@ -12,6 +12,9 @@
         <header>
             <h1>{{ meta.title or '(untitled)' }}</h1>
             <div>By {{ meta.author }} · {{ meta.created_at }} · Status: {{ meta.status }}</div>
+            {% if include_drafts %}
+            <a href="/blog/writer?post_id={{ meta.post_id }}">Edit</a>
+            {% endif %}
             <a href="/blog">Back to Blog</a>
         </header>
         <article>
