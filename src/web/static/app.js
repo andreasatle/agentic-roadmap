@@ -228,21 +228,6 @@ function showIntentEntry() {
   setView("intent");
 }
 
-async function loadEditorEntry() {
-  try {
-    const resp = await fetch("/blog/editor");
-    if (!resp.ok) {
-      const detail = await resp.text();
-      setError(detail || "Failed to load editor entry.");
-      return;
-    }
-    const data = await resp.json();
-    renderDraftPosts(data?.draft_posts || []);
-  } catch (err) {
-    setError(err?.message || "Failed to load editor entry.");
-  }
-}
-
 function updateEditModeButtons() {
   const freeBtn = $("mode-free-edit");
   const policyBtn = $("mode-policy-edit");
@@ -783,7 +768,6 @@ document.addEventListener("DOMContentLoaded", () => {
     showIntentEntry();
   } else if (!queryPostId && isEditorEntry) {
     showEditorEntry();
-    loadEditorEntry();
   } else if (!queryPostId) {
     showIntentEntry();
   }
