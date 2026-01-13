@@ -41,6 +41,17 @@ class PostRevisionWriter:
             )
         if status not in ("applied", "rejected"):
             raise ValueError(f"Unknown status: {status}")
+        mutation_delta_types = {
+            "content_chunks_modified",
+            "content_free_edit",
+            "content_policy_edit",
+            "title_changed",
+            "author_changed",
+            "status_changed",
+            "title_set",
+        }
+        if delta_type not in mutation_delta_types:
+            raise ValueError(f"Unknown delta_type: {delta_type}")
         record_payload = dict(delta_payload)
 
         post_dir = Path(self._posts_root) / post_id

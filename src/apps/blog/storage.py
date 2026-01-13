@@ -236,14 +236,20 @@ def _replay_post_content(post_id: str, posts_root: str) -> str:
         for i in range(max_index + 1)
     ]
     content = join_chunks(chunks)
+    content_path = post_dir / "content.md"
+    replay_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
+    if content_path.exists():
+        on_disk_hash = hashlib.sha256(content_path.read_text().encode("utf-8")).hexdigest()
+        if on_disk_hash != replay_hash:
+            raise ValueError(
+                f"Revision replay content mismatch for post {post_id} at revision {current_revision_id}"
+            )
     after_hash = None if current_payload is None else current_payload.get("after_hash")
     if isinstance(after_hash, str):
-        current_hash = hashlib.sha256(content.encode("utf-8")).hexdigest()
-        if current_hash != after_hash:
+        if replay_hash != after_hash:
             raise ValueError(
                 f"Revision replay hash mismatch for post {post_id} at revision {current_revision_id}"
             )
-    content_path = post_dir / "content.md"
     content_path.write_text(content)
     return content
 

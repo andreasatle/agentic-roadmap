@@ -265,6 +265,7 @@ def generate_blog_post_route(
             "after_hash": after_hash,
         },
     )
+    revision_recorded = True
     if not isinstance(revision_id, int):
         raise HTTPException(status_code=500, detail="Failed to record revision")
     revisions_dir = Path("posts") / post_id / "revisions"
@@ -274,6 +275,8 @@ def generate_blog_post_route(
         text = snapshot["text"]
         snapshot_path = revisions_dir / f"{revision_id}_{index}.md"
         snapshot_path.write_text(text)
+    if not revision_recorded:
+        raise HTTPException(status_code=500, detail="Revision required before content write")
     content_path.write_text(markdown)
     suggested_title = None
     if isinstance(markdown, str) and markdown.strip():
@@ -336,6 +339,7 @@ def create_blog_post_route(
                 "after_hash": after_hash,
             },
         )
+        revision_recorded = True
         if not isinstance(revision_id, int):
             raise HTTPException(status_code=500, detail="Failed to record revision")
         revisions_dir = Path("posts") / post_id / "revisions"
@@ -345,6 +349,8 @@ def create_blog_post_route(
             text = snapshot["text"]
             snapshot_path = revisions_dir / f"{revision_id}_{index}.md"
             snapshot_path.write_text(text)
+        if not revision_recorded:
+            raise HTTPException(status_code=500, detail="Revision required before content write")
         content_path.write_text(markdown)
     return {"post_id": post_id}
 
@@ -355,6 +361,7 @@ def set_blog_title_route(
     creds = Depends(security),
 ) -> dict[str, str]:
     require_admin(creds)
+    # UI state is non-authoritative; metadata mutations are revision-led only.
     try:
         read_post_meta(payload.post_id)
     except FileNotFoundError:
@@ -387,6 +394,7 @@ def set_blog_author_route(
     creds = Depends(security),
 ) -> dict[str, str]:
     require_admin(creds)
+    # UI state is non-authoritative; metadata mutations are revision-led only.
     try:
         read_post_meta(payload.post_id)
     except FileNotFoundError:
@@ -407,6 +415,7 @@ def edit_blog_content_route(
     creds = Depends(security),
 ) -> dict[str, str]:
     require_admin(creds)
+    # UI state is non-authoritative; content mutations are revision-led only.
     try:
         content_path = Path("posts") / payload.post_id / "content.md"
         before_content = read_post_content(payload.post_id)
@@ -488,6 +497,7 @@ def edit_blog_content_route(
             "after_hash": _hash_text(response.edited_document),
         },
     )
+    revision_recorded = True
     if not isinstance(revision_id, int):
         raise HTTPException(status_code=500, detail="Failed to record revision")
     revisions_dir = Path("posts") / payload.post_id / "revisions"
@@ -497,6 +507,8 @@ def edit_blog_content_route(
         text = snapshot["text"]
         snapshot_path = revisions_dir / f"{revision_id}_{index}.md"
         snapshot_path.write_text(text)
+    if not revision_recorded:
+        raise HTTPException(status_code=500, detail="Revision required before content write")
     content_path.write_text(response.edited_document)
     return {"post_id": payload.post_id, "content": response.edited_document}
 
@@ -507,6 +519,7 @@ def edit_blog_post_route(
     creds = Depends(security),
 ) -> BlogEditResponse:
     require_admin(creds)
+    # UI state is non-authoritative; policy edits are revision-led only.
     try:
         meta = read_post_meta(payload.post_id)
     except FileNotFoundError:
