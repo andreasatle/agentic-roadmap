@@ -2,6 +2,7 @@ let currentIntent = null;
 let currentMarkdown = null;
 let currentPostId = null;
 let currentRevisions = [];
+let currentEditMode = "free";
 let suggestedTitleValue = "";
 let titleCommitted = false;
 let isEditingContent = false;
@@ -144,7 +145,7 @@ function setEditMode(enabled) {
 
 function setEditRequestState(inFlight) {
   editRequestInFlight = inFlight;
-  setEditControlsEnabled(!inFlight);
+  applyEditModeState();
 }
 
 function setGatedActionsEnabled(enabled) {
@@ -159,6 +160,53 @@ function updateSuggestedTitleAction() {
     button.hidden = !shouldShow;
     button.disabled = !shouldShow;
   }
+}
+
+function updateEditModeButtons() {
+  const freeBtn = $("mode-free-edit");
+  const policyBtn = $("mode-policy-edit");
+  const metaBtn = $("mode-metadata-edit");
+  const setActive = (btn, active) => {
+    if (!btn) return;
+    btn.setAttribute("aria-pressed", active ? "true" : "false");
+    btn.classList.toggle("btn--primary", active);
+    btn.classList.toggle("btn--ghost", !active);
+    btn.classList.toggle("active", active);
+  };
+  setActive(freeBtn, currentEditMode === "free");
+  setActive(policyBtn, currentEditMode === "policy");
+  setActive(metaBtn, currentEditMode === "metadata");
+}
+
+function applyEditModeState() {
+  const isFree = currentEditMode === "free";
+  const isPolicy = currentEditMode === "policy";
+  const isMetadata = currentEditMode === "metadata";
+  const hasPost = !!currentPostId;
+  const canEdit = isFree && hasPost && !editRequestInFlight;
+  const canPolicyEdit = isPolicy && hasPost && !policyEditInFlight;
+  setEditControlsEnabled(canEdit);
+  const editor = $("article-editor");
+  if (editor) editor.disabled = !isFree;
+  const policyText = $("policy-text");
+  if (policyText) policyText.disabled = !isPolicy;
+  const runBtn = $("run-policy-edit-btn");
+  if (runBtn) runBtn.disabled = !canPolicyEdit;
+  const titleEnabled = isMetadata && hasPost;
+  setTitleControlsEnabled(titleEnabled);
+  const authorInput = $("author-input");
+  const authorBtn = $("set-author-btn");
+  if (authorInput) authorInput.disabled = !titleEnabled;
+  if (authorBtn) authorBtn.disabled = !titleEnabled;
+}
+
+function setCurrentEditMode(mode) {
+  if (mode !== "free" && mode !== "policy" && mode !== "metadata") {
+    return;
+  }
+  currentEditMode = mode;
+  updateEditModeButtons();
+  applyEditModeState();
 }
 
 async function applySuggestedTitle() {
@@ -380,6 +428,7 @@ async function generateBlogPost() {
     setTitleControlsEnabled(!!currentPostId);
     setEditControlsEnabled(!!currentPostId);
     setPolicyEditControlsEnabled(!!currentPostId);
+    applyEditModeState();
     setError("");
   } catch (err) {
     setArticleStatus("Failed to generate blog post. See error.");
@@ -528,7 +577,7 @@ async function runPolicyEdit() {
     setPolicyEditStatus(err?.message || "Edit failed.");
   } finally {
     policyEditInFlight = false;
-    setPolicyEditControlsEnabled(!!currentPostId);
+    applyEditModeState();
   }
 }
 
@@ -633,6 +682,9 @@ document.addEventListener("DOMContentLoaded", () => {
   $("edit-content-btn")?.addEventListener("click", toggleEditContent);
   $("apply-edit-btn")?.addEventListener("click", applyEdit);
   $("run-policy-edit-btn")?.addEventListener("click", runPolicyEdit);
+  $("mode-free-edit")?.addEventListener("click", () => setCurrentEditMode("free"));
+  $("mode-policy-edit")?.addEventListener("click", () => setCurrentEditMode("policy"));
+  $("mode-metadata-edit")?.addEventListener("click", () => setCurrentEditMode("metadata"));
   setView("intent");
   setArticleStatus("No blog post generated yet. Click Generate Blog Post.");
   setTitleControlsEnabled(false);
@@ -643,6 +695,7 @@ document.addEventListener("DOMContentLoaded", () => {
   setPolicyEditStatus("");
   setPolicyEditResult("");
   policyEditInFlight = false;
+  setCurrentEditMode("free");
   updateSuggestedTitleAction();
 });
 
@@ -704,6 +757,7 @@ async function loadExistingDraft(postId) {
     setEditControlsEnabled(!!currentPostId);
     setPolicyEditControlsEnabled(!!currentPostId);
     setGatedActionsEnabled(!!currentPostId);
+    applyEditModeState();
     setError("");
   } catch (err) {
     setError(err?.message || "Error loading post.");
