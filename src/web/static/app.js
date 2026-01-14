@@ -38,7 +38,18 @@ function setError(message) {
 
 // Intent load/save is a local convenience only.
 // It must never influence submission, validation, or generation.
-function downloadIntentFromForm() {
+async function resolveYamlParser() {
+  if (window.jsyaml && typeof window.jsyaml.load === "function") {
+    return window.jsyaml;
+  }
+  if (window.YAML && typeof window.YAML.parse === "function" && typeof window.YAML.stringify === "function") {
+    return window.YAML;
+  }
+  const module = await import("https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/+esm");
+  return module;
+}
+
+async function downloadIntentFromForm() {
   const documentGoal = $("document-goal")?.value ?? "";
   const audience = $("audience")?.value ?? "";
   const tone = $("tone")?.value ?? "";
@@ -53,39 +64,40 @@ function downloadIntentFromForm() {
 
   const toScalar = (value) => {
     const trimmed = value.trim();
-    return trimmed ? JSON.stringify(trimmed) : "null";
+    return trimmed ? trimmed : null;
   };
 
-  const toList = (value) => {
-    const items = value
+  const toList = (value) =>
+    value
       .split(/\n/)
       .map((line) => line.trim())
       .filter(Boolean);
-    if (!items.length) {
-      return "[]";
-    }
-    return `\n${items.map((item) => `  - ${JSON.stringify(item)}`).join("\n")}`;
+
+  const intentPayload = {
+    structural_intent: {
+      document_goal: toScalar(documentGoal),
+      audience: toScalar(audience),
+      tone: toScalar(tone),
+      required_sections: toList(requiredSectionsRaw),
+      forbidden_sections: toList(forbiddenSectionsRaw),
+    },
+    semantic_constraints: {
+      must_include: toList(mustIncludeRaw),
+      must_avoid: toList(mustAvoidRaw),
+      required_mentions: toList(requiredMentionsRaw),
+    },
+    stylistic_preferences: {
+      humor_level: toScalar(humorLevel),
+      formality: toScalar(formality),
+      narrative_voice: toScalar(narrativeVoice),
+    },
   };
 
-  const yamlText = [
-    "structural_intent:",
-    `  document_goal: ${toScalar(documentGoal)}`,
-    `  audience: ${toScalar(audience)}`,
-    `  tone: ${toScalar(tone)}`,
-    `  required_sections: ${toList(requiredSectionsRaw)}`,
-    `  forbidden_sections: ${toList(forbiddenSectionsRaw)}`,
-    "",
-    "semantic_constraints:",
-    `  must_include: ${toList(mustIncludeRaw)}`,
-    `  must_avoid: ${toList(mustAvoidRaw)}`,
-    `  required_mentions: ${toList(requiredMentionsRaw)}`,
-    "",
-    "stylistic_preferences:",
-    `  humor_level: ${toScalar(humorLevel)}`,
-    `  formality: ${toScalar(formality)}`,
-    `  narrative_voice: ${toScalar(narrativeVoice)}`,
-    "",
-  ].join("\n");
+  const parser = await resolveYamlParser();
+  const yamlText =
+    typeof parser.dump === "function"
+      ? parser.dump(intentPayload, { sortKeys: false })
+      : parser.stringify(intentPayload);
 
   const blob = new Blob([yamlText], { type: "text/yaml" });
   const url = window.URL.createObjectURL(blob);
@@ -101,14 +113,8 @@ function downloadIntentFromForm() {
 async function loadIntentIntoForm(yamlText) {
   let parsed = {};
   try {
-    if (window.jsyaml && typeof window.jsyaml.load === "function") {
-      parsed = window.jsyaml.load(yamlText) || {};
-    } else if (window.YAML && typeof window.YAML.parse === "function") {
-      parsed = window.YAML.parse(yamlText) || {};
-    } else {
-      const module = await import("https://cdn.jsdelivr.net/npm/js-yaml@4.1.0/+esm");
-      parsed = module.load(yamlText) || {};
-    }
+    const parser = await resolveYamlParser();
+    parsed = typeof parser.load === "function" ? parser.load(yamlText) || {} : parser.parse(yamlText) || {};
   } catch (err) {
     console.error("Failed to load intent YAML.");
     return;
@@ -127,11 +133,7 @@ async function loadIntentIntoForm(yamlText) {
   const setList = (id, value) => {
     const field = $(id);
     if (!field) return;
-    if (Array.isArray(value)) {
-      field.value = value.join("\n");
-      return;
-    }
-    field.value = "";
+    field.value = Array.isArray(value) ? value.join("\n") : "";
   };
 
   setValue("document-goal", structural.document_goal ?? "");
