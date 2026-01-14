@@ -152,6 +152,7 @@ def read_editor_entry(
         {
             "request": request,
             "draft_posts": draft_posts,
+            "post_id": None,
         },
     )
 
@@ -167,7 +168,10 @@ def read_editor_create(
         raise HTTPException(status_code=406, detail="Editor renders HTML only")
     return templates.TemplateResponse(
         "blog_editor_create.html",
-        {"request": request},
+        {
+            "request": request,
+            "post_id": None,
+        },
     )
 
 
