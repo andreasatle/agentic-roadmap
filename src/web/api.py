@@ -332,14 +332,19 @@ def suggest_blog_title_route(
 
 
 @app.post("/blog/create")
-def create_blog_post_route(
-    payload: dict = Body(...),
+async def create_blog_post_route(
+    request: Request,
     creds = Depends(security),
-) -> dict[str, str]:
+) -> RedirectResponse:
     require_admin(creds)
-    if not isinstance(payload, dict):
+    form = await request.form()
+    intent_text = form.get("intent")
+    if not isinstance(intent_text, str) or not intent_text:
         raise HTTPException(status_code=400, detail="Invalid intent payload")
-    intent_payload = payload.get("intent")
+    try:
+        intent_payload = json.loads(intent_text)
+    except json.JSONDecodeError:
+        raise HTTPException(status_code=400, detail="Invalid intent payload")
     if not isinstance(intent_payload, dict):
         raise HTTPException(status_code=400, detail="Invalid intent payload")
     try:
@@ -382,7 +387,7 @@ def create_blog_post_route(
     if not revision_recorded:
         raise HTTPException(status_code=500, detail="Revision required before content write")
     write_post_content(post_id, markdown)
-    return {"post_id": post_id}
+    return RedirectResponse(f"/blog/editor?post_id={post_id}", status_code=303)
 
 
 @app.post("/blog/set-title")
