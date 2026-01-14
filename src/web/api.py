@@ -390,7 +390,7 @@ async def create_blog_post_route(
         else None
     )
 
-    intent_payload = {
+    intent_dict = {
         "structural_intent": {
             "document_goal": document_goal,
             "audience": audience,
@@ -410,13 +410,13 @@ async def create_blog_post_route(
         },
     }
     try:
-        intent = IntentEnvelope.model_validate(intent_payload)
+        intent = IntentEnvelope.model_validate(intent_dict)
     except Exception as exc:
         raise HTTPException(status_code=400, detail=str(exc))
     post_id, _ = create_post(
         title=None,
         author=(creds.username or "unknown"),
-        intent=intent_payload,
+        intent=intent_dict,
         content="",
     )
     blog_result = generate_blog_post(
