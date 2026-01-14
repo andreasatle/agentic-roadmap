@@ -1,7 +1,6 @@
 from __future__ import annotations
 
 import hashlib
-from pathlib import Path
 
 from pydantic import BaseModel, ConfigDict
 
@@ -11,6 +10,7 @@ from document_writer.domain.editor.chunking import Chunk, split_markdown, join_c
 
 from apps.blog.storage import read_post_content, read_post_intent, read_post_meta
 from apps.blog.post_revision_writer import PostRevisionWriter
+from apps.blog.paths import POSTS_ROOT
 
 
 class RejectedChunk(BaseModel):
@@ -37,27 +37,26 @@ def _hash_text(text: str) -> str:
 def apply_policy_edit(
     post_id: str,
     policy_text: str,
-    posts_root: str = "posts",
     *,
     actor_id: str | None = None,
 ) -> EditResult:
-    post_dir = Path(posts_root) / post_id
+    post_dir = POSTS_ROOT / post_id
     if not post_dir.exists():
         raise FileNotFoundError(f"Post not found: {post_dir}")
 
     content_path = post_dir / "content.md"
-    meta = read_post_meta(post_id, posts_root)
+    meta = read_post_meta(post_id)
     if meta.status != "draft":
         raise RuntimeError(f"Cannot edit non-draft post: {post_id}")
 
-    document = read_post_content(post_id, posts_root)
+    document = read_post_content(post_id)
     before_hash = _hash_text(document)
-    intent = read_post_intent(post_id, posts_root)
+    intent = read_post_intent(post_id)
     policy_hash = hashlib.sha256(policy_text.encode("utf-8")).hexdigest()
 
     agent = make_editor_agent()
     dispatcher = AgentDispatcherBase()
-    writer = PostRevisionWriter(posts_root=posts_root)
+    writer = PostRevisionWriter()
 
     chunks = split_markdown(document)
     original_chunks = chunks
