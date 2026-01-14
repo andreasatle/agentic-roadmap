@@ -9,7 +9,6 @@ from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
-import yaml
 import markdown
 from pydantic import BaseModel
 
@@ -38,13 +37,10 @@ from web.schemas import (
     EditContentRequest,
     BlogEditRequest,
     BlogEditResponse,
-    IntentParseRequest,
-    IntentSaveRequest,
     TitleSetRequest,
     TitleSuggestRequest,
 )
 from web.security import require_admin, security
-from document_writer.domain.intent import load_intent_from_yaml
 from document_writer.domain.intent.types import IntentEnvelope
 
 
@@ -232,24 +228,6 @@ def read_me(request: Request):
             "profile_html": profile_html,
         },
     )
-
-
-@app.post("/intent/parse")
-def parse_intent(payload: IntentParseRequest):
-    try:
-        intent = load_intent_from_yaml(payload.yaml_text)
-    except Exception as exc:
-        raise HTTPException(status_code=400, detail=str(exc))
-    return intent.model_dump()
-
-
-@app.post("/intent/save")
-def save_intent(payload: IntentSaveRequest):
-    filename = (payload.filename or "intent.yaml").strip() or "intent.yaml"
-    yaml_text = yaml.safe_dump(payload.intent.model_dump(), sort_keys=False, default_flow_style=False)
-    buffer = BytesIO(yaml_text.encode("utf-8"))
-    headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
-    return StreamingResponse(buffer, media_type="text/yaml", headers=headers)
 
 
 @app.post("/blog/generate")
