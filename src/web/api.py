@@ -15,7 +15,7 @@ from pydantic import BaseModel
 from agentic_framework.agent_dispatcher import AgentDispatcherBase
 from document_writer.apps.service import generate_document as generate_blog_post
 from document_writer.domain.editor.agent import make_editor_agent
-from document_writer.domain.editor.api import AgentEditorRequest, AgentEditorResponse
+from document_writer.domain.editor.api import AgentEditorRequest
 from document_writer.domain.editor.service import edit_document
 from document_writer.domain.editor.chunking import split_markdown
 from document_writer.apps.title_suggester import suggest_title
@@ -635,26 +635,6 @@ def save_document(payload: DocumentSaveRequest):
     buffer = BytesIO(payload.markdown.encode("utf-8"))
     headers = {"Content-Disposition": f'attachment; filename="{filename}"'}
     return StreamingResponse(buffer, media_type="text/markdown", headers=headers)
-
-
-@app.post("/agent-editor/edit")
-def edit_document_route(
-    payload: AgentEditorRequest,
-    _: None = Depends(require_admin),
-) -> AgentEditorResponse:
-    logger.info("agent-editor request received")
-    try:
-        logger.info("agent-editor controller invoked")
-        response = edit_document(
-            payload,
-            dispatcher=editor_dispatcher,
-            editor_agent=editor_agent,
-        )
-        logger.info("agent-editor request succeeded")
-        return response
-    except Exception:
-        logger.info("agent-editor request failed")
-        raise
 
 
 @app.get("/blog", response_class=HTMLResponse)
