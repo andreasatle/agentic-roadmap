@@ -139,33 +139,12 @@ def read_home(request: Request):
 @app.get("/blog/editor")
 def read_editor_entry(
     request: Request,
-    post_id: str | None = None,
     creds = Depends(security),
 ):
     require_admin(creds)
     accept = request.headers.get("accept", "")
     if "application/json" in accept.lower():
         raise HTTPException(status_code=406, detail="Editor renders HTML only")
-    if post_id:
-        try:
-            meta = read_post_meta(post_id)
-            content = read_post_content(post_id)
-        except FileNotFoundError:
-            raise HTTPException(status_code=404, detail="Post not found")
-        try:
-            intent = read_post_intent(post_id)
-        except FileNotFoundError:
-            intent = {}
-        return templates.TemplateResponse(
-            "blog_editor_edit.html",
-            {
-                "request": request,
-                "post_id": post_id,
-                "meta": meta,
-                "content": content,
-                "intent": intent,
-            },
-        )
     posts = list_posts(include_drafts=True)
     draft_posts = [post for post in posts if post.status == "draft"]
     return templates.TemplateResponse(
@@ -189,6 +168,37 @@ def read_editor_create(
     return templates.TemplateResponse(
         "blog_editor_create.html",
         {"request": request},
+    )
+
+
+@app.get("/blog/editor/{post_id}")
+def read_editor_edit(
+    request: Request,
+    post_id: str,
+    creds = Depends(security),
+):
+    require_admin(creds)
+    accept = request.headers.get("accept", "")
+    if "application/json" in accept.lower():
+        raise HTTPException(status_code=406, detail="Editor renders HTML only")
+    try:
+        meta = read_post_meta(post_id)
+        content = read_post_content(post_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Post not found")
+    try:
+        intent = read_post_intent(post_id)
+    except FileNotFoundError:
+        intent = {}
+    return templates.TemplateResponse(
+        "blog_editor_edit.html",
+        {
+            "request": request,
+            "post_id": post_id,
+            "meta": meta,
+            "content": content,
+            "intent": intent,
+        },
     )
 
 

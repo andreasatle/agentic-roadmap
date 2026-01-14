@@ -19,7 +19,7 @@
             <ul>
                 {% for post in draft_posts %}
                     <li>
-                        <a href="/blog/editor?post_id={{ post.post_id }}">
+                        <a href="/blog/editor/{{ post.post_id }}">
                             {{ post.title or '(untitled)' }}
                         </a>
                         <div>By {{ post.author }} · {{ post.created_at }}</div>
