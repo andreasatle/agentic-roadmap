@@ -412,7 +412,7 @@ async function applyIntentChanges() {
 
 async function saveIntent() {
   if (!currentIntent) {
-    setError("No intent to save. Load or apply changes first.");
+    setError("No intent to download. Load or apply changes first.");
     return;
   }
   try {
@@ -426,7 +426,7 @@ async function saveIntent() {
     });
     if (!resp.ok) {
       const detail = await resp.text();
-      setError(detail || "Failed to save intent.");
+      setError(detail || "Failed to download intent.");
       return;
     }
     const blob = await resp.blob();
@@ -440,7 +440,7 @@ async function saveIntent() {
     window.URL.revokeObjectURL(url);
     setError("");
   } catch (err) {
-    setError(err?.message || "Error saving intent.");
+    setError(err?.message || "Error downloading intent.");
   }
 }
 
