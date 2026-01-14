@@ -21,8 +21,6 @@ let titleCommitted = false;
 let isEditingContent = false;
 let editRequestInFlight = false;
 let policyEditInFlight = false;
-let isGenerating = false;
-let isClearing = false;
 
 function $(id) {
   return document.getElementById(id);
@@ -604,13 +602,6 @@ async function saveDocument() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const queryPostId = new URLSearchParams(window.location.search).get("post_id");
-  const isEditorEntry = window.location.pathname === "/blog/editor";
-  const isEditorActive =
-    !!queryPostId || window.location.search.includes("mode=create");
-  if (queryPostId) {
-    loadExistingDraft(queryPostId);
-  }
   const intentForm = $("intent-form");
   if (intentForm) {
     intentForm.addEventListener("submit", () => {
@@ -629,22 +620,6 @@ document.addEventListener("DOMContentLoaded", () => {
   $("mode-free-edit")?.addEventListener("click", () => setCurrentEditMode("free"));
   $("mode-policy-edit")?.addEventListener("click", () => setCurrentEditMode("policy"));
   $("mode-metadata-edit")?.addEventListener("click", () => setCurrentEditMode("metadata"));
-  if (!queryPostId && !isEditorEntry) {
-    setArticleStatus("No blog post generated yet. Click Generate Blog Post.");
-  }
-  if (isEditorActive) {
-    setTitleControlsEnabled(false);
-    setEditControlsEnabled(false);
-    setEditMode(false);
-    setGatedActionsEnabled(false);
-    setPolicyEditControlsEnabled(false);
-    setPolicyEditStatus("");
-    setPolicyEditResult("");
-    policyEditInFlight = false;
-    updateEditModeButtons();
-    applyEditModeState();
-    updateSuggestedTitleAction();
-  }
 });
 
 document.addEventListener("click", (event) => {
