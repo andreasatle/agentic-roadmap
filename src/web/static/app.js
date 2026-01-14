@@ -536,6 +536,12 @@ async function saveDocument() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
+  const postId = document.body?.dataset?.postId;
+  if (!postId) {
+    throw new Error("Missing required post_id data attribute on <body>.");
+  }
+  currentPostId = postId;
+
   // Initialize markdown rendering from preserved source
   const article = $("article-text");
   const articleSource = $("article-source");
