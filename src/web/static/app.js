@@ -1,3 +1,4 @@
+// JS is non-authoritative. HTML controls navigation and page state.
 let currentIntent = null;
 let currentMarkdown = null;
 let currentPostId = null;
@@ -10,7 +11,6 @@ let titleCommitted = false;
 let isEditingContent = false;
 let editRequestInFlight = false;
 let policyEditInFlight = false;
-let currentView = "intent";
 let isGenerating = false;
 let isClearing = false;
 
@@ -202,30 +202,6 @@ function renderDraftPosts(draftPosts) {
     }
     list.appendChild(item);
   });
-}
-
-function showEditorEntry() {
-  const entry = $("editor-entry");
-  if (entry) {
-    entry.hidden = false;
-  }
-  const intentContainer = $("intent-container");
-  if (intentContainer) {
-    intentContainer.hidden = true;
-  }
-  setView("intent");
-}
-
-function showIntentEntry() {
-  const entry = $("editor-entry");
-  if (entry) {
-    entry.hidden = true;
-  }
-  const intentContainer = $("intent-container");
-  if (intentContainer) {
-    intentContainer.hidden = false;
-  }
-  setView("intent");
 }
 
 function updateEditModeButtons() {
@@ -715,27 +691,9 @@ async function createBlogPostFromIntent(intentObject) {
 
 document.addEventListener("DOMContentLoaded", () => {
   const queryPostId = new URLSearchParams(window.location.search).get("post_id");
-  const queryMode = new URLSearchParams(window.location.search).get("mode");
   const isEditorEntry = window.location.pathname === "/blog/editor";
   if (queryPostId) {
     loadExistingDraft(queryPostId);
-  }
-  const intentContainer = $("intent-container");
-  if (!queryPostId && isEditorEntry && queryMode === "create") {
-    showIntentEntry();
-  } else if (!queryPostId && isEditorEntry) {
-    showEditorEntry();
-  } else if (!queryPostId) {
-    showIntentEntry();
-  }
-  if (queryPostId && intentContainer) {
-    intentContainer.hidden = true;
-  }
-  const createFromIntentBtn = $("create-from-intent-btn");
-  if (createFromIntentBtn) {
-    createFromIntentBtn.addEventListener("click", () => {
-      showIntentEntry();
-    });
   }
   const input = $("intent-file");
   if (input) {
@@ -789,16 +747,6 @@ document.addEventListener("click", (event) => {
   }
 });
 
-function setView(view) {
-  const intent = document.getElementById("intent-view");
-  const content = document.getElementById("content-view");
-
-  if (!intent || !content) return;
-
-  intent.hidden = view !== "intent";
-  content.hidden = view !== "content";
-}
-
 async function loadExistingDraft(postId) {
   try {
     const resp = await fetch(`/blog/editor/data?post_id=${encodeURIComponent(postId)}`);
@@ -809,14 +757,6 @@ async function loadExistingDraft(postId) {
     }
     const data = await resp.json();
     currentIntent = null;
-    const editorEntry = $("editor-entry");
-    if (editorEntry) {
-      editorEntry.hidden = true;
-    }
-    const intentContainer = $("intent-container");
-    if (intentContainer) {
-      intentContainer.hidden = true;
-    }
     currentPostId = data.post_id || null;
     currentMarkdown = data.content || "";
     currentStatus = data.status || null;
@@ -842,7 +782,6 @@ async function loadExistingDraft(postId) {
     if (currentMarkdown.trim()) {
       setEditMode(false);
     }
-    setView("content");
     setEditRequestState(false);
     policyEditInFlight = false;
     setPolicyEditControlsEnabled(!!currentPostId);
@@ -892,7 +831,6 @@ function resetPostView() {
   setPolicyEditStatus("");
   setPolicyEditResult("");
   setInvariantIndicators(null, null);
-  setView("intent");
 }
 
 function clearIntent() {
@@ -932,7 +870,6 @@ function clearIntent() {
   setPolicyEditStatus("");
   setPolicyEditResult("");
   setInvariantIndicators(null, null);
-  setView("intent");
   isClearing = false;
 }
 
