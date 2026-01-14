@@ -260,27 +260,74 @@
                     <pre id="error-area"></pre>
                 </form>
             </section>
-        {% else %}
-            <section>
-                <a href="/blog/editor?mode=create" class="btn btn--primary">Create new post</a>
-            </section>
-            <section>
-                {% if draft_posts %}
-                    <ul>
-                        {% for post in draft_posts %}
-                            <li>
-                                <a href="/blog/editor?post_id={{ post.post_id }}">
-                                    {{ post.title or '(untitled)' }}
-                                </a>
-                                <div>By {{ post.author }} · {{ post.created_at }}</div>
-                            </li>
-                        {% endfor %}
-                    </ul>
-                {% else %}
-                    <p>No draft posts available.</p>
-                {% endif %}
+        {% endif %}
+        {% if post_id %}
+            <section id="edit-view">
+                <div class="inline-controls">
+                    <input type="text" id="title-input" value="{{ meta.title or '' }}" placeholder="Title" />
+                    <button type="button" class="btn btn--primary" id="set-title-btn">Set title</button>
+                </div>
+                <div class="inline-controls">
+                    <span id="suggested-title-text"></span>
+                    <button type="button" class="btn btn--ghost" id="use-suggested-title">Use suggested title</button>
+                </div>
+                <div id="final-title"></div>
+                <div class="inline-controls">
+                    <input type="text" id="author-input" value="{{ meta.author or '' }}" placeholder="Author" />
+                    <button type="button" class="btn btn--primary" id="set-author-btn">Set author</button>
+                </div>
+                <div class="inline-controls">
+                    <div id="post-status-indicator">Status: {{ meta.status or "—" }}</div>
+                    <div id="post-revision-indicator">Last revision: —</div>
+                </div>
+                <div class="inline-controls">
+                    <button type="button" class="btn btn--ghost" id="mode-free-edit" aria-pressed="true">Free edit</button>
+                    <button type="button" class="btn btn--ghost" id="mode-policy-edit" aria-pressed="false">Policy edit</button>
+                    <button type="button" class="btn btn--ghost" id="mode-metadata-edit" aria-pressed="false">Metadata edit</button>
+                </div>
+                <section>
+                    <article id="article-text">{{ content or '' }}</article>
+                    <textarea id="article-editor"></textarea>
+                    <div class="inline-controls">
+                        <button type="button" class="btn btn--primary" id="edit-content-btn">Edit content</button>
+                        <button type="button" class="btn btn--primary" id="apply-edit-btn">Apply edit</button>
+                    </div>
+                </section>
+                <section>
+                    <textarea id="policy-text" placeholder="Policy text"></textarea>
+                    <div class="inline-controls">
+                        <button type="button" class="btn btn--primary" id="run-policy-edit-btn">Run policy edit</button>
+                    </div>
+                    <div id="policy-edit-status"></div>
+                    <pre id="policy-edit-result"></pre>
+                </section>
+                <section>
+                    <div class="inline-controls">
+                        <input type="text" id="article-filename" placeholder="article.md" />
+                        <button type="button" class="btn btn--primary" id="save-document-btn">Save document</button>
+                    </div>
+                </section>
             </section>
         {% endif %}
+        <section>
+            <a href="/blog/editor?mode=create" class="btn btn--primary">Create new post</a>
+        </section>
+        <section>
+            {% if draft_posts %}
+                <ul>
+                    {% for post in draft_posts %}
+                        <li>
+                            <a href="/blog/editor?post_id={{ post.post_id }}">
+                                {{ post.title or '(untitled)' }}
+                            </a>
+                            <div>By {{ post.author }} · {{ post.created_at }}</div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            {% else %}
+                <p>No draft posts available.</p>
+            {% endif %}
+        </section>
     </main>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="/static/app.js"></script>

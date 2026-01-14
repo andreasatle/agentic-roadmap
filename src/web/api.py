@@ -150,33 +150,37 @@ def read_editor_entry(
     accept = request.headers.get("accept", "")
     if "application/json" in accept.lower():
         raise HTTPException(status_code=406, detail="Editor renders HTML only")
-    if post_id:
-        return templates.TemplateResponse(
-            "blog_editor.html",
-            {
-                "request": request,
-                "post_id": post_id,
-                "mode": "edit",
-            },
-        )
-    if mode == "create":
-        return templates.TemplateResponse(
-            "blog_editor.html",
-            {
-                "request": request,
-                "mode": "create",
-            },
-        )
     posts = list_posts(include_drafts=True)
     draft_posts = [post for post in posts if post.status == "draft"]
-    return templates.TemplateResponse(
-        "blog_editor.html",
-        {
-            "request": request,
-            "draft_posts": draft_posts,
-            "mode": "entry",
-        },
-    )
+    payload: dict[str, object] = {
+        "request": request,
+        "draft_posts": draft_posts,
+    }
+    if post_id:
+        try:
+            meta = read_post_meta(post_id)
+            content = read_post_content(post_id)
+        except FileNotFoundError:
+            raise HTTPException(status_code=404, detail="Post not found")
+        try:
+            intent = read_post_intent(post_id)
+        except FileNotFoundError:
+            intent = {}
+        payload.update(
+            {
+                "post_id": post_id,
+                "mode": "edit",
+                "meta": meta,
+                "content": content,
+                "intent": intent,
+            },
+        )
+        return templates.TemplateResponse("blog_editor.html", payload)
+    if mode == "create":
+        payload["mode"] = "create"
+    else:
+        payload["mode"] = "entry"
+    return templates.TemplateResponse("blog_editor.html", payload)
 
 
 @app.get("/blog/editor/data")
