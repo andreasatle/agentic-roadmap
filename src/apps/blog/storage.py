@@ -100,6 +100,29 @@ def write_post_content(post_id: str, content: str) -> None:
     content_path.write_text(content)
 
 
+def write_revision_snapshots(
+    post_id: str,
+    revision_id: int,
+    snapshot_chunks: list[dict],
+) -> None:
+    revisions_dir = POSTS_ROOT / post_id / "revisions"
+    revisions_dir.mkdir(parents=True, exist_ok=True)
+    for snapshot in snapshot_chunks:
+        index = snapshot["index"]
+        text = snapshot["text"]
+        snapshot_path = revisions_dir / f"{revision_id}_{index}.md"
+        snapshot_path.write_text(text)
+
+
+def read_revision_metadata(post_id: str) -> list[dict]:
+    meta_path = POSTS_ROOT / post_id / "meta.yaml"
+    meta_payload = yaml.safe_load(meta_path.read_text()) or {}
+    revisions = meta_payload.get("revisions")
+    if revisions is None:
+        return []
+    return revisions
+
+
 def ensure_draft(post_id: str) -> None:
     meta = read_post_meta(post_id)
     if meta.status != "draft":
