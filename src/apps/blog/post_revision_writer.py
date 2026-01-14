@@ -1,21 +1,22 @@
 """Authoritative single-writer interface for post revision state."""
 
 from datetime import datetime, timezone
-from pathlib import Path
 from typing import Any
 
 import yaml
 
+from apps.blog.paths import POSTS_ROOT
+
 
 class PostRevisionWriter:
-    """Single-writer authority for loading and revising blog posts.
+    """Single-writer authority for loading and revising blog entries.
 
     This module centralizes revision recording and content updates under a
     single-writer authority.
     """
 
-    def __init__(self, posts_root: str = "posts") -> None:
-        self._posts_root = posts_root
+    def __init__(self) -> None:
+        pass
 
     def load_post(self, post_id: str) -> Any:
         """Load a post into the writer's authority context for revision."""
@@ -54,7 +55,7 @@ class PostRevisionWriter:
             raise ValueError(f"Unknown delta_type: {delta_type}")
         record_payload = dict(delta_payload)
 
-        post_dir = Path(self._posts_root) / post_id
+        post_dir = POSTS_ROOT / post_id
         meta_path = post_dir / "meta.yaml"
         if not meta_path.exists():
             raise FileNotFoundError(f"meta.yaml not found for post {post_id}")
