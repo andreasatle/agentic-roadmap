@@ -342,15 +342,73 @@ async def create_blog_post_route(
 ) -> RedirectResponse:
     require_admin(creds)
     form = await request.form()
-    intent_text = form.get("intent")
-    if not isinstance(intent_text, str) or not intent_text:
-        raise HTTPException(status_code=400, detail="Invalid intent payload")
-    try:
-        intent_payload = json.loads(intent_text)
-    except json.JSONDecodeError:
-        raise HTTPException(status_code=400, detail="Invalid intent payload")
-    if not isinstance(intent_payload, dict):
-        raise HTTPException(status_code=400, detail="Invalid intent payload")
+    document_goal_raw = form.get("document_goal")
+    audience_raw = form.get("audience")
+    tone_raw = form.get("tone")
+    required_sections_raw = form.get("required_sections")
+    forbidden_sections_raw = form.get("forbidden_sections")
+    must_include_raw = form.get("must_include")
+    must_avoid_raw = form.get("must_avoid")
+    required_mentions_raw = form.get("required_mentions")
+    humor_level_raw = form.get("humor_level")
+    formality_raw = form.get("formality")
+    narrative_voice_raw = form.get("narrative_voice")
+
+    document_goal = document_goal_raw.strip() if isinstance(document_goal_raw, str) and document_goal_raw.strip() else None
+    audience = audience_raw.strip() if isinstance(audience_raw, str) and audience_raw.strip() else None
+    tone = tone_raw.strip() if isinstance(tone_raw, str) and tone_raw.strip() else None
+    required_sections = (
+        [line.strip() for line in required_sections_raw.splitlines() if line.strip()]
+        if isinstance(required_sections_raw, str)
+        else []
+    )
+    forbidden_sections = (
+        [line.strip() for line in forbidden_sections_raw.splitlines() if line.strip()]
+        if isinstance(forbidden_sections_raw, str)
+        else []
+    )
+    must_include = (
+        [line.strip() for line in must_include_raw.splitlines() if line.strip()]
+        if isinstance(must_include_raw, str)
+        else []
+    )
+    must_avoid = (
+        [line.strip() for line in must_avoid_raw.splitlines() if line.strip()]
+        if isinstance(must_avoid_raw, str)
+        else []
+    )
+    required_mentions = (
+        [line.strip() for line in required_mentions_raw.splitlines() if line.strip()]
+        if isinstance(required_mentions_raw, str)
+        else []
+    )
+    humor_level = humor_level_raw.strip() if isinstance(humor_level_raw, str) and humor_level_raw.strip() else None
+    formality = formality_raw.strip() if isinstance(formality_raw, str) and formality_raw.strip() else None
+    narrative_voice = (
+        narrative_voice_raw.strip()
+        if isinstance(narrative_voice_raw, str) and narrative_voice_raw.strip()
+        else None
+    )
+
+    intent_payload = {
+        "structural_intent": {
+            "document_goal": document_goal,
+            "audience": audience,
+            "tone": tone,
+            "required_sections": required_sections,
+            "forbidden_sections": forbidden_sections,
+        },
+        "semantic_constraints": {
+            "must_include": must_include,
+            "must_avoid": must_avoid,
+            "required_mentions": required_mentions,
+        },
+        "stylistic_preferences": {
+            "humor_level": humor_level,
+            "formality": formality,
+            "narrative_voice": narrative_voice,
+        },
+    }
     try:
         intent = IntentEnvelope.model_validate(intent_payload)
     except Exception as exc:
