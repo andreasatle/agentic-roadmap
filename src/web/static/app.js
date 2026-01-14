@@ -50,17 +50,22 @@ async function resolveYamlParser() {
 }
 
 async function downloadIntentFromForm() {
-  const documentGoal = $("document-goal")?.value ?? "";
-  const audience = $("audience")?.value ?? "";
-  const tone = $("tone")?.value ?? "";
+  const filename =
+    prompt("Save intent as:", "intent.yaml")?.trim() || "intent.yaml";
+
+  if (!filename) return;
+
+  const documentGoalRaw = $("document-goal")?.value ?? "";
+  const audienceRaw = $("audience")?.value ?? "";
+  const toneRaw = $("tone")?.value ?? "";
   const requiredSectionsRaw = $("required-sections")?.value ?? "";
   const forbiddenSectionsRaw = $("forbidden-sections")?.value ?? "";
   const mustIncludeRaw = $("must-include")?.value ?? "";
   const mustAvoidRaw = $("must-avoid")?.value ?? "";
   const requiredMentionsRaw = $("required-mentions")?.value ?? "";
-  const humorLevel = $("humor-level")?.value ?? "";
-  const formality = $("formality")?.value ?? "";
-  const narrativeVoice = $("narrative-voice")?.value ?? "";
+  const humorLevelRaw = $("humor-level")?.value ?? "";
+  const formalityRaw = $("formality")?.value ?? "";
+  const narrativeVoiceRaw = $("narrative-voice")?.value ?? "";
 
   const toScalar = (value) => {
     const trimmed = value.trim();
@@ -75,9 +80,9 @@ async function downloadIntentFromForm() {
 
   const intentPayload = {
     structural_intent: {
-      document_goal: toScalar(documentGoal),
-      audience: toScalar(audience),
-      tone: toScalar(tone),
+      document_goal: toScalar(documentGoalRaw),
+      audience: toScalar(audienceRaw),
+      tone: toScalar(toneRaw),
       required_sections: toList(requiredSectionsRaw),
       forbidden_sections: toList(forbiddenSectionsRaw),
     },
@@ -87,9 +92,9 @@ async function downloadIntentFromForm() {
       required_mentions: toList(requiredMentionsRaw),
     },
     stylistic_preferences: {
-      humor_level: toScalar(humorLevel),
-      formality: toScalar(formality),
-      narrative_voice: toScalar(narrativeVoice),
+      humor_level: toScalar(humorLevelRaw),
+      formality: toScalar(formalityRaw),
+      narrative_voice: toScalar(narrativeVoiceRaw),
     },
   };
 
@@ -103,7 +108,7 @@ async function downloadIntentFromForm() {
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = "intent.yaml";
+  a.download = filename;
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -768,3 +773,4 @@ function showHelp(anchor, text) {
 
   setTimeout(() => document.addEventListener("click", cleanup), 0);
 }
+
