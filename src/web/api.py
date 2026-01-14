@@ -140,22 +140,12 @@ def read_home(request: Request):
 def read_editor_entry(
     request: Request,
     post_id: str | None = None,
-    mode: str | None = None,
     creds = Depends(security),
 ):
     require_admin(creds)
-    if mode not in {"entry", "create", "edit", None}:
-        logger.warning(f"Invalid editor mode '{mode}', defaulting to entry")
-        mode = "entry"
     accept = request.headers.get("accept", "")
     if "application/json" in accept.lower():
         raise HTTPException(status_code=406, detail="Editor renders HTML only")
-    posts = list_posts(include_drafts=True)
-    draft_posts = [post for post in posts if post.status == "draft"]
-    payload: dict[str, object] = {
-        "request": request,
-        "draft_posts": draft_posts,
-    }
     if post_id:
         try:
             meta = read_post_meta(post_id)
@@ -166,21 +156,40 @@ def read_editor_entry(
             intent = read_post_intent(post_id)
         except FileNotFoundError:
             intent = {}
-        payload.update(
+        return templates.TemplateResponse(
+            "blog_editor_edit.html",
             {
+                "request": request,
                 "post_id": post_id,
-                "mode": "edit",
                 "meta": meta,
                 "content": content,
                 "intent": intent,
             },
         )
-        return templates.TemplateResponse("blog_editor.html", payload)
-    if mode == "create":
-        payload["mode"] = "create"
-    else:
-        payload["mode"] = "entry"
-    return templates.TemplateResponse("blog_editor.html", payload)
+    posts = list_posts(include_drafts=True)
+    draft_posts = [post for post in posts if post.status == "draft"]
+    return templates.TemplateResponse(
+        "blog_editor_entry.html",
+        {
+            "request": request,
+            "draft_posts": draft_posts,
+        },
+    )
+
+
+@app.get("/blog/editor/create")
+def read_editor_create(
+    request: Request,
+    creds = Depends(security),
+):
+    require_admin(creds)
+    accept = request.headers.get("accept", "")
+    if "application/json" in accept.lower():
+        raise HTTPException(status_code=406, detail="Editor renders HTML only")
+    return templates.TemplateResponse(
+        "blog_editor_create.html",
+        {"request": request},
+    )
 
 
 @app.get("/blog/editor/data")

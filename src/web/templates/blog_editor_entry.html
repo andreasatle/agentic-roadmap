@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Blog Editor</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <link rel="stylesheet" href="/static/theme-dark.css">
+</head>
+<body>
+    <main class="container">
+        <p><a href="/">Home</a></p>
+        <header>
+            <h1>Blog Editor</h1>
+        </header>
+        <section>
+            <a href="/blog/editor/create" class="btn btn--primary">Create new post</a>
+        </section>
+        <section>
+            <ul>
+                {% for post in draft_posts %}
+                    <li>
+                        <a href="/blog/editor?post_id={{ post.post_id }}">
+                            {{ post.title or '(untitled)' }}
+                        </a>
+                        <div>By {{ post.author }} · {{ post.created_at }}</div>
+                    </li>
+                {% endfor %}
+            </ul>
+        </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Blog Editor</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <link rel="stylesheet" href="/static/theme-dark.css">
+</head>
+<body>
+    <main class="container">
+        <p><a href="/">Home</a></p>
+        <header>
+            <h1>Blog Editor</h1>
+        </header>
+        <section id="intent-view">
+            <form
+                id="intent-form"
+                method="post"
+                action="/blog/create"
+            >
+                <header class="intent-header">
+                    <div class="intent-header-left">
+                        <h2>Intent Form</h2>
+                    </div>
+                    <div class="intent-header-right">
+                        <button type="button" class="btn btn--primary" onclick="openIntentFile()">Load intent</button>
+                        <button type="button" class="btn btn--primary" onclick="downloadIntentFromForm()">Download intent</button>
+                    </div>
+                </header>
+
+                <div class="form-row stretch">
+                    <div class="intent-field fill">
+                        <div class="intent-label-row">
+                            <label for="document-goal" class="intent-label-text">Document Goal</label>
+                            <button
+                                type="button"
+                                class="intent-help"
+                                data-help="High-level purpose of the document. Not a plan, outline, or instructions. Example: 'Explain why constraining agents improves predictability.'"
+                                aria-label="Help for Document Goal"
+                            >
+                                ?
+                            </button>
+                        </div>
+                        <textarea id="document-goal" name="document_goal"></textarea>
+                    </div>
+                    <div class="stack">
+                        <div class="intent-field">
+                            <div class="intent-label-row">
+                                <label for="audience" class="intent-label-text">Audience</label>
+                                <button
+                                    type="button"
+                                    class="intent-help"
+                                    data-help="Who this is written for. Use a description, not a role or persona. Example: 'Senior engineers skeptical of autonomous agents.'"
+                                    aria-label="Help for Audience"
+                                >
+                                    ?
+                                </button>
+                            </div>
+                            <input list="audience-options" type="text" id="audience" name="audience" />
+                            <datalist id="audience-options">
+                                <option value="engineers" />
+                                <option value="general public" />
+                                <option value="technical leadership" />
+                                <option value="product managers" />
+                                <option value="researchers" />
+                                <option value="students" />
+                            </datalist>
+                        </div>
+                        <div class="intent-field">
+                            <div class="intent-label-row">
+                                <label for="tone" class="intent-label-text">Tone</label>
+                                <button
+                                    type="button"
+                                    class="intent-help"
+                                    data-help="Overall tone of the document. Advisory only. Example: 'Analytical, restrained, critical.'"
+                                    aria-label="Help for Tone"
+                                >
+                                    ?
+                                </button>
+                            </div>
+                            <input list="tone-options" type="text" id="tone" name="tone" />
+                            <datalist id="tone-options">
+                                <option value="informative" />
+                                <option value="reflective" />
+                                <option value="analytical" />
+                                <option value="conversational" />
+                                <option value="technical" />
+                                <option value="neutral" />
+                            </datalist>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="intent-field">
+                        <div class="intent-label-row">
+                            <label for="required-sections" class="intent-label-text">Required Sections</label>
+                            <button
+                                type="button"
+                                class="intent-help"
+                                data-help="Section labels you expect to appear. These are names, not instructions. Example: 'Introduction', 'Failure Modes', 'Conclusion'."
+                                aria-label="Help for Required Sections"
+                            >
+                                ?
+                            </button>
+                        </div>
+                        <textarea id="required-sections" name="required_sections"></textarea>
+                    </div>
+                    <div class="intent-field">
+                        <div class="intent-label-row">
+                            <label for="forbidden-sections" class="intent-label-text">Forbidden Sections</label>
+                            <button
+                                type="button"
+                                class="intent-help"
+                                data-help="Section labels you explicitly want to avoid. Example: 'Marketing', 'Use Cases'."
+                                aria-label="Help for Forbidden Sections"
+                            >
+                                ?
+                            </button>
+                        </div>
+                        <textarea id="forbidden-sections" name="forbidden_sections"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="intent-field">
+                        <div class="intent-label-row">
+                            <label for="must-include" class="intent-label-text">Must Include</label>
+                            <button
+                                type="button"
+                                class="intent-help"
+                                data-help="Concepts or ideas that must appear somewhere in the text. No placement or emphasis is implied."
+                                aria-label="Help for Must Include"
+                            >
+                                ?
+                            </button>
+                        </div>
+                        <textarea id="must-include" name="must_include"></textarea>
+                    </div>
+                    <div class="intent-field">
+                        <div class="intent-label-row">
+                            <label for="must-avoid" class="intent-label-text">Must Avoid</label>
+                            <button
+                                type="button"
+                                class="intent-help"
+                                data-help="Topics, claims, or language that should not appear anywhere."
+                                aria-label="Help for Must Avoid"
+                            >
+                                ?
+                            </button>
+                        </div>
+                        <textarea id="must-avoid" name="must_avoid"></textarea>
+                    </div>
+                </div>
+
+                <div class="form-row stretch">
+                    <div class="intent-field fill">
+                        <div class="intent-label-row">
+                            <label for="required-mentions" class="intent-label-text">Required Mentions</label>
+                            <button
+                                type="button"
+                                class="intent-help"
+                                data-help="Specific entities or topics that should be mentioned at least once. Example: 'Planner–Worker–Critic'."
+                                aria-label="Help for Required Mentions"
+                            >
+                                ?
+                            </button>
+                        </div>
+                        <textarea id="required-mentions" name="required_mentions"></textarea>
+                    </div>
+                    <div class="stack">
+                        <div class="intent-field">
+                            <div class="intent-label-row">
+                                <label for="humor-level" class="intent-label-text">Humor Level</label>
+                                <button
+                                    type="button"
+                                    class="intent-help"
+                                    data-help="Desired amount of humor, if any. Advisory only. Example: 'None', 'Dry', 'Light'."
+                                    aria-label="Help for Humor Level"
+                                >
+                                    ?
+                                </button>
+                            </div>
+                            <input list="humor-options" type="text" id="humor-level" name="humor_level" />
+                            <datalist id="humor-options">
+                                <option value="none" />
+                                <option value="light" />
+                                <option value="moderate" />
+                                <option value="dry" />
+                            </datalist>
+                        </div>
+                        <div class="intent-field">
+                            <div class="intent-label-row">
+                                <label for="formality" class="intent-label-text">Formality</label>
+                                <button
+                                    type="button"
+                                    class="intent-help"
+                                    data-help="Overall formality level. Informal → neutral → formal."
+                                    aria-label="Help for Formality"
+                                >
+                                    ?
+                                </button>
+                            </div>
+                            <input list="formality-options" type="text" id="formality" name="formality" />
+                            <datalist id="formality-options">
+                                <option value="casual" />
+                                <option value="neutral" />
+                                <option value="formal" />
+                                <option value="academic" />
+                            </datalist>
+                        </div>
+                        <div class="intent-field">
+                            <div class="intent-label-row">
+                                <label for="narrative-voice" class="intent-label-text">Narrative Voice</label>
+                                <button
+                                    type="button"
+                                    class="intent-help"
+                                    data-help="Preferred narrative voice, if relevant. Example: 'First person', 'Third person'."
+                                    aria-label="Help for Narrative Voice"
+                                >
+                                    ?
+                                </button>
+                            </div>
+                            <input list="narrative-voice-options" type="text" id="narrative-voice" name="narrative_voice" />
+                            <datalist id="narrative-voice-options">
+                                <option value="first-person" />
+                                <option value="third-person" />
+                                <option value="second-person" />
+                            </datalist>
+                        </div>
+                    </div>
+                </div>
+
+                <section class="action-row">
+                    <div class="actions-right">
+                        <button type="submit" class="btn btn--primary" id="generate-blog-post-btn">
+                            Generate Blog Post
+                        </button>
+                    </div>
+                </section>
+                <pre id="error-area"></pre>
+            </form>
+        </section>
+    </main>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="/static/app.js"></script>
+</body>
+</html>
