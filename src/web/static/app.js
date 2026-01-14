@@ -369,6 +369,26 @@ function readIntentFromForm() {
   };
 }
 
+function hasAnyIntentSignal(intent) {
+  if (!intent || typeof intent !== "object") return false;
+
+  const sections = [
+    intent.structural_intent,
+    intent.semantic_constraints,
+    intent.stylistic_preferences,
+  ];
+
+  for (const section of sections) {
+    if (!section || typeof section !== "object") continue;
+    for (const value of Object.values(section)) {
+      if (Array.isArray(value) && value.length > 0) return true;
+      if (typeof value === "string" && value.trim() !== "") return true;
+      if (value !== null && value !== undefined && typeof value !== "object") return true;
+    }
+  }
+  return false;
+}
+
 function uploadIntent(event) {
   const file = event.target.files && event.target.files[0];
   if (!file) {
@@ -651,6 +671,14 @@ async function createBlogPostFromIntent(intentObject) {
     generateBtn.disabled = true;
     generateBtn.textContent = "Generating…";
   }
+  if (!hasAnyIntentSignal(intentObject)) {
+    if (generateBtn) {
+      generateBtn.disabled = false;
+      generateBtn.textContent = "Generate Blog Post";
+    }
+    setError("Intent is required.");
+    return;
+  }
   try {
     const resp = await fetch("/blog/create", {
       method: "POST",
@@ -718,53 +746,13 @@ document.addEventListener("DOMContentLoaded", () => {
     intentForm.addEventListener("input", applyIntentChanges);
     intentForm.addEventListener("submit", (event) => {
       event.preventDefault();
-      currentIntent = readIntentFromForm();
-      const hasIntent =
-        currentIntent
-        && (
-          currentIntent.structural_intent?.document_goal
-          || currentIntent.structural_intent?.audience
-          || currentIntent.structural_intent?.tone
-          || (currentIntent.structural_intent?.required_sections || []).length
-          || (currentIntent.structural_intent?.forbidden_sections || []).length
-          || (currentIntent.semantic_constraints?.must_include || []).length
-          || (currentIntent.semantic_constraints?.must_avoid || []).length
-          || (currentIntent.semantic_constraints?.required_mentions || []).length
-          || currentIntent.stylistic_preferences?.humor_level
-          || currentIntent.stylistic_preferences?.formality
-          || currentIntent.stylistic_preferences?.narrative_voice
-        );
-      if (!hasIntent) {
-        setError("Intent is required.");
-        return;
-      }
-      createBlogPostFromIntent(currentIntent);
+      createBlogPostFromIntent(readIntentFromForm());
     });
   }
   const generateBtn = $("generate-blog-post-btn");
   if (generateBtn) {
     generateBtn.addEventListener("click", () => {
-      currentIntent = readIntentFromForm();
-      const hasIntent =
-        currentIntent
-        && (
-          currentIntent.structural_intent?.document_goal
-          || currentIntent.structural_intent?.audience
-          || currentIntent.structural_intent?.tone
-          || (currentIntent.structural_intent?.required_sections || []).length
-          || (currentIntent.structural_intent?.forbidden_sections || []).length
-          || (currentIntent.semantic_constraints?.must_include || []).length
-          || (currentIntent.semantic_constraints?.must_avoid || []).length
-          || (currentIntent.semantic_constraints?.required_mentions || []).length
-          || currentIntent.stylistic_preferences?.humor_level
-          || currentIntent.stylistic_preferences?.formality
-          || currentIntent.stylistic_preferences?.narrative_voice
-        );
-      if (!hasIntent) {
-        setError("Intent is required.");
-        return;
-      }
-      createBlogPostFromIntent(currentIntent);
+      createBlogPostFromIntent(readIntentFromForm());
     });
   }
   $("set-title-btn")?.addEventListener("click", setTitle);
