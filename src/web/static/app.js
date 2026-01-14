@@ -1,4 +1,15 @@
-// JS is non-authoritative. HTML controls navigation and page state.
+// JS is non-authoritative. HTML controls navigation and state.
+(function () {
+  const forbiddenGlobals = ["mode", "view", "currentView"];
+
+  forbiddenGlobals.forEach((name) => {
+    if (name in window) {
+      console.error(
+        `FATAL: Competing navigation authority detected. Global '${name}' must not exist.`
+      );
+    }
+  });
+})();
 let currentIntent = null;
 let currentMarkdown = null;
 let currentPostId = null;
