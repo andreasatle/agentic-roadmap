@@ -13,7 +13,17 @@
             <h1>Blog Editor</h1>
         </header>
         <section>
-            <a href="/blog/editor?mode=create" class="btn btn--primary">Create new post</a>
+            {% if not post_id %}
+                <form method="post" action="/blog/create">
+                    <div>
+                        <label for="intent">Intent</label>
+                        <input id="intent" name="intent" type="text" required>
+                    </div>
+                    <button type="submit" class="btn btn--primary">Create new post</button>
+                </form>
+            {% else %}
+                <a href="/blog/editor?mode=create" class="btn btn--primary">Create new post</a>
+            {% endif %}
         </section>
         <section>
             {% if draft_posts %}

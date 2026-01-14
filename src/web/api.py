@@ -6,7 +6,7 @@ import os
 from io import BytesIO
 from typing import Literal
 
-from fastapi import FastAPI, HTTPException, Request, Depends, Query, Body
+from fastapi import FastAPI, HTTPException, Request, Depends
 from fastapi.responses import HTMLResponse, StreamingResponse, JSONResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
@@ -287,53 +287,51 @@ def suggest_blog_title_route(
 
 
 @app.post("/blog/create")
-def create_blog_post_route(
-    payload: DocumentGenerateRequest | None = Body(default=None),
+async def create_blog_post_route(
+    request: Request,
     creds = Depends(security),
-) -> dict[str, str]:
+) -> RedirectResponse:
     require_admin(creds)
-    author = (creds.username or "").strip()
-    if not author:
-        raise HTTPException(status_code=400, detail="Author must be set")
-    intent = payload.intent.model_dump() if payload is not None else {}
+    form = await request.form()
+    intent_text = form.get("intent") or ""
+    intent = load_intent_from_yaml(intent_text)
     post_id, _ = create_post(
         title=None,
-        author=author,
-        intent=intent,
+        author=(creds.username or "unknown"),
+        intent=intent.model_dump(),
         content="",
     )
-    if payload is not None:
-        blog_result = generate_blog_post(
-            intent=payload.intent,
-            trace=False,
-        )
-        markdown = blog_result.markdown
-        before_content = read_post_content(post_id)
-        before_hash = _hash_text(before_content)
-        after_hash = _hash_text(markdown)
-        snapshot_chunks = [
-            {"index": chunk.index, "text": chunk.text}
-            for chunk in split_markdown(markdown)
-        ]
-        writer = PostRevisionWriter()
-        revision_id = writer.apply_delta(
-            post_id,
-            actor={"type": "generator", "id": author},
-            delta_type="content_free_edit",
-            delta_payload={
-                "changed_chunks": _changed_chunk_indices(before_content, markdown),
-                "before_hash": before_hash,
-                "after_hash": after_hash,
-            },
-        )
-        revision_recorded = True
-        if not isinstance(revision_id, int):
-            raise HTTPException(status_code=500, detail="Failed to record revision")
-        write_revision_snapshots(post_id, revision_id, snapshot_chunks)
-        if not revision_recorded:
-            raise HTTPException(status_code=500, detail="Revision required before content write")
-        write_post_content(post_id, markdown)
-    return {"post_id": post_id}
+    blog_result = generate_blog_post(
+        intent=intent,
+        trace=False,
+    )
+    markdown = blog_result.markdown
+    before_content = read_post_content(post_id)
+    before_hash = _hash_text(before_content)
+    after_hash = _hash_text(markdown)
+    snapshot_chunks = [
+        {"index": chunk.index, "text": chunk.text}
+        for chunk in split_markdown(markdown)
+    ]
+    writer = PostRevisionWriter()
+    revision_id = writer.apply_delta(
+        post_id,
+        actor={"type": "generator", "id": creds.username or "editor"},
+        delta_type="content_free_edit",
+        delta_payload={
+            "changed_chunks": _changed_chunk_indices(before_content, markdown),
+            "before_hash": before_hash,
+            "after_hash": after_hash,
+        },
+    )
+    revision_recorded = True
+    if not isinstance(revision_id, int):
+        raise HTTPException(status_code=500, detail="Failed to record revision")
+    write_revision_snapshots(post_id, revision_id, snapshot_chunks)
+    if not revision_recorded:
+        raise HTTPException(status_code=500, detail="Revision required before content write")
+    write_post_content(post_id, markdown)
+    return RedirectResponse(f"/blog/editor?post_id={post_id}", status_code=303)
 
 
 @app.post("/blog/set-title")
