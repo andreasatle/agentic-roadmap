@@ -197,24 +197,18 @@ function setTitleControlsEnabled(enabled) {
   const input = $("title-input");
   const btn = $("set-title-btn");
   const canEnable = enabled && currentEditMode === "metadata";
-  if (input) input.disabled = !canEnable;
-  if (btn) btn.disabled = !canEnable;
 }
 
 function setEditControlsEnabled(enabled) {
   const editBtn = $("edit-content-btn");
   const applyBtn = $("apply-edit-btn");
   const canEnable = enabled && currentEditMode === "free";
-  if (editBtn) editBtn.disabled = !canEnable;
-  if (applyBtn) applyBtn.disabled = !canEnable;
 }
 
 function setPolicyEditControlsEnabled(enabled) {
   const policyText = $("policy-text");
   const runBtn = $("run-policy-edit-btn");
   const canEnable = enabled && currentEditMode === "policy";
-  if (policyText) policyText.disabled = !canEnable;
-  if (runBtn) runBtn.disabled = !canEnable;
 }
 
 function setPolicyEditStatus(text) {
@@ -323,17 +317,12 @@ function applyEditModeState() {
   const canPolicyEdit = isPolicy && hasPost && !policyEditInFlight;
   setEditControlsEnabled(canEdit);
   const editor = $("article-editor");
-  if (editor) editor.disabled = !isFree;
   const policyText = $("policy-text");
-  if (policyText) policyText.disabled = !isPolicy;
   const runBtn = $("run-policy-edit-btn");
-  if (runBtn) runBtn.disabled = !canPolicyEdit;
   const titleEnabled = isMetadata && hasPost;
   setTitleControlsEnabled(titleEnabled);
   const authorInput = $("author-input");
   const authorBtn = $("set-author-btn");
-  if (authorInput) authorInput.disabled = !titleEnabled;
-  if (authorBtn) authorBtn.disabled = !titleEnabled;
 }
 
 function setCurrentEditMode(mode) {
@@ -701,3 +690,9 @@ function showHelp(anchor, text) {
 
   setTimeout(() => document.addEventListener("click", cleanup), 0);
 }
+
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("button[data-href]");
+  if (!btn) return;
+  window.location.href = btn.dataset.href;
+});

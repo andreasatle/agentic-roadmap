@@ -54,17 +54,17 @@ label {
 }
 
 /* Inputs */
-.intent-field input,
-.intent-field textarea,
-.intent-field select {
+input,
+textarea,
+select {
   background: var(--bg-input);
   color: var(--text-main);
   border-color: var(--border-subtle);
 }
 
-.intent-field input:focus,
-.intent-field textarea:focus,
-.intent-field select:focus {
+input:focus,
+textarea:focus,
+select:focus {
   border-color: var(--accent-blue);
 }
 
