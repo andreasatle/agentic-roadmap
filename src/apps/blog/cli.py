@@ -1,5 +1,5 @@
 import argparse
-from pathlib import Path
+import os
 from dotenv import load_dotenv
 
 from document_writer.apps.service import generate_document
@@ -36,7 +36,8 @@ def main():
 # ---------- generate ----------
 
 def generate(args):
-    intent = load_intent_from_yaml(Path(args.intent).read_text())
+    with open(args.intent, "r", encoding="utf-8") as handle:
+        intent = load_intent_from_yaml(handle.read())
 
     result = generate_document(
         intent=intent,
@@ -59,12 +60,13 @@ def generate(args):
 # ---------- edit ----------
 
 def edit_post(args):
-    editing_policy = Path(args.policy).read_text()
+    with open(args.policy, "r", encoding="utf-8") as handle:
+        editing_policy = handle.read()
 
     result = apply_policy_edit(
         args.post_id,
         editing_policy,
-        actor_id=Path(args.policy).name,
+        actor_id=os.path.basename(args.policy),
     )
 
     for rejected in result.rejected_chunks:
