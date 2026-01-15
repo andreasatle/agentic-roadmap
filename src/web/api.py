@@ -202,7 +202,7 @@ async def submit_manual_edit(
 ) -> RedirectResponse:
     require_admin(creds)
     form = await request.form()
-    form.get("content")
+    write_post_content(post_id, form.get("content") or "")
     return RedirectResponse(f"/blog/editor/{post_id}", status_code=303)
 
 
