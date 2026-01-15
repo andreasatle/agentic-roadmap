@@ -17,6 +17,7 @@ from document_writer.domain.editor.api import AgentEditorRequest
 from document_writer.domain.editor.service import edit_document
 from document_writer.domain.editor.chunking import split_markdown
 from document_writer.apps.title_suggester import suggest_title
+from apps.blog.edit_service import apply_policy_edit
 from apps.blog.post_revision_writer import PostRevisionWriter
 from apps.blog.storage import (
     create_post,
@@ -32,6 +33,8 @@ from web.schemas import (
     DocumentGenerateRequest,
     DocumentSaveRequest,
     EditContentRequest,
+    BlogEditRequest,
+    BlogEditResponse,
     TitleSetRequest,
     TitleSuggestRequest,
 )
@@ -557,6 +560,38 @@ def edit_blog_content_route(
         raise HTTPException(status_code=500, detail="Revision required before content write")
     write_post_content(payload.post_id, response.edited_document)
     return {"post_id": payload.post_id, "content": response.edited_document}
+
+
+@app.post("/blog/edit", response_model=BlogEditResponse)
+def edit_blog_post_route(
+    payload: BlogEditRequest,
+    creds = Depends(security),
+) -> BlogEditResponse:
+    require_admin(creds)
+    # UI state is non-authoritative; policy edits are revision-led only.
+    try:
+        meta = read_post_meta(payload.post_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Post not found")
+    if meta.status != "draft":
+        raise HTTPException(status_code=409, detail="Post is not draft")
+    if payload.policy_text is not None:
+        policy_text = payload.policy_text
+    else:
+        policies_dir = os.path.join(BASE_DIR, "apps", "blog", "policies")
+        policy_path = os.path.join(policies_dir, f"{payload.policy_id}.txt")
+        if not os.path.exists(policy_path):
+            raise HTTPException(status_code=400, detail="Policy not found")
+        with open(policy_path, "r", encoding="utf-8") as handle:
+            policy_text = handle.read()
+    if not policy_text.strip():
+        raise HTTPException(status_code=400, detail="Policy text must be non-empty")
+    result = apply_policy_edit(
+        payload.post_id,
+        policy_text,
+        actor_id=payload.policy_id or "inline",
+    )
+    return result
 
 
 @app.get("/blog/revisions")

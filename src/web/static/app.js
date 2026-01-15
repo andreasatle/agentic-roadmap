@@ -185,6 +185,20 @@ function setFinalTitle(title) {
   }
 }
 
+function setPolicyEditStatus(text) {
+  const target = $("policy-edit-status");
+  if (target) {
+    target.textContent = text || "";
+  }
+}
+
+function setPolicyEditResult(text) {
+  const target = $("policy-edit-result");
+  if (target) {
+    target.textContent = text || "";
+  }
+}
+
 function setEditMode(enabled) {
   isEditingContent = enabled;
   const article = $("article-text");
@@ -299,6 +313,57 @@ async function applyEdit() {
   }
 }
 
+async function runPolicyEdit() {
+  setPolicyEditStatus("editing…");
+  setPolicyEditResult("");
+  try {
+    if (!currentPostId) {
+      return;
+    }
+    const policyText = $("policy-text");
+    const policyValue = (policyText?.value || "").trim();
+    if (!policyValue) {
+      setPolicyEditStatus("Policy text is required.");
+      return;
+    }
+    const resp = await fetch("/blog/edit", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ post_id: currentPostId, policy_text: policyValue }),
+    });
+    if (!resp.ok) {
+      const detail = await resp.text();
+      setPolicyEditStatus(detail || "Edit failed.");
+      return;
+    }
+    const data = await resp.json();
+    currentMarkdown = data.content || "";
+    const articleArea = $("article-text");
+    if (articleArea) {
+      articleArea.innerHTML = marked.parse(currentMarkdown);
+    }
+    const changed = (data.changed_chunks || []).join(", ");
+    const rejected = (data.rejected_chunks || [])
+      .map((item) => `${item.chunk_index}: ${item.reason}`)
+      .join("\n");
+    const resultLines = [
+      `Revision: ${data.revision_id}`,
+      `Changed chunks: ${changed || "none"}`,
+    ];
+    if (rejected) {
+      resultLines.push(`Rejected:\n${rejected}`);
+    }
+    setPolicyEditStatus("edit applied");
+    setPolicyEditResult(resultLines.join("\n"));
+    if (policyText) {
+      policyText.value = "";
+    }
+    setError("");
+  } catch (err) {
+    setPolicyEditStatus(err?.message || "Edit failed.");
+  }
+}
+
 async function suggestTitle(content) {
   if (!content) {
     setSuggestedTitleValue("");
@@ -388,6 +453,7 @@ document.addEventListener("DOMContentLoaded", () => {
   $("set-author-btn")?.addEventListener("click", setAuthor);
   $("edit-content-btn")?.addEventListener("click", toggleEditContent);
   $("apply-edit-btn")?.addEventListener("click", applyEdit);
+  $("run-policy-edit-btn")?.addEventListener("click", runPolicyEdit);
 });
 
 document.addEventListener("click", (event) => {
