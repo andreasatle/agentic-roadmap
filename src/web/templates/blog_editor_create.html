@@ -24,7 +24,7 @@
                     </div>
                     <div class="intent-header-right">
                         <button type="button" class="btn btn--primary" onclick="openIntentFile()">Load intent</button>
-                        <button type="button" class="btn btn--primary" onclick="downloadIntentFromForm()">Download intent</button>
+                        <button type="button" class="btn btn--primary" id="download-intent-btn">Download intent</button>
                     </div>
                 </header>
 
@@ -242,6 +242,22 @@
             </form>
         </section>
     </main>
+    <section id="download-intent-modal" hidden>
+        <div class="modal-panel">
+            <header class="modal-header">
+                <h2>Download intent</h2>
+            </header>
+            <div class="modal-body">
+                <div class="inline-controls">
+                    <input type="text" id="download-intent-filename" value="intent.yaml" />
+                </div>
+            </div>
+            <div class="inline-controls modal-actions">
+                <button type="button" class="btn btn--ghost" id="download-intent-cancel-btn">Cancel</button>
+                <button type="button" class="btn btn--primary" id="download-intent-confirm-btn">Download</button>
+            </div>
+        </div>
+    </section>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="/static/app.js"></script>
 </body>

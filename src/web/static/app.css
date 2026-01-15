@@ -230,11 +230,13 @@ main.container ul li > a:hover {
    MODAL
    ============================== */
 
-#download-modal[hidden] {
+#download-modal[hidden],
+#download-intent-modal[hidden] {
   display: none;
 }
 
-#download-modal {
+#download-modal,
+#download-intent-modal {
   position: fixed;
   inset: 0;
   display: flex;
@@ -245,7 +247,8 @@ main.container ul li > a:hover {
   z-index: 1000;
 }
 
-#download-modal .modal-panel {
+#download-modal .modal-panel,
+#download-intent-modal .modal-panel {
   width: min(520px, 100%);
   padding: 1rem;
   background: var(--bg-panel);
@@ -255,21 +258,27 @@ main.container ul li > a:hover {
   box-shadow: 0 12px 32px color-mix(in srgb, var(--bg-panel) 60%, transparent);
 }
 
-#download-modal .modal-header h2 {
+#download-modal .modal-header h2,
+#download-intent-modal .modal-header h2 {
   margin: 0 0 0.75rem;
 }
 
-#download-modal .modal-body {
+#download-modal .modal-body,
+#download-intent-modal .modal-body {
   margin-bottom: 1rem;
 }
 
-#download-modal .modal-actions {
+#download-modal .modal-actions,
+#download-intent-modal .modal-actions {
   justify-content: flex-end;
 }
 
 #download-modal input,
 #download-modal textarea,
-#download-modal select {
+#download-modal select,
+#download-intent-modal input,
+#download-intent-modal textarea,
+#download-intent-modal select {
   background: var(--bg-input);
   color: var(--text-main);
   border-color: var(--border-subtle);

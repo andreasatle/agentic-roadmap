@@ -28,16 +28,7 @@ async function resolveYamlParser() {
   return module;
 }
 
-async function downloadIntentFromForm() {
-  const filenameInput = prompt("Save intent as:", "intent.yaml");
-  if (!filenameInput) {
-    return;
-  }
-  const filename = filenameInput.trim();
-  if (!filename) {
-    return;
-  }
-
+async function downloadIntentFromForm(filename) {
   const documentGoalRaw = $("document-goal")?.value ?? "";
   const audienceRaw = $("audience")?.value ?? "";
   const toneRaw = $("tone")?.value ?? "";
@@ -91,7 +82,7 @@ async function downloadIntentFromForm() {
   const url = window.URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = filename;
+  a.download = filename || "intent.yaml";
   document.body.appendChild(a);
   a.click();
   a.remove();
@@ -161,6 +152,37 @@ function openIntentFile() {
 
 window.downloadIntentFromForm = downloadIntentFromForm;
 window.openIntentFile = openIntentFile;
+
+function openDownloadIntentModal() {
+  const modal = $("download-intent-modal");
+  const filenameInput = $("download-intent-filename");
+  if (!modal || !filenameInput) {
+    return;
+  }
+  filenameInput.value = "intent.yaml";
+  modal.hidden = false;
+  filenameInput.focus();
+}
+
+function closeDownloadIntentModal() {
+  const modal = $("download-intent-modal");
+  if (modal) {
+    modal.hidden = true;
+  }
+}
+
+function confirmDownloadIntent() {
+  const filenameInput = $("download-intent-filename");
+  const filename = (filenameInput?.value || "").trim() || "intent.yaml";
+  downloadIntentFromForm(filename)
+    .then(() => {
+      setError("");
+      closeDownloadIntentModal();
+    })
+    .catch((err) => {
+      setError(err?.message || "Error downloading intent.");
+    });
+}
 
 function setSuggestedTitle(title) {
   const target = $("suggested-title-text");
@@ -468,6 +490,9 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  $("download-intent-btn")?.addEventListener("click", openDownloadIntentModal);
+  $("download-intent-cancel-btn")?.addEventListener("click", closeDownloadIntentModal);
+  $("download-intent-confirm-btn")?.addEventListener("click", confirmDownloadIntent);
   $("set-title-btn")?.addEventListener("click", setTitle);
   $("set-author-btn")?.addEventListener("click", setAuthor);
   $("edit-content-btn")?.addEventListener("click", toggleEditContent);
