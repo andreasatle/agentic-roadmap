@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Manual Edit</title>
+    <link rel="stylesheet" href="/static/app.css">
+    <link rel="stylesheet" href="/static/theme-dark.css">
+</head>
+<body>
+    <main class="container">
+        <p><a href="/">Home</a></p>
+        <header class="intent-header">
+            <div class="intent-header-left">
+                <h1>Manual edit</h1>
+            </div>
+            <div class="intent-header-right">
+                <button type="button" class="btn btn--primary" disabled>Apply edit</button>
+                <a class="btn btn--ghost" href="/blog/edit/{{ post_id }}">Cancel</a>
+            </div>
+        </header>
+        <section class="manual-editor">
+            <textarea aria-label="Manual editor">{{ content | e }}</textarea>
+        </section>
+    </main>
+</body>
+</html>
