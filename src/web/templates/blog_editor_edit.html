@@ -26,6 +26,10 @@
                 <button type="button" class="btn btn--primary" id="set-author-btn">Set author</button>
             </div>
             <div class="inline-controls">
+                <input type="text" id="article-filename" placeholder="article.md" />
+                <button type="button" class="btn btn--primary" id="save-document-btn">Download document</button>
+            </div>
+            <div class="inline-controls">
                 <div id="post-status-indicator">Status: {{ meta.status or "—" }}</div>
                 <div id="post-revision-indicator">Last revision: —</div>
             </div>
@@ -45,12 +49,6 @@
                 </div>
                 <div id="policy-edit-status"></div>
                 <pre id="policy-edit-result"></pre>
-            </section>
-            <section>
-                <div class="inline-controls">
-                    <input type="text" id="article-filename" placeholder="article.md" />
-                        <button type="button" class="btn btn--primary" id="save-document-btn">Download document</button>
-                </div>
             </section>
         </section>
     </main>
