@@ -197,38 +197,6 @@ function setEditMode(enabled) {
   if (editBtn) editBtn.textContent = enabled ? "Cancel edit" : "Edit content";
 }
 
-async function applySuggestedTitle() {
-  const button = $("use-suggested-title");
-  if (!button) return;
-  if (!suggestedTitleValue) {
-    return;
-  }
-  if (!currentPostId) {
-    setError("No post available to set title.");
-    return;
-  }
-  try {
-    const resp = await fetch("/blog/set-title", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ post_id: currentPostId, title: suggestedTitleValue }),
-    });
-    if (resp.status === 409) {
-      return;
-    }
-    if (!resp.ok) {
-      const detail = await resp.text();
-      setError(detail || "Failed to set title.");
-      return;
-    }
-    const data = await resp.json();
-    setFinalTitle(`Title: ${data.title}`);
-    setError("");
-  } catch (err) {
-    setError(err?.message || "Error setting title.");
-  }
-}
-
 async function setTitle() {
   if (!currentPostId) {
     setError("No post available to set title.");
@@ -418,7 +386,6 @@ document.addEventListener("DOMContentLoaded", () => {
 
   $("set-title-btn")?.addEventListener("click", setTitle);
   $("set-author-btn")?.addEventListener("click", setAuthor);
-  $("use-suggested-title")?.addEventListener("click", applySuggestedTitle);
   $("edit-content-btn")?.addEventListener("click", toggleEditContent);
   $("apply-edit-btn")?.addEventListener("click", applyEdit);
 });
