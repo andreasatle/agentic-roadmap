@@ -105,3 +105,17 @@ export async function downloadDocument(markdown, filename) {
     return { ok: false, status: null, error: err?.message };
   }
 }
+
+export async function fetchEditorData(postId) {
+  try {
+    const resp = await fetch(`/blog/editor/data?post_id=${postId}`);
+    if (!resp.ok) {
+      const detail = await resp.text();
+      return { ok: false, status: resp.status, error: detail };
+    }
+    const data = await resp.json();
+    return { ok: true, data };
+  } catch (err) {
+    return { ok: false, status: null, error: err?.message };
+  }
+}
