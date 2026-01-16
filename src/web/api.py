@@ -619,11 +619,11 @@ def edit_blog_content_route(
     return RedirectResponse(url=f"/blog/editor/{payload.post_id}", status_code=303)
 
 
-@app.post("/blog/edit", response_model=BlogEditResponse)
+@app.post("/blog/edit")
 def edit_blog_post_route(
     payload: BlogEditRequest,
     creds = Depends(security),
-) -> BlogEditResponse:
+) -> RedirectResponse:
     require_admin(creds)
     # UI state is non-authoritative; policy edits are revision-led only.
     try:
@@ -643,12 +643,12 @@ def edit_blog_post_route(
             policy_text = handle.read()
     if not policy_text.strip():
         raise HTTPException(status_code=400, detail="Policy text must be non-empty")
-    result = apply_policy_edit(
+    apply_policy_edit(
         payload.post_id,
         policy_text,
         actor_id=payload.policy_id or "inline",
     )
-    return result
+    return RedirectResponse(url=f"/blog/editor/{payload.post_id}", status_code=303)
 
 
 @app.get("/blog/revisions")

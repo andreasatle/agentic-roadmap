@@ -61,13 +61,16 @@ export async function runPolicyEdit(postId, policyText) {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ post_id: postId, policy_text: policyText }),
+      redirect: "manual",
     });
+    if (resp.status === 303) {
+      return { ok: true, redirectUrl: resp.headers.get("Location") || "" };
+    }
     if (!resp.ok) {
       const detail = await resp.text();
       return { ok: false, status: resp.status, error: detail };
     }
-    const data = await resp.json();
-    return { ok: true, data };
+    return { ok: false, status: resp.status, error: "" };
   } catch (err) {
     return { ok: false, status: null, error: err?.message };
   }

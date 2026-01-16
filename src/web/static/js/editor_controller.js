@@ -269,29 +269,11 @@ export function initEditorController() {
         setPolicyEditStatus(result.error || "Edit failed.");
         return;
       }
-      const data = result.data;
-      setMarkdown(data.content || "");
-      const articleArea = $("article-text");
-      if (articleArea) {
-        articleArea.innerHTML = marked.parse(getMarkdown());
+      if (result.redirectUrl) {
+        window.location = result.redirectUrl;
+        return;
       }
-      const changed = (data.changed_chunks || []).join(", ");
-      const rejected = (data.rejected_chunks || [])
-        .map((item) => `${item.chunk_index}: ${item.reason}`)
-        .join("\n");
-      const resultLines = [
-        `Revision: ${data.revision_id}`,
-        `Changed chunks: ${changed || "none"}`,
-      ];
-      if (rejected) {
-        resultLines.push(`Rejected:\n${rejected}`);
-      }
-      setPolicyEditStatus("edit applied");
-      setPolicyEditResult(resultLines.join("\n"));
-      if (policyText) {
-        policyText.value = "";
-      }
-      setError("");
+      window.location.reload();
     } catch (err) {
       setPolicyEditStatus(err?.message || "Edit failed.");
     }
