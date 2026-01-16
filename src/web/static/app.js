@@ -9,6 +9,14 @@ import {
   setIsEditingContent,
   setSuggestedTitleValue as setSuggestedTitleValueState,
 } from "./editor_state.js";
+import {
+  applyContentEdit as applyContentEditAction,
+  downloadDocument as downloadDocumentAction,
+  runPolicyEdit as runPolicyEditAction,
+  setAuthor as setAuthorAction,
+  setTitle as setTitleAction,
+  suggestTitle as suggestTitleAction,
+} from "./editor_actions.js";
 import { closeModal, openModal } from "./modals.js";
 
 function initBlogEditorPage() {
@@ -240,21 +248,19 @@ function initBlogEditorPage() {
       return;
     }
     try {
-      const resp = await fetch("/blog/set-title", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ post_id: getCurrentPostId(), title }),
-      });
-      if (resp.status === 409) {
-        setError("Title already set.");
+      const result = await setTitleAction(getCurrentPostId(), title);
+      if (!result.ok) {
+        if (result.status === 409) {
+          setError("Title already set.");
+          return;
+        }
+        if (result.status !== null) {
+          setError(result.error || "Failed to set title.");
+          return;
+        }
+        setError(result.error || "Error setting title.");
         return;
       }
-      if (!resp.ok) {
-        const detail = await resp.text();
-        setError(detail || "Failed to set title.");
-        return;
-      }
-      await resp.json();
       const titleDisplay = $("title-display");
       if (titleDisplay) {
         titleDisplay.textContent = title;
@@ -279,17 +285,15 @@ function initBlogEditorPage() {
       return;
     }
     try {
-      const resp = await fetch("/blog/set-author", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ post_id: getCurrentPostId(), author }),
-      });
-      if (!resp.ok) {
-        const detail = await resp.text();
-        setError(detail || "Failed to set author.");
+      const result = await setAuthorAction(getCurrentPostId(), author);
+      if (!result.ok) {
+        if (result.status !== null) {
+          setError(result.error || "Failed to set author.");
+          return;
+        }
+        setError(result.error || "Error setting author.");
         return;
       }
-      await resp.json();
       const authorDisplay = $("author-display");
       if (authorDisplay) {
         authorDisplay.textContent = author;
@@ -379,18 +383,16 @@ function initBlogEditorPage() {
         setError("Content cannot be empty.");
         return;
       }
-      const resp = await fetch("/blog/edit-content", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ post_id: getCurrentPostId(), content: rawContent }),
-      });
-      if (!resp.ok) {
-        const detail = await resp.text();
-        setError(detail || "Failed to apply edit.");
+      const result = await applyContentEditAction(getCurrentPostId(), rawContent);
+      if (!result.ok) {
+        if (result.status !== null) {
+          setError(result.error || "Failed to apply edit.");
+          return;
+        }
+        setError(result.error || "Error applying edit.");
         return;
       }
-      const data = await resp.json();
-      setCurrentMarkdown(data.content || "");
+      setCurrentMarkdown(result.data.content || "");
       const articleArea = $("article-text");
       if (articleArea) {
         articleArea.innerHTML = marked.parse(getCurrentMarkdown());
@@ -416,17 +418,12 @@ function initBlogEditorPage() {
         setPolicyEditStatus("Policy text is required.");
         return;
       }
-      const resp = await fetch("/blog/edit", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ post_id: getCurrentPostId(), policy_text: policyValue }),
-      });
-      if (!resp.ok) {
-        const detail = await resp.text();
-        setPolicyEditStatus(detail || "Edit failed.");
+      const result = await runPolicyEditAction(getCurrentPostId(), policyValue);
+      if (!result.ok) {
+        setPolicyEditStatus(result.error || "Edit failed.");
         return;
       }
-      const data = await resp.json();
+      const data = result.data;
       setCurrentMarkdown(data.content || "");
       const articleArea = $("article-text");
       if (articleArea) {
@@ -460,45 +457,18 @@ function initBlogEditorPage() {
       return;
     }
     try {
-      const resp = await fetch("/blog/suggest-title", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ content }),
-      });
-      if (!resp.ok) {
-        const detail = await resp.text();
+      const result = await suggestTitleAction(content);
+      if (!result.ok) {
         setSuggestedTitleValue("");
-        setError(detail || "Failed to suggest title.");
+        setError(result.error || "Failed to suggest title.");
         return;
       }
-      const data = await resp.json();
-      const title = (data?.suggested_title || "").trim();
+      const title = (result.data?.suggested_title || "").trim();
       setSuggestedTitleValue(title);
     } catch (err) {
       setSuggestedTitleValue("");
       setError(err?.message || "Failed to suggest title.");
     }
-  }
-
-  async function downloadDocument(filename) {
-    const resp = await fetch("/document/save", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ markdown: getCurrentMarkdown(), filename }),
-    });
-    if (!resp.ok) {
-      const detail = await resp.text();
-      throw new Error(detail || "Failed to download document.");
-    }
-    const blob = await resp.blob();
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = filename || "article.md";
-    document.body.appendChild(a);
-    a.click();
-    a.remove();
-    window.URL.revokeObjectURL(url);
   }
 
   function openDownloadModal() {
@@ -522,8 +492,20 @@ function initBlogEditorPage() {
   function confirmDownload() {
     const filenameInput = $("download-filename");
     const filename = (filenameInput?.value || "").trim() || "article.md";
-    downloadDocument(filename)
-      .then(() => {
+    downloadDocumentAction(getCurrentMarkdown(), filename)
+      .then((result) => {
+        if (!result.ok) {
+          throw new Error(result.error || "Failed to download document.");
+        }
+        const blob = result.data;
+        const url = window.URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename || "article.md";
+        document.body.appendChild(a);
+        a.click();
+        a.remove();
+        window.URL.revokeObjectURL(url);
         setError("");
         closeDownloadModal();
       })
