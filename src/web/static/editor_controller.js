@@ -58,9 +58,7 @@ export function initEditorController() {
 
   function setEditMode(enabled) {
     setIsEditingContent(enabled);
-    const article = $("article-text");
     const editor = $("article-editor");
-    const applyBtn = $("apply-edit-btn");
     const editBtn = $("edit-content-btn");
     if (editor) {
       if (enabled) editor.value = getCurrentMarkdown() || "";
