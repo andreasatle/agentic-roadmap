@@ -1,15 +1,5 @@
 import { $ } from "./dom.js";
 import {
-  getCurrentMarkdown,
-  getCurrentPostId,
-  getIsEditingContent,
-  getSuggestedTitleValue,
-  setCurrentMarkdown,
-  setCurrentPostId,
-  setIsEditingContent,
-  setSuggestedTitleValue as setSuggestedTitleValueState,
-} from "./editor_state.js";
-import {
   applyContentEdit as applyContentEditAction,
   downloadDocument as downloadDocumentAction,
   fetchEditorData,
@@ -23,6 +13,32 @@ import { closeModal, openModal } from "./modals.js";
 export function initEditorController() {
   const errorArea = $("error-area");
 
+  function getPostId() {
+    return document.body?.dataset?.postId || null;
+  }
+
+  function getMarkdown() {
+    return $("article-source")?.value ?? "";
+  }
+
+  function setMarkdown(value) {
+    const source = $("article-source");
+    if (source) {
+      source.value = value || "";
+    }
+  }
+
+  function isEditingContent() {
+    const editBtn = $("edit-content-btn");
+    return editBtn?.textContent === "Cancel edit";
+  }
+
+  function getSuggestedTitleValue() {
+    const wrap = $("suggested-title-wrap");
+    const target = $("suggested-title-text");
+    return wrap?.dataset?.suggestedTitle ?? target?.dataset?.suggestedTitle ?? "";
+  }
+
   function setError(message) {
     if (errorArea) {
       errorArea.textContent = message || "";
@@ -30,15 +46,19 @@ export function initEditorController() {
   }
 
   function setSuggestedTitleValue(title) {
-    setSuggestedTitleValueState(title);
+    const value = (title || "").trim();
     const target = $("suggested-title-text");
     const wrap = $("suggested-title-wrap");
+    if (wrap) {
+      wrap.dataset.suggestedTitle = value;
+    } else if (target) {
+      target.dataset.suggestedTitle = value;
+    }
     if (target) {
-      const suggestedTitleValue = getSuggestedTitleValue();
-      target.textContent = suggestedTitleValue ? `Suggested: "${suggestedTitleValue}"` : "";
+      target.textContent = value ? `Suggested: "${value}"` : "";
     }
     if (wrap) {
-      wrap.hidden = !getSuggestedTitleValue();
+      wrap.hidden = !value;
     }
   }
 
@@ -57,17 +77,16 @@ export function initEditorController() {
   }
 
   function setEditMode(enabled) {
-    setIsEditingContent(enabled);
     const editor = $("article-editor");
     const editBtn = $("edit-content-btn");
     if (editor) {
-      if (enabled) editor.value = getCurrentMarkdown() || "";
+      if (enabled) editor.value = getMarkdown() || "";
     }
     if (editBtn) editBtn.textContent = enabled ? "Cancel edit" : "Edit content";
   }
 
   async function setTitle() {
-    if (!getCurrentPostId()) {
+    if (!getPostId()) {
       setError("No post available to set title.");
       return;
     }
@@ -78,7 +97,7 @@ export function initEditorController() {
       return;
     }
     try {
-      const result = await setTitleAction(getCurrentPostId(), title);
+      const result = await setTitleAction(getPostId(), title);
       if (!result.ok) {
         if (result.status === 409) {
           setError("Title already set.");
@@ -104,7 +123,7 @@ export function initEditorController() {
   }
 
   async function setAuthor() {
-    if (!getCurrentPostId()) {
+    if (!getPostId()) {
       setError("No post available to set author.");
       return;
     }
@@ -115,7 +134,7 @@ export function initEditorController() {
       return;
     }
     try {
-      const result = await setAuthorAction(getCurrentPostId(), author);
+      const result = await setAuthorAction(getPostId(), author);
       if (!result.ok) {
         if (result.status !== null) {
           setError(result.error || "Failed to set author.");
@@ -150,7 +169,7 @@ export function initEditorController() {
     }
     setSuggestedTitleValue("");
     const editor = $("article-editor");
-    const source = getIsEditingContent() && editor ? editor.value : getCurrentMarkdown();
+    const source = isEditingContent() && editor ? editor.value : getMarkdown();
     if (source) {
       suggestTitle(source);
     }
@@ -198,13 +217,13 @@ export function initEditorController() {
   }
 
   function toggleEditContent() {
-    if (!getCurrentPostId()) return;
-    setEditMode(!getIsEditingContent());
+    if (!getPostId()) return;
+    setEditMode(!isEditingContent());
   }
 
   async function applyEdit() {
     try {
-      if (!getCurrentPostId() || !getIsEditingContent()) {
+      if (!getPostId() || !isEditingContent()) {
         return;
       }
       const editor = $("article-editor");
@@ -213,7 +232,7 @@ export function initEditorController() {
         setError("Content cannot be empty.");
         return;
       }
-      const result = await applyContentEditAction(getCurrentPostId(), rawContent);
+      const result = await applyContentEditAction(getPostId(), rawContent);
       if (!result.ok) {
         if (result.status !== null) {
           setError(result.error || "Failed to apply edit.");
@@ -222,10 +241,10 @@ export function initEditorController() {
         setError(result.error || "Error applying edit.");
         return;
       }
-      setCurrentMarkdown(result.data.content || "");
+      setMarkdown(result.data.content || "");
       const articleArea = $("article-text");
       if (articleArea) {
-        articleArea.innerHTML = marked.parse(getCurrentMarkdown());
+        articleArea.innerHTML = marked.parse(getMarkdown());
       }
       setSuggestedTitleValue("");
       setEditMode(false);
@@ -239,7 +258,7 @@ export function initEditorController() {
     setPolicyEditStatus("editing…");
     setPolicyEditResult("");
     try {
-      if (!getCurrentPostId()) {
+      if (!getPostId()) {
         return;
       }
       const policyText = $("policy-text");
@@ -248,16 +267,16 @@ export function initEditorController() {
         setPolicyEditStatus("Policy text is required.");
         return;
       }
-      const result = await runPolicyEditAction(getCurrentPostId(), policyValue);
+      const result = await runPolicyEditAction(getPostId(), policyValue);
       if (!result.ok) {
         setPolicyEditStatus(result.error || "Edit failed.");
         return;
       }
       const data = result.data;
-      setCurrentMarkdown(data.content || "");
+      setMarkdown(data.content || "");
       const articleArea = $("article-text");
       if (articleArea) {
-        articleArea.innerHTML = marked.parse(getCurrentMarkdown());
+        articleArea.innerHTML = marked.parse(getMarkdown());
       }
       const changed = (data.changed_chunks || []).join(", ");
       const rejected = (data.rejected_chunks || [])
@@ -322,7 +341,7 @@ export function initEditorController() {
   function confirmDownload() {
     const filenameInput = $("download-filename");
     const filename = (filenameInput?.value || "").trim() || "article.md";
-    downloadDocumentAction(getCurrentMarkdown(), filename)
+    downloadDocumentAction(getMarkdown(), filename)
       .then((result) => {
         if (!result.ok) {
           throw new Error(result.error || "Failed to download document.");
@@ -348,8 +367,7 @@ export function initEditorController() {
   if (!postId) {
     return;
   }
-  setCurrentPostId(postId);
-  fetchEditorData(getCurrentPostId())
+  fetchEditorData(postId)
     .then((result) => (result.ok ? result.data : null))
     .then((data) => {
       const target = $("post-revision-indicator");
@@ -371,8 +389,8 @@ export function initEditorController() {
   const article = $("article-text");
   const articleSource = $("article-source");
   if (article && articleSource) {
-    setCurrentMarkdown(articleSource.value || "");
-    article.innerHTML = marked.parse(getCurrentMarkdown());
+    setMarkdown(articleSource.value || "");
+    article.innerHTML = marked.parse(getMarkdown());
   }
 
   $("open-title-modal-btn")?.addEventListener("click", openTitleModal);
