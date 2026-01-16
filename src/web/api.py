@@ -8,7 +8,7 @@ from fastapi.responses import HTMLResponse, StreamingResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 import markdown
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
 
 from agentic_framework.agent_dispatcher import AgentDispatcherBase
 from document_writer.apps.service import generate_document as generate_blog_post
@@ -71,6 +71,19 @@ def _changed_chunk_indices(before: str, after: str) -> list[int]:
         if before_text != after_text:
             changed.append(index)
     return changed
+
+
+async def _parse_blog_edit_request(request: Request) -> BlogEditRequest:
+    content_type = request.headers.get("content-type", "")
+    if "application/json" in content_type.lower():
+        payload = await request.json()
+    else:
+        form = await request.form()
+        payload = dict(form)
+    try:
+        return BlogEditRequest.model_validate(payload)
+    except ValidationError as exc:
+        raise HTTPException(status_code=422, detail=exc.errors())
 
 
 class AuthorSetRequest(BaseModel):
@@ -625,11 +638,12 @@ def edit_blog_content_route(
 
 
 @app.post("/blog/edit")
-def edit_blog_post_route(
-    payload: BlogEditRequest,
+async def edit_blog_post_route(
+    request: Request,
     creds = Depends(security),
 ) -> RedirectResponse:
     require_admin(creds)
+    payload = await _parse_blog_edit_request(request)
     # UI state is non-authoritative; policy edits are revision-led only.
     try:
         meta = read_post_meta(payload.post_id)
