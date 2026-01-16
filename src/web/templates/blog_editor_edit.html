@@ -96,6 +96,29 @@
         </div>
     </section>
 
+    <section id="edit-author-modal" hidden>
+        <div class="modal-panel">
+            <header class="modal-header">
+                <h2>Edit author</h2>
+            </header>
+            <form method="post">
+                <input type="hidden" name="post_id" value="{{ post_id }}">
+                <div class="modal-body">
+                    <div class="intent-field">
+                        <div class="intent-label-row">
+                            <label for="edit-author-input" class="intent-label-text">Author</label>
+                        </div>
+                        <input type="text" id="edit-author-input" name="author" value="{{ meta.author or '' }}">
+                    </div>
+                </div>
+                <div class="inline-controls modal-actions">
+                    <button type="button" class="btn btn--ghost">Cancel</button>
+                    <button type="submit" class="btn btn--primary">Save author</button>
+                </div>
+            </form>
+        </div>
+    </section>
+
     <script src="/static/js/app.js"></script>
 </body>
 </html>
