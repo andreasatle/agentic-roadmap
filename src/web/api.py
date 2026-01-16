@@ -215,6 +215,30 @@ def read_manual_edit(
     )
 
 
+@app.get("/blog/edit/{post_id}/policy", response_class=HTMLResponse)
+def read_policy_edit(
+    request: Request,
+    post_id: str,
+    creds = Depends(security),
+):
+    require_admin(creds)
+    accept = request.headers.get("accept", "")
+    if "application/json" in accept.lower():
+        raise HTTPException(status_code=406, detail="Editor renders HTML only")
+    try:
+        meta = read_post_meta(post_id)
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Post not found")
+    return templates.TemplateResponse(
+        "blog_editor_policy.html",
+        {
+            "request": request,
+            "post_id": post_id,
+            "meta": meta,
+        },
+    )
+
+
 @app.post("/blog/edit/{post_id}/manual")
 async def submit_manual_edit(
     request: Request,

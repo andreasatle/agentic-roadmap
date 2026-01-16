@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Policy Edit</title>
+    <link rel="stylesheet" href="/static/css/app.css">
+    <link rel="stylesheet" href="/static/css/theme-dark.css">
+</head>
+<body data-page="policy-editor" data-post-id="{{ post_id }}">
+    <main class="container">
+        <p><a href="/">Home</a></p>
+        <form method="post" action="/blog/edit">
+            <input type="hidden" name="post_id" value="{{ post_id }}">
+            <header class="intent-header">
+                <div class="intent-header-left">
+                    <h1>Policy edit</h1>
+                </div>
+                <div class="intent-header-right">
+                    <button type="submit" class="btn btn--primary">Run policy edit</button>
+                    <a class="btn btn--ghost" href="/blog/editor/{{ post_id }}">Cancel</a>
+                </div>
+            </header>
+            <section class="intent-field">
+                <div class="intent-label-row">
+                    <label for="policy-text" class="intent-label-text">Policy editor</label>
+                </div>
+                <textarea id="policy-text" name="policy_text" placeholder="Policy text"></textarea>
+            </section>
+        </form>
+    </main>
+</body>
+</html>
