@@ -1,3 +1,5 @@
+// JavaScript must never own or cache authoritative data.
+// Backend responses and templates are the single source of truth.
 import { initEditorController } from "./editor_controller.js";
 
 function initManualEditorPage() {}
