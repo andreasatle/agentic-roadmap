@@ -146,6 +146,26 @@ def read_editor_edit(
         intent = read_post_intent(post_id)
     except FileNotFoundError:
         intent = {}
+    revisions = read_revision_metadata(post_id)
+    if not isinstance(revisions, list):
+        raise HTTPException(status_code=500, detail="Invalid revision metadata")
+    last_revision_id = None
+    if revisions:
+        revision_ids: list[int] = []
+        for entry in revisions:
+            if not isinstance(entry, dict):
+                raise HTTPException(status_code=500, detail="Invalid revision metadata")
+            revision_id = entry.get("revision_id")
+            if not isinstance(revision_id, int):
+                raise HTTPException(status_code=500, detail="Invalid revision metadata")
+            revision_ids.append(revision_id)
+        last_revision_id = max(revision_ids) if revision_ids else None
+    if last_revision_id is not None and not isinstance(last_revision_id, int):
+        raise HTTPException(status_code=500, detail="Invalid revision metadata")
+    content_html = markdown.markdown(
+        content,
+        extensions=BLOG_MARKDOWN_EXTENSIONS,
+    )
     return templates.TemplateResponse(
         "blog_editor_edit.html",
         {
@@ -153,7 +173,9 @@ def read_editor_edit(
             "post_id": post_id,
             "meta": meta,
             "content": content,
+            "content_html": content_html,
             "intent": intent,
+            "last_revision_id": last_revision_id,
         },
     )
 
@@ -223,47 +245,6 @@ async def submit_manual_edit(
     return RedirectResponse(f"/blog/editor/{post_id}", status_code=303)
 
 
-@app.get("/blog/editor/data")
-def read_editor_data(
-    post_id: str,
-    creds = Depends(security),
-) -> dict[str, object]:
-    require_admin(creds)
-    try:
-        meta = read_post_meta(post_id)
-        content = read_post_content(post_id)
-    except FileNotFoundError:
-        raise HTTPException(status_code=404, detail="Post not found")
-    try:
-        intent = read_post_intent(post_id)
-    except FileNotFoundError:
-        intent = {}
-    revisions = read_revision_metadata(post_id)
-    if not isinstance(revisions, list):
-        raise HTTPException(status_code=500, detail="Invalid revision metadata")
-    last_revision_id = None
-    if revisions:
-        revision_ids: list[int] = []
-        for entry in revisions:
-            if not isinstance(entry, dict):
-                raise HTTPException(status_code=500, detail="Invalid revision metadata")
-            revision_id = entry.get("revision_id")
-            if not isinstance(revision_id, int):
-                raise HTTPException(status_code=500, detail="Invalid revision metadata")
-            revision_ids.append(revision_id)
-        last_revision_id = max(revision_ids) if revision_ids else None
-    if last_revision_id is not None and not isinstance(last_revision_id, int):
-        raise HTTPException(status_code=500, detail="Invalid revision metadata")
-    meta_payload = meta.model_dump() if hasattr(meta, "model_dump") else meta
-    return {
-        "post_id": post_id,
-        "content": content,
-        "intent": intent,
-        "meta": meta_payload,
-        "status": meta.status,
-        "last_revision_id": last_revision_id,
-        "revisions": revisions,
-    }
 
 
 @app.get("/blog/writer")

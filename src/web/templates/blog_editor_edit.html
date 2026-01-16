@@ -63,7 +63,9 @@
                         <div class="intent-label-row">
                             <label class="intent-label-text">Last revision</label>
                         </div>
-                        <div id="post-revision-indicator">—</div>
+                        <div id="post-revision-indicator">
+                            {{ last_revision_id if last_revision_id is not none else "—" }}
+                        </div>
                     </div>
                 </div>
             </section>
@@ -74,11 +76,8 @@
                     <div class="intent-label-row">
                         <label class="intent-label-text">Current content</label>
                     </div>
-                    <article id="article-text"></article>
+                    <article id="article-text">{{ content_html | safe }}</article>
                 </div>
-
-                <!-- REQUIRED for JS bootstrapping -->
-                <textarea id="article-source" hidden>{{ content | e }}</textarea>
             </section>
 
             <section class="stack">
@@ -127,7 +126,6 @@
         </section>
     </main>
 
-    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="/static/js/app.js"></script>
 </body>
 </html>
