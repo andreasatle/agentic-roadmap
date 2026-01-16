@@ -1,13 +1,22 @@
+from dataclasses import dataclass
 from datetime import datetime, timezone
 import hashlib
+import os
 import secrets
 from pathlib import Path
+from typing import Any, Literal
 
 import yaml
 
 from apps.blog.paths import POSTS_ROOT
 from apps.blog.types import BlogPostMeta
-from document_writer.domain.editor.chunking import Chunk, join_chunks
+from document_writer.domain.editor.chunking import Chunk, join_chunks, split_markdown
+
+
+@dataclass
+class RevisionResult:
+    revision_id: int
+    parent_revision_id: int | None
 
 
 def create_post(
@@ -112,6 +121,86 @@ def write_revision_snapshots(
         text = snapshot["text"]
         snapshot_path = revisions_dir / f"{revision_id}_{index}.md"
         snapshot_path.write_text(text)
+
+
+def apply_blog_update(
+    *,
+    post_id: str,
+    new_content: str,
+    delta_type: str,
+    source: Literal["policy", "manual", "future"],
+    parent_revision_id: int | None,
+    delta_payload: dict,
+    actor: Any,
+    status: str = "applied",
+    reason: str | None = None,
+    meta_updates: dict | None = None,
+) -> RevisionResult:
+    post_dir = POSTS_ROOT / post_id
+    meta_path = post_dir / "meta.yaml"
+    if not meta_path.exists():
+        raise FileNotFoundError(f"meta.yaml not found for post {post_id}")
+    meta_payload = yaml.safe_load(meta_path.read_text()) or {}
+    if not isinstance(meta_payload, dict):
+        raise ValueError(f"Invalid meta.yaml for post {post_id}")
+    revisions = meta_payload.get("revisions")
+    if revisions is None:
+        revisions = []
+    elif not isinstance(revisions, list):
+        raise ValueError(f"Invalid revisions for post {post_id}")
+    existing_revision_ids: list[int] = []
+    for entry in revisions:
+        if not isinstance(entry, dict):
+            raise ValueError(f"Invalid revision entry for post {post_id}")
+        revision_id = entry.get("revision_id")
+        if not isinstance(revision_id, int):
+            raise ValueError(f"Invalid revision_id for post {post_id}")
+        existing_revision_ids.append(revision_id)
+    last_revision_id = max(existing_revision_ids, default=0)
+    next_revision_id = last_revision_id + 1
+    if next_revision_id <= last_revision_id:
+        raise ValueError(f"Invalid next revision_id for post {post_id}")
+    resolved_parent_revision_id = (
+        last_revision_id if parent_revision_id is None and last_revision_id else parent_revision_id
+    )
+    if (
+        resolved_parent_revision_id is not None
+        and resolved_parent_revision_id not in existing_revision_ids
+    ):
+        raise ValueError(f"Invalid parent_revision_id for post {post_id}")
+    revision_entry: dict[str, Any] = {
+        "revision_id": next_revision_id,
+        "parent_revision_id": resolved_parent_revision_id,
+        "timestamp": datetime.now(timezone.utc).replace(microsecond=0).isoformat(),
+        "delta_type": delta_type,
+        "delta_payload": dict(delta_payload),
+        "actor": actor,
+        "status": status,
+        "source": source,
+    }
+    if reason is not None:
+        revision_entry["reason"] = reason
+    revisions.append(revision_entry)
+    meta_payload["revisions"] = revisions
+    if meta_updates and status == "applied":
+        meta_payload.update(meta_updates)
+    temp_path = meta_path.with_suffix(".yaml.tmp")
+    temp_path.write_text(yaml.safe_dump(meta_payload, sort_keys=False, default_flow_style=False))
+    os.replace(temp_path, meta_path)
+    if status == "applied" and delta_type in (
+        "content_chunks_modified",
+        "content_free_edit",
+        "content_policy_edit",
+    ):
+        snapshot_chunks = [
+            {"index": chunk.index, "text": chunk.text}
+            for chunk in split_markdown(new_content)
+        ]
+        write_revision_snapshots(post_id, next_revision_id, snapshot_chunks)
+    return RevisionResult(
+        revision_id=next_revision_id,
+        parent_revision_id=resolved_parent_revision_id,
+    )
 
 
 def read_revision_metadata(post_id: str) -> list[dict]:

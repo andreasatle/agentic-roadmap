@@ -98,6 +98,7 @@ def apply_policy_edit(
                 "policy_hash": policy_hash,
                 "rejected_chunks": [],
             },
+            new_content=document,
             reason=str(exc),
             status="rejected",
         )
@@ -114,6 +115,7 @@ def apply_policy_edit(
                 "policy_hash": policy_hash,
                 "rejected_chunks": [],
             },
+            new_content=document,
             reason=str(exc),
             status="rejected",
         )
@@ -131,10 +133,6 @@ def apply_policy_edit(
     assert [c.index for c in updated_chunks] == list(range(len(updated_chunks)))
     updated_document = join_chunks(updated_chunks)
     after_hash = _hash_text(updated_document)
-    snapshot_chunks = [
-        {"index": chunk.index, "text": chunk.text}
-        for chunk in updated_chunks
-    ]
     revision_id = writer.apply_delta(
         post_id,
         actor={"type": "policy", "id": actor_id or "policy"},
@@ -146,16 +144,10 @@ def apply_policy_edit(
             "policy_hash": policy_hash,
             "rejected_chunks": [chunk.model_dump() for chunk in rejected_chunks],
         },
+        new_content=updated_document,
     )
     if not isinstance(revision_id, int):
         raise ValueError("Revision id must be an int")
-    revisions_dir = post_dir / "revisions"
-    revisions_dir.mkdir(parents=True, exist_ok=True)
-    for snapshot in snapshot_chunks:
-        index = snapshot["index"]
-        text = snapshot["text"]
-        snapshot_path = revisions_dir / f"{revision_id}_{index}.md"
-        snapshot_path.write_text(text)
     content_path.write_text(updated_document)
 
     return EditResult(

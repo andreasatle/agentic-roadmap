@@ -26,7 +26,6 @@ from apps.blog.storage import (
     read_post_content,
     read_post_intent,
     write_post_content,
-    write_revision_snapshots,
     read_revision_metadata,
 )
 from web.schemas import (
@@ -216,14 +215,10 @@ async def submit_manual_edit(
             "before_hash": before_hash,
             "after_hash": after_hash,
         },
+        new_content=after_content,
     )
     if not isinstance(revision_id, int):
         raise HTTPException(status_code=500, detail="Failed to record revision")
-    snapshot_chunks = [
-        {"index": chunk.index, "text": chunk.text}
-        for chunk in split_markdown(after_content)
-    ]
-    write_revision_snapshots(post_id, revision_id, snapshot_chunks)
     write_post_content(post_id, after_content)
     return RedirectResponse(f"/blog/editor/{post_id}", status_code=303)
 
@@ -349,10 +344,6 @@ def generate_blog_post_route(
     before_content = read_post_content(post_id)
     before_hash = _hash_text(before_content)
     after_hash = _hash_text(markdown)
-    snapshot_chunks = [
-        {"index": chunk.index, "text": chunk.text}
-        for chunk in split_markdown(markdown)
-    ]
     writer = PostRevisionWriter()
     revision_id = writer.apply_delta(
         post_id,
@@ -363,11 +354,11 @@ def generate_blog_post_route(
             "before_hash": before_hash,
             "after_hash": after_hash,
         },
+        new_content=markdown,
     )
     revision_recorded = True
     if not isinstance(revision_id, int):
         raise HTTPException(status_code=500, detail="Failed to record revision")
-    write_revision_snapshots(post_id, revision_id, snapshot_chunks)
     if not revision_recorded:
         raise HTTPException(status_code=500, detail="Revision required before content write")
     write_post_content(post_id, markdown)
@@ -485,10 +476,6 @@ async def create_blog_post_route(
     before_content = read_post_content(post_id)
     before_hash = _hash_text(before_content)
     after_hash = _hash_text(markdown)
-    snapshot_chunks = [
-        {"index": chunk.index, "text": chunk.text}
-        for chunk in split_markdown(markdown)
-    ]
     writer = PostRevisionWriter()
     revision_id = writer.apply_delta(
         post_id,
@@ -499,11 +486,11 @@ async def create_blog_post_route(
             "before_hash": before_hash,
             "after_hash": after_hash,
         },
+        new_content=markdown,
     )
     revision_recorded = True
     if not isinstance(revision_id, int):
         raise HTTPException(status_code=500, detail="Failed to record revision")
-    write_revision_snapshots(post_id, revision_id, snapshot_chunks)
     if not revision_recorded:
         raise HTTPException(status_code=500, detail="Revision required before content write")
     write_post_content(post_id, markdown)
@@ -600,6 +587,7 @@ def edit_blog_content_route(
                 "before_hash": before_hash,
                 "after_hash": _hash_text(payload.content),
             },
+            new_content=payload.content,
             reason=str(exc),
             status="rejected",
         )
@@ -614,6 +602,7 @@ def edit_blog_content_route(
                 "before_hash": before_hash,
                 "after_hash": _hash_text(payload.content),
             },
+            new_content=payload.content,
             reason=str(exc),
             status="rejected",
         )
@@ -628,6 +617,7 @@ def edit_blog_content_route(
                 "before_hash": before_hash,
                 "after_hash": before_hash,
             },
+            new_content=before_content,
             reason="No content changes",
             status="rejected",
         )
@@ -636,10 +626,6 @@ def edit_blog_content_route(
             "content": response.edited_document,
             "rejection_reason": "No content changes",
         }
-    snapshot_chunks = [
-        {"index": chunk.index, "text": chunk.text}
-        for chunk in split_markdown(response.edited_document)
-    ]
     revision_id = writer.apply_delta(
         payload.post_id,
         actor={"type": "human", "id": creds.username or "editor"},
@@ -649,11 +635,11 @@ def edit_blog_content_route(
             "before_hash": before_hash,
             "after_hash": _hash_text(response.edited_document),
         },
+        new_content=response.edited_document,
     )
     revision_recorded = True
     if not isinstance(revision_id, int):
         raise HTTPException(status_code=500, detail="Failed to record revision")
-    write_revision_snapshots(payload.post_id, revision_id, snapshot_chunks)
     if not revision_recorded:
         raise HTTPException(status_code=500, detail="Revision required before content write")
     write_post_content(payload.post_id, response.edited_document)
