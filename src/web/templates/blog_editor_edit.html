@@ -16,19 +16,7 @@
             </div>
             <div class="intent-header-right">
                 <button type="button" class="btn btn--primary" data-href="/blog/edit/{{ post_id }}/manual">Manual edit</button>
-                <form method="post" action="/blog/set-title" class="inline-form">
-                    <input type="hidden" name="post_id" value="{{ post_id }}">
-                    <input type="text" name="title" aria-label="Title" value="{{ meta.title or '' }}">
-                    <button type="submit" class="btn btn--primary">Set title</button>
-                </form>
-                <form method="post" action="/blog/set-author" class="inline-form">
-                    <input type="hidden" name="post_id" value="{{ post_id }}">
-                    <input type="text" name="author" aria-label="Author" value="{{ meta.author or '' }}">
-                    <button type="submit" class="btn btn--primary">Set author</button>
-                </form>
                 <form method="post" action="/document/save" class="inline-form">
-                    <textarea name="markdown" hidden>{{ content | e }}</textarea>
-                    <input type="text" name="filename" aria-label="Filename" value="article.md">
                     <button type="submit" class="btn btn--primary">Download document</button>
                 </form>
             </div>
@@ -78,49 +66,6 @@
                     </div>
                     <article id="article-text">{{ content_html | safe }}</article>
                 </div>
-            </section>
-
-            <section class="stack">
-                <form method="post" action="/blog/edit-content">
-                    <input type="hidden" name="post_id" value="{{ post_id }}">
-                    <div class="intent-field">
-                        <div class="intent-label-row">
-                            <label for="article-editor" class="intent-label-text">Edit content</label>
-                        </div>
-                        <textarea id="article-editor" name="content">{{ content | e }}</textarea>
-                    </div>
-                    <section class="action-row">
-                        <div class="actions-right">
-                            <button type="submit" class="btn btn--primary">Apply edit</button>
-                        </div>
-                    </section>
-                </form>
-            </section>
-
-            <!-- Policy editor (unchanged) -->
-            <section class="stack">
-                <form method="post" action="/blog/edit">
-                    <input type="hidden" name="post_id" value="{{ post_id }}">
-                    <div class="intent-field">
-                        <div class="intent-label-row">
-                            <label for="policy-text" class="intent-label-text">Policy editor</label>
-                            <button
-                                type="button"
-                                class="intent-help"
-                                data-help="Provide policy instructions for a constrained edit."
-                                aria-label="Help for Policy editor"
-                            >
-                                ?
-                            </button>
-                        </div>
-                        <textarea id="policy-text" name="policy_text" placeholder="Policy text"></textarea>
-                    </div>
-                    <section class="action-row">
-                        <div class="actions-right">
-                            <button type="submit" class="btn btn--primary">Run policy edit</button>
-                        </div>
-                    </section>
-                </form>
             </section>
 
         </section>
