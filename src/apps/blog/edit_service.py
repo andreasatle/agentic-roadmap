@@ -57,6 +57,7 @@ def apply_policy_edit(
     agent = make_editor_agent()
     dispatcher = AgentDispatcherBase()
     writer = PostRevisionWriter()
+    # Policy edits are clients of the canonical revision mechanism.
 
     chunks = split_markdown(document)
     original_chunks = chunks
