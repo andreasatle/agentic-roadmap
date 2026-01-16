@@ -17,6 +17,17 @@ body {
 }
 
 /* ==============================
+   DEFAULT LINK AFFORDANCE
+   ============================== */
+
+a:not(.nav-link):not(.btn) {
+  background: #b00000;      /* red */
+  color: #ffeb3b;           /* yellow */
+  padding: 0 0.2em;
+  text-decoration: underline;
+}
+
+/* ==============================
    NAVIGATION INTENT
    ============================== */
 
