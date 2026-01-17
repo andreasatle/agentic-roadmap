@@ -18,6 +18,7 @@ body {
 
 /* ==============================
    DEFAULT LINK AFFORDANCE
+   (INTENT VIOLATION = LOUD)
    ============================== */
 
 a:not(.nav-link):not(.btn) {
@@ -49,12 +50,6 @@ main.container {
   padding: 1rem;
 }
 
-.primary-actions {
-  display: flex;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
 .intent-header {
   display: flex;
   align-items: center;
@@ -62,14 +57,14 @@ main.container {
   gap: 1rem;
 }
 
+.intent-header-left {
+  flex: 0 0 auto;
+}
+
 .intent-header-right {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-}
-
-.intent-header-left {
-  flex: 0 0 auto;
 }
 
 .header-inner {
@@ -86,6 +81,21 @@ main.container {
 label {
   font-weight: 600;
   font-size: 0.9rem;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  font-size: 0.9rem;
+  padding: 0.4rem;
+  height: var(--control-height);
+  border: 1px solid transparent;
+  border-radius: 4px;
+}
+
+textarea {
+  min-height: 6rem;
 }
 
 /* ==============================
@@ -119,76 +129,17 @@ a.btn {
   align-items: center;
   justify-content: center;
   height: var(--control-height);
-  line-height: 1;
-}
-
-/* ==============================
-   FORMS
-   ============================== */
-
-.inline-form {
-  display: inline-flex;
-  align-items: center;
-  margin: 0;
-  padding: 0;
-}
-
-input,
-textarea,
-select {
-  width: 100%;
-  font-size: 0.9rem;
-  padding: 0.4rem;
-  height: var(--control-height);
-  border: 1px solid transparent;
-  border-radius: 4px;
-}
-
-.intent-field input:focus,
-.intent-field textarea:focus,
-.intent-field select:focus {
-  outline: none;
-}
-
-textarea {
-  min-height: 6rem;
-}
-
-/* ==============================
-   HELP / LABEL ROW
-   ============================== */
-
-.intent-label-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-  margin-bottom: 0.25rem;
-  height: var(--control-height);
-}
-
-.intent-label-text {
-  flex: 1 1 auto;
-  min-width: 0;
-}
-
-.intent-help {
-  width: 1.4rem;
-  height: 1.4rem;
-  padding: 0;
-  font-size: 0.7rem;
-  line-height: 1;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  border: 1px solid transparent;
-  border-radius: 50%;
-  cursor: pointer;
 }
 
 /* ==============================
    LAYOUT HELPERS
    ============================== */
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
 
 .form-row {
   display: grid;
@@ -200,116 +151,61 @@ textarea {
   grid-template-columns: repeat(3, 1fr);
 }
 
-.stack {
-  display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
-}
-
-.intent-field {
-  width: 100%;
-}
-
-.intent-muted {
-  font-size: 0.85rem;
-}
-
-.manual-editor textarea {
-  font-family: inherit;
-  line-height: 1.6;
-  min-height: 70vh;
-  resize: vertical;
-}
-
 /* ==============================
-   ACTION ROWS
+   MODALS — CANONICAL CONTRACT
    ============================== */
 
-.action-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 1rem;
-  margin-top: 1rem;
-}
-
-.actions-left {
-  display: flex;
-  flex-direction: column;
-}
-
-.inline-controls {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-}
-
-.inline-controls input {
-  flex: 1 1 auto;
-}
-
-.inline-controls .btn {
-  flex: 0 0 auto;
-}
-
-/* ==============================
-   MODALS
-   ============================== */
-
-#download-modal[hidden],
-#download-intent-modal[hidden],
-#title-modal[hidden],
-#author-modal[hidden],
-#edit-title-modal[hidden],
-#edit-author-modal[hidden] {
-  display: none;
-}
-
-#download-modal,
-#download-intent-modal,
-#title-modal,
-#author-modal,
-#edit-title-modal,
-#edit-author-modal {
+/* Backdrop */
+section[id$="-modal"]:not([hidden]) {
   position: fixed;
   inset: 0;
+  z-index: 1000;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 1rem;
-  z-index: 1000;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(2px);
 }
 
-#download-modal .modal-panel,
-#download-intent-modal .modal-panel,
-#title-modal .modal-panel,
-#author-modal .modal-panel,
-#edit-title-modal .modal-panel,
-#edit-author-modal .modal-panel {
+/* Panel */
+.modal-panel {
   width: min(520px, 100%);
-  padding: 1rem;
-  border: 1px solid transparent;
-  border-radius: 8px;
-}
-
-/* ==============================
-   MODAL BACKDROP + PANEL
-   ============================== */
-
-#edit-title-modal,
-#edit-author-modal {
-  background: rgba(0, 0, 0, 0.55); /* backdrop */
-}
-
-#edit-title-modal .modal-panel,
-#edit-author-modal .modal-panel {
   background: var(--bg-panel);
+  color: var(--text-main);
+  border-radius: 8px;
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+  padding: 1rem;
+
+  /* THIS IS THE CRITICAL RESTORED CONTRACT */
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.modal-panel > form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin: 0;
+}
+
+/* Structural spacing */
+.modal-header h2 {
+  margin: 0;
 }
 
 .modal-body {
-  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
 }
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+}
+
 /* ==============================
    RESPONSIVE
    ============================== */

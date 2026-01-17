@@ -21,7 +21,7 @@
                 <a href="/blog/edit/{{ post_id }}/policy" class="btn btn--ghost">Policy edit</a>
                 <button type="button" class="btn btn--ghost" id="open-title-modal-btn">Edit title</button>
                 <button type="button" class="btn btn--ghost" id="open-author-modal-btn">Edit author</button>
-                <button type="button" class="btn btn--ghost" id="download-markdown-btn">Download</button>
+                <button type="button" class="btn btn--ghost" id="open-download-modal-btn">Download</button>
             </div>
         </header>
 
@@ -76,6 +76,30 @@
     </main>
 
     <textarea id="markdown-source" hidden>{{ content | e }}</textarea>
+
+    <section id="download-modal" hidden>
+        <div class="modal-panel">
+            <header class="modal-header">
+                <h2>Download markdown</h2>
+            </header>
+            <div class="modal-body">
+                <div class="intent-field">
+                    <div class="intent-label-row">
+                        <label for="download-filename" class="intent-label-text">Filename</label>
+                    </div>
+                    <input id="download-filename" type="text" value="post.md">
+                </div>
+            </div>
+            <div class="inline-controls modal-actions">
+                <button type="button" class="btn btn--ghost" id="download-cancel-btn">
+                    Cancel
+                </button>
+                <button type="button" class="btn btn--primary" id="download-confirm-btn">
+                    Download
+                </button>
+            </div>
+        </div>
+    </section>
 
     <!-- Edit title modal -->
     <section id="edit-title-modal" hidden>

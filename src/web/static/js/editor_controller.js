@@ -93,26 +93,24 @@ export function initEditorController() {
     }
   });
 
-  $("download-markdown-btn")?.addEventListener("click", () => {
+  $("open-download-modal-btn")?.addEventListener("click", () =>
+    openModal("download-modal", "download-filename"),
+  );
+  $("download-cancel-btn")?.addEventListener("click", () =>
+    closeModal("download-modal"),
+  );
+  $("download-confirm-btn")?.addEventListener("click", () => {
     const markdown = $("markdown-source")?.value ?? "";
-    const form = document.createElement("form");
-    form.method = "post";
-    form.action = "/document/save";
-
-    const markdownField = document.createElement("textarea");
-    markdownField.name = "markdown";
-    markdownField.hidden = true;
-    markdownField.value = markdown;
-    form.appendChild(markdownField);
-
-    const filenameField = document.createElement("input");
-    filenameField.type = "hidden";
-    filenameField.name = "filename";
-    filenameField.value = "post.md";
-    form.appendChild(filenameField);
-
-    document.body.appendChild(form);
-    form.submit();
-    form.remove();
+    const filename = $("download-filename")?.value?.trim() || "post.md";
+    const blob = new Blob([markdown], { type: "text/markdown" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    URL.revokeObjectURL(url);
+    closeModal("download-modal");
   });
 }
