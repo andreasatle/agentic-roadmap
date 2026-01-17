@@ -6,7 +6,7 @@ from pydantic import BaseModel
 PostStatus = Literal["draft", "published", "archived"]
 POST_STATUS_VALUES: tuple[str, ...] = get_args(PostStatus)
 POST_STATUS_TRANSITIONS: dict[PostStatus, tuple[PostStatus, ...]] = {
-    "draft": ("published", "archived"),
+    "draft": ("published",),
     "published": ("archived",),
     "archived": (),
 }

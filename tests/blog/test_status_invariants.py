@@ -23,7 +23,6 @@ def posts_root(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> Path:
 
 def test_validate_status_transition_allows_valid() -> None:
     validate_status_transition("draft", "published")
-    validate_status_transition("draft", "archived")
     validate_status_transition("published", "archived")
 
 
@@ -32,6 +31,10 @@ def test_validate_status_transition_rejects_invalid() -> None:
         validate_status_transition("published", "draft")
     with pytest.raises(ValueError):
         validate_status_transition("archived", "published")
+    with pytest.raises(ValueError):
+        validate_status_transition("archived", "draft")
+    with pytest.raises(ValueError):
+        validate_status_transition("draft", "archived")
     with pytest.raises(ValueError):
         validate_status_transition("draft", "draft")
 
@@ -84,6 +87,7 @@ def test_archived_rejects_further_transitions(posts_root: Path) -> None:
         content="Alpha",
     )
 
+    update_post_status(post_id, "published")
     update_post_status(post_id, "archived")
 
     with pytest.raises(ValueError):
