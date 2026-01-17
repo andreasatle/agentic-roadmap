@@ -21,10 +21,7 @@
                 <a href="/blog/edit/{{ post_id }}/policy" class="btn btn--ghost">Policy edit</a>
                 <button type="button" class="btn btn--ghost" id="open-title-modal-btn">Edit title</button>
                 <button type="button" class="btn btn--ghost" id="open-author-modal-btn">Edit author</button>
-                <form method="post" action="/document/save" class="inline-form">
-                    <textarea name="markdown" hidden>{{ content | e }}</textarea>
-                    <button type="submit" class="btn btn--ghost">Download</button>
-                </form>
+                <button type="button" class="btn btn--ghost" id="download-markdown-btn">Download</button>
             </div>
         </header>
 
@@ -78,6 +75,8 @@
         </section>
     </main>
 
+    <textarea id="markdown-source" hidden>{{ content | e }}</textarea>
+
     <!-- Edit title modal -->
     <section id="edit-title-modal" hidden>
         <div class="modal-panel">
@@ -126,6 +125,6 @@
         </div>
     </section>
 
-    <script src="/static/js/app.js"></script>
+    <script type="module" src="/static/js/app.js"></script>
 </body>
 </html>

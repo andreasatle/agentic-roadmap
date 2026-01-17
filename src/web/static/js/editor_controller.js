@@ -2,6 +2,12 @@ import { $ } from "./dom.js";
 import { closeModal, openModal } from "./modals.js";
 
 export function initEditorController() {
+  const titleModal = $("edit-title-modal");
+  const authorModal = $("edit-author-modal");
+  if (!titleModal && !authorModal) {
+    return;
+  }
+
   $("open-title-modal-btn")?.addEventListener("click", () =>
     openModal("edit-title-modal", "edit-title-input"),
   );
@@ -15,7 +21,6 @@ export function initEditorController() {
     closeModal("edit-author-modal"),
   );
 
-  const titleModal = $("edit-title-modal");
   const titleForm = titleModal?.querySelector("form");
   titleForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -52,7 +57,6 @@ export function initEditorController() {
     }
   });
 
-  const authorModal = $("edit-author-modal");
   const authorForm = authorModal?.querySelector("form");
   authorForm?.addEventListener("submit", async (event) => {
     event.preventDefault();
@@ -87,5 +91,28 @@ export function initEditorController() {
     } catch (error) {
       alert(error instanceof Error ? error.message : "Failed to update author.");
     }
+  });
+
+  $("download-markdown-btn")?.addEventListener("click", () => {
+    const markdown = $("markdown-source")?.value ?? "";
+    const form = document.createElement("form");
+    form.method = "post";
+    form.action = "/document/save";
+
+    const markdownField = document.createElement("textarea");
+    markdownField.name = "markdown";
+    markdownField.hidden = true;
+    markdownField.value = markdown;
+    form.appendChild(markdownField);
+
+    const filenameField = document.createElement("input");
+    filenameField.type = "hidden";
+    filenameField.name = "filename";
+    filenameField.value = "post.md";
+    form.appendChild(filenameField);
+
+    document.body.appendChild(form);
+    form.submit();
+    form.remove();
   });
 }

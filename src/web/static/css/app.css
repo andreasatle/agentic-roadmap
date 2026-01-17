@@ -293,6 +293,24 @@ textarea {
 }
 
 /* ==============================
+   MODAL BACKDROP + PANEL
+   ============================== */
+
+#edit-title-modal,
+#edit-author-modal {
+  background: rgba(0, 0, 0, 0.55); /* backdrop */
+}
+
+#edit-title-modal .modal-panel,
+#edit-author-modal .modal-panel {
+  background: var(--bg-panel);
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.6);
+}
+
+.modal-body {
+  margin-bottom: 1rem;
+}
+/* ==============================
    RESPONSIVE
    ============================== */
 
