@@ -91,3 +91,35 @@ def test_archived_rejects_further_transitions(posts_root: Path) -> None:
 
     meta_payload = yaml.safe_load((posts_root / post_id / "meta.yaml").read_text())
     assert meta_payload["status"] == "archived"
+
+
+def test_missing_status_defaults_to_draft(posts_root: Path) -> None:
+    post_id, _ = create_post(
+        title="Missing status",
+        author="tester",
+        intent={},
+        content="Alpha",
+    )
+    meta_path = posts_root / post_id / "meta.yaml"
+    meta_payload = yaml.safe_load(meta_path.read_text())
+    meta_payload.pop("status", None)
+    meta_path.write_text(yaml.safe_dump(meta_payload, sort_keys=False, default_flow_style=False))
+
+    meta = storage.read_post_meta(post_id)
+    assert meta.status == "draft"
+
+
+def test_invalid_explicit_status_rejected(posts_root: Path) -> None:
+    post_id, _ = create_post(
+        title="Bad status",
+        author="tester",
+        intent={},
+        content="Alpha",
+    )
+    meta_path = posts_root / post_id / "meta.yaml"
+    meta_payload = yaml.safe_load(meta_path.read_text())
+    meta_payload["status"] = "bogus"
+    meta_path.write_text(yaml.safe_dump(meta_payload, sort_keys=False, default_flow_style=False))
+
+    with pytest.raises(ValueError):
+        storage.read_post_meta(post_id)

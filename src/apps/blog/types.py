@@ -18,6 +18,12 @@ def require_post_status(value: object, *, field: str = "status") -> PostStatus:
     return value
 
 
+def resolve_post_status(value: object, *, field: str = "status") -> PostStatus:
+    if value is None:
+        return "draft"
+    return require_post_status(value, field=field)
+
+
 def validate_status_transition(from_status: PostStatus, to_status: PostStatus) -> None:
     allowed = POST_STATUS_TRANSITIONS.get(from_status, ())
     if to_status not in allowed:
@@ -29,4 +35,4 @@ class BlogPostMeta(BaseModel):
     title: str | None = None
     author: str
     created_at: datetime
-    status: PostStatus
+    status: PostStatus = "draft"

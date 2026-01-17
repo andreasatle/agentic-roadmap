@@ -14,6 +14,7 @@ from apps.blog.types import (
     BlogPostMeta,
     PostStatus,
     require_post_status,
+    resolve_post_status,
     validate_status_transition,
 )
 from document_writer.domain.editor.chunking import Chunk, join_chunks, split_markdown
@@ -85,6 +86,8 @@ def list_posts(*, include_drafts: bool = False) -> list[BlogPostMeta]:
             continue
         try:
             meta_data = yaml.safe_load(meta_path.read_text())
+            if isinstance(meta_data, dict) and meta_data.get("status") is None:
+                meta_data["status"] = "draft"
             meta = BlogPostMeta.model_validate(meta_data)
         except Exception:
             continue
@@ -102,6 +105,8 @@ def read_post_meta(post_id: str) -> BlogPostMeta:
         raise FileNotFoundError(f"meta.yaml not found for post {post_id}")
     try:
         meta_data = yaml.safe_load(meta_path.read_text())
+        if isinstance(meta_data, dict) and meta_data.get("status") is None:
+            meta_data["status"] = "draft"
         return BlogPostMeta.model_validate(meta_data)
     except Exception as exc:
         raise ValueError(f"Invalid meta.yaml for post {post_id}: {exc}") from exc
@@ -116,7 +121,7 @@ def update_post_status(post_id: str, new_status: str) -> PostStatus:
     if not isinstance(meta_payload, dict):
         raise ValueError(f"Invalid meta.yaml for post {post_id}")
 
-    current_status = require_post_status(meta_payload.get("status"), field="current status")
+    current_status = resolve_post_status(meta_payload.get("status"), field="current status")
     resolved_status = require_post_status(new_status, field="new status")
     validate_status_transition(current_status, resolved_status)
 
