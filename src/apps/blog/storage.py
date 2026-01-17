@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from datetime import datetime, timezone
+import copy
 import hashlib
 import os
 import secrets
@@ -9,7 +10,12 @@ from typing import Any, Literal
 import yaml
 
 from apps.blog.paths import POSTS_ROOT
-from apps.blog.types import BlogPostMeta
+from apps.blog.types import (
+    BlogPostMeta,
+    PostStatus,
+    require_post_status,
+    validate_status_transition,
+)
 from document_writer.domain.editor.chunking import Chunk, join_chunks, split_markdown
 
 
@@ -17,6 +23,10 @@ from document_writer.domain.editor.chunking import Chunk, join_chunks, split_mar
 class RevisionResult:
     revision_id: int
     parent_revision_id: int | None
+
+
+def _hash_file(path: Path) -> str:
+    return hashlib.sha256(path.read_bytes()).hexdigest()
 
 
 def create_post(
@@ -93,6 +103,59 @@ def read_post_meta(post_id: str) -> BlogPostMeta:
         return BlogPostMeta.model_validate(meta_data)
     except Exception as exc:
         raise ValueError(f"Invalid meta.yaml for post {post_id}: {exc}") from exc
+
+
+def update_post_status(post_id: str, new_status: str) -> PostStatus:
+    post_dir = POSTS_ROOT / post_id
+    meta_path = post_dir / "meta.yaml"
+    if not meta_path.exists():
+        raise FileNotFoundError(f"meta.yaml not found for post {post_id}")
+    meta_payload = yaml.safe_load(meta_path.read_text()) or {}
+    if not isinstance(meta_payload, dict):
+        raise ValueError(f"Invalid meta.yaml for post {post_id}")
+
+    current_status = require_post_status(meta_payload.get("status"), field="current status")
+    resolved_status = require_post_status(new_status, field="new status")
+    validate_status_transition(current_status, resolved_status)
+
+    intent_path = post_dir / "intent.yaml"
+    if not intent_path.exists():
+        raise FileNotFoundError(f"intent.yaml not found for post {post_id}")
+    intent_hash = _hash_file(intent_path)
+
+    content_path = post_dir / "content.md"
+    content_exists = content_path.exists()
+    content_hash = _hash_file(content_path) if content_exists else None
+
+    revisions_before = copy.deepcopy(meta_payload.get("revisions"))
+
+    meta_payload["status"] = resolved_status
+    temp_path = meta_path.with_suffix(".yaml.tmp")
+    temp_path.write_text(yaml.safe_dump(meta_payload, sort_keys=False, default_flow_style=False))
+    os.replace(temp_path, meta_path)
+
+    reloaded = yaml.safe_load(meta_path.read_text()) or {}
+    if not isinstance(reloaded, dict):
+        raise ValueError(f"Invalid meta.yaml for post {post_id}")
+    persisted_status = reloaded.get("status")
+    if persisted_status != resolved_status:
+        raise ValueError(f"Failed to persist status update for post {post_id}")
+    if reloaded.get("revisions") != revisions_before:
+        raise ValueError("Status update must not modify revisions metadata")
+
+    if content_exists:
+        if not content_path.exists():
+            raise ValueError("Status update must not remove content")
+        if _hash_file(content_path) != content_hash:
+            raise ValueError("Status update must not modify content")
+    else:
+        if content_path.exists():
+            raise ValueError("Status update must not create content")
+
+    if _hash_file(intent_path) != intent_hash:
+        raise ValueError("Status update must not modify intent")
+
+    return resolved_status
 
 
 def read_post_content(post_id: str) -> str:

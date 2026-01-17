@@ -40,13 +40,14 @@ class PostRevisionWriter:
             )
         if status not in ("applied", "rejected"):
             raise ValueError(f"Unknown status: {status}")
+        if delta_type == "status_changed":
+            raise ValueError("Status updates must not be recorded as revisions")
         mutation_delta_types = {
             "content_chunks_modified",
             "content_free_edit",
             "content_policy_edit",
             "title_changed",
             "author_changed",
-            "status_changed",
             "title_set",
         }
         if delta_type not in mutation_delta_types:
