@@ -5,7 +5,12 @@ import pytest
 import yaml
 
 from apps.blog import storage
-from apps.blog.storage import create_post, update_post_status
+from apps.blog.storage import (
+    create_post,
+    read_post_content,
+    read_revision_metadata,
+    update_post_status,
+)
 from apps.blog.types import validate_status_transition
 
 
@@ -127,3 +132,54 @@ def test_invalid_explicit_status_rejected(posts_root: Path) -> None:
 
     with pytest.raises(ValueError):
         storage.read_post_meta(post_id)
+
+
+def test_status_change_does_not_create_revision(posts_root: Path) -> None:
+    post_id, _ = create_post(
+        title="No revision",
+        author="tester",
+        intent={},
+        content="Alpha",
+    )
+
+    revisions_before = read_revision_metadata(post_id)
+    count_before = len(revisions_before)
+    last_revision_before = (
+        max((entry.get("revision_id") for entry in revisions_before), default=None)
+        if revisions_before
+        else None
+    )
+
+    update_post_status(post_id, "published")
+
+    revisions_after = read_revision_metadata(post_id)
+    count_after = len(revisions_after)
+    last_revision_after = (
+        max((entry.get("revision_id") for entry in revisions_after), default=None)
+        if revisions_after
+        else None
+    )
+
+    assert count_after == count_before
+    assert last_revision_after == last_revision_before
+
+
+def test_status_change_does_not_mutate_content(posts_root: Path) -> None:
+    content = "Alpha\n\nBeta"
+    post_id, _ = create_post(
+        title="No content change",
+        author="tester",
+        intent={},
+        content=content,
+    )
+
+    before = read_post_content(post_id)
+    before_hash = _hash_file(posts_root / post_id / "content.md")
+
+    update_post_status(post_id, "published")
+
+    after = read_post_content(post_id)
+    after_hash = _hash_file(posts_root / post_id / "content.md")
+
+    assert after == before
+    assert after_hash == before_hash
