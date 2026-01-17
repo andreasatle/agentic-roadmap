@@ -140,7 +140,22 @@ export function initEditorController() {
           body: JSON.stringify({ post_id: postId, target_status: targetStatus }),
         });
         if (response.ok) {
-          window.location.reload();
+          document.body.dataset.postStatus = targetStatus;
+          const statusIndicator = document.querySelector(
+            ".intent-header-left div",
+          );
+          if (statusIndicator) {
+            statusIndicator.textContent = `Status: ${targetStatus}`;
+          }
+          document.querySelectorAll("[data-status-action]").forEach((action) => {
+            const nextStatus = action.dataset.statusAction ?? "";
+            if (action instanceof HTMLButtonElement) {
+              action.disabled =
+                (nextStatus === "published" && targetStatus !== "draft") ||
+                (nextStatus === "archived" && targetStatus !== "published") ||
+                (nextStatus === "draft" && targetStatus !== "archived");
+            }
+          });
           return;
         }
         let message = "Failed to update status.";
