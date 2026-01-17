@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="/static/css/app.css">
     <link rel="stylesheet" href="/static/css/theme-dark.css">
 </head>
-<body data-page="blog-editor" data-post-id="{{ post_id }}">
+<body data-page="blog-editor" data-post-id="{{ post_id }}" data-post-status="{{ meta.status or 'draft' }}">
     <main class="container">
         <p><a href="/" class="nav-link">Home</a></p>
 
@@ -18,6 +18,33 @@
             </div>
 
             <div class="intent-header-right">
+                <button
+                    type="button"
+                    class="btn btn--ghost"
+                    id="publish-post-btn"
+                    data-status-action="published"
+                    {% if meta.status != "draft" %}disabled{% endif %}
+                >
+                    Publish
+                </button>
+                <button
+                    type="button"
+                    class="btn btn--ghost"
+                    id="archive-post-btn"
+                    data-status-action="archived"
+                    {% if meta.status != "published" %}disabled{% endif %}
+                >
+                    Archive
+                </button>
+                <button
+                    type="button"
+                    class="btn btn--ghost"
+                    id="restore-post-btn"
+                    data-status-action="draft"
+                    {% if meta.status != "archived" %}disabled{% endif %}
+                >
+                    Restore
+                </button>
                 <a href="/blog/edit/{{ post_id }}/manual" class="btn btn--ghost">Manual edit</a>
                 <a href="/blog/edit/{{ post_id }}/policy" class="btn btn--ghost">Policy edit</a>
                 <button type="button" class="btn btn--ghost" id="open-title-modal-btn">Edit title</button>

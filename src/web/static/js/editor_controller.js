@@ -113,4 +113,46 @@ export function initEditorController() {
     URL.revokeObjectURL(url);
     closeModal("download-modal");
   });
+
+  document.querySelectorAll("[data-status-action]").forEach((button) => {
+    button.addEventListener("click", async () => {
+      if (button instanceof HTMLButtonElement && button.disabled) {
+        return;
+      }
+      const postId = document.body?.dataset?.postId ?? "";
+      const targetStatus = button.dataset.statusAction ?? "";
+      if (!postId || !targetStatus) {
+        return;
+      }
+      try {
+        const response = await fetch("/blog/status", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ post_id: postId, target_status: targetStatus }),
+        });
+        if (response.ok) {
+          window.location.reload();
+          return;
+        }
+        let message = "Failed to update status.";
+        try {
+          const payload = await response.json();
+          if (payload?.detail) {
+            message =
+              typeof payload.detail === "string"
+                ? payload.detail
+                : JSON.stringify(payload.detail);
+          }
+        } catch {
+          const text = await response.text();
+          if (text) {
+            message = text;
+          }
+        }
+        alert(message);
+      } catch (error) {
+        alert(error instanceof Error ? error.message : "Failed to update status.");
+      }
+    });
+  });
 }
