@@ -1,7 +1,10 @@
 from datetime import datetime
-from typing import Literal
+from typing import Literal, get_args
 
 from pydantic import BaseModel
+
+PostStatus = Literal["draft", "published", "archived"]
+POST_STATUS_VALUES: tuple[str, ...] = get_args(PostStatus)
 
 
 class BlogPostMeta(BaseModel):
@@ -9,4 +12,4 @@ class BlogPostMeta(BaseModel):
     title: str | None = None
     author: str
     created_at: datetime
-    status: Literal["draft", "published"]
+    status: PostStatus

@@ -1,9 +1,9 @@
 from datetime import datetime, timezone
-from typing import Literal
 
 from pydantic import BaseModel
 
 from apps.blog.storage import create_post
+from apps.blog.types import PostStatus
 
 
 class BlogPost(BaseModel):
@@ -11,7 +11,7 @@ class BlogPost(BaseModel):
     author: str
     intent: dict
     content: str
-    status: Literal["draft", "published"] = "draft"
+    status: PostStatus = "draft"
     created_at: datetime | None = None
 
     def persist(self, posts_root: str = "posts") -> tuple[str, str]:

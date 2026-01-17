@@ -5,8 +5,9 @@ from __future__ import annotations
 from dataclasses import dataclass, replace
 from typing import Literal, Mapping, TypedDict, Any
 
+from apps.blog.types import PostStatus, POST_STATUS_VALUES
 
-PostStatus = Literal["draft", "published"]
+
 DeltaStatus = Literal["applied", "rejected"]
 
 
@@ -96,6 +97,8 @@ def _require_str_or_none(payload: Mapping[str, Any], key: str) -> str | None:
 
 def _require_status(payload: Mapping[str, Any], key: str) -> PostStatus:
     value = payload.get(key)
-    if value not in ("draft", "published"):
-        raise ValueError(f"Delta payload '{key}' must be 'draft' or 'published'")
+    if value not in POST_STATUS_VALUES:
+        raise ValueError(
+            f"Delta payload '{key}' must be one of {', '.join(POST_STATUS_VALUES)}"
+        )
     return value
