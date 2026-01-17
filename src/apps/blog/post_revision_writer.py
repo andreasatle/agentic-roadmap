@@ -1,7 +1,9 @@
 """Authoritative single-writer interface for post revision state."""
 
+from pathlib import Path
 from typing import Any
 
+from apps.blog.paths import POSTS_ROOT
 from apps.blog.storage import apply_blog_update, read_post_content
 
 
@@ -12,8 +14,8 @@ class PostRevisionWriter:
     single-writer authority.
     """
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, posts_root: str | None = None) -> None:
+        self.posts_root = Path(posts_root) if posts_root is not None else POSTS_ROOT
 
     def load_post(self, post_id: str) -> Any:
         """Load a post into the writer's authority context for revision."""
@@ -53,12 +55,11 @@ class PostRevisionWriter:
         if delta_type not in mutation_delta_types:
             raise ValueError(f"Unknown delta_type: {delta_type}")
         record_payload = dict(delta_payload)
-        content_delta_types = {
-            "content_chunks_modified",
+        content_requires_new_content = {
             "content_free_edit",
             "content_policy_edit",
         }
-        if delta_type in content_delta_types and new_content is None:
+        if delta_type in content_requires_new_content and new_content is None:
             raise ValueError(f"{delta_type} requires new_content")
         meta_updates = None
         if delta_type == "title_changed":
@@ -80,7 +81,11 @@ class PostRevisionWriter:
             source = "manual"
         else:
             source = "future"
-        resolved_content = new_content if new_content is not None else read_post_content(post_id)
+        resolved_content = (
+            new_content
+            if new_content is not None
+            else read_post_content(post_id, self.posts_root)
+        )
         revision_result = apply_blog_update(
             post_id=post_id,
             new_content=resolved_content,
@@ -92,6 +97,7 @@ class PostRevisionWriter:
             status=status,
             reason=reason,
             meta_updates=meta_updates,
+            posts_root=self.posts_root,
         )
         return revision_result.revision_id
 

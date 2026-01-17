@@ -35,6 +35,7 @@ def create_post(
     author: str,
     intent: dict,
     content: str,
+    posts_root: str | None = None,
 ) -> tuple[str, str]:
     """
     Creates a new blog post directory and writes meta.yaml, intent.yaml, content.md.
@@ -46,7 +47,8 @@ def create_post(
     suffix = secrets.token_hex(3)
     post_id = f"{ts_str}__{suffix}"
 
-    post_dir = POSTS_ROOT / post_id
+    resolved_root = Path(posts_root) if posts_root is not None else POSTS_ROOT
+    post_dir = resolved_root / post_id
     if post_dir.exists():
         raise FileExistsError(f"Post directory already exists: {post_dir}")
 
@@ -158,11 +160,12 @@ def update_post_status(post_id: str, new_status: str) -> PostStatus:
     return resolved_status
 
 
-def read_post_content(post_id: str) -> str:
-    post_dir = POSTS_ROOT / post_id
+def read_post_content(post_id: str, posts_root: str | Path | None = None) -> str:
+    resolved_root = Path(posts_root) if posts_root is not None else POSTS_ROOT
+    post_dir = resolved_root / post_id
     content_path = post_dir / "content.md"
     if not content_path.exists():
-        return _replay_post_content(post_id)
+        return _replay_post_content(post_id, resolved_root)
     return content_path.read_text()
 
 
@@ -176,9 +179,11 @@ def write_revision_snapshots(
     post_id: str,
     revision_id: int,
     snapshot_chunks: list[dict],
+    posts_root: str | Path | None = None,
 ) -> None:
     # Snapshots are artifacts; revision history is authoritative in meta.yaml.
-    revisions_dir = POSTS_ROOT / post_id / "revisions"
+    resolved_root = Path(posts_root) if posts_root is not None else POSTS_ROOT
+    revisions_dir = resolved_root / post_id / "revisions"
     revisions_dir.mkdir(parents=True, exist_ok=True)
     for snapshot in snapshot_chunks:
         index = snapshot["index"]
@@ -199,8 +204,10 @@ def apply_blog_update(
     status: str = "applied",
     reason: str | None = None,
     meta_updates: dict | None = None,
+    posts_root: str | Path | None = None,
 ) -> RevisionResult:
-    post_dir = POSTS_ROOT / post_id
+    resolved_root = Path(posts_root) if posts_root is not None else POSTS_ROOT
+    post_dir = resolved_root / post_id
     meta_path = post_dir / "meta.yaml"
     if not meta_path.exists():
         raise FileNotFoundError(f"meta.yaml not found for post {post_id}")
@@ -268,7 +275,12 @@ def apply_blog_update(
             {"index": chunk.index, "text": chunk.text}
             for chunk in split_markdown(new_content)
         ]
-        write_revision_snapshots(post_id, next_revision_id, snapshot_chunks)
+        write_revision_snapshots(
+            post_id,
+            next_revision_id,
+            snapshot_chunks,
+            posts_root=resolved_root,
+        )
     return RevisionResult(
         revision_id=next_revision_id,
         parent_revision_id=resolved_parent_revision_id,
@@ -312,8 +324,9 @@ def read_post_intent(post_id: str) -> dict:
         raise ValueError(f"Invalid intent.yaml for post {post_id}: {exc}") from exc
 
 
-def _replay_post_content(post_id: str) -> str:
-    post_dir = POSTS_ROOT / post_id
+def _replay_post_content(post_id: str, posts_root: str | Path | None = None) -> str:
+    resolved_root = Path(posts_root) if posts_root is not None else POSTS_ROOT
+    post_dir = resolved_root / post_id
     meta_path = post_dir / "meta.yaml"
     if not meta_path.exists():
         raise FileNotFoundError(f"meta.yaml not found for post {post_id}")
