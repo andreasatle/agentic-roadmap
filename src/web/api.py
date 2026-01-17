@@ -113,7 +113,7 @@ def read_editor_entry(
     accept = request.headers.get("accept", "")
     if "application/json" in accept.lower():
         raise HTTPException(status_code=406, detail="Editor renders HTML only")
-    posts = list_posts(include_drafts=True)
+    posts = list_posts(visibility="editor")
     draft_posts = [post for post in posts if post.status == "draft"]
     return templates.TemplateResponse(
         "blog_editor_entry.html",
@@ -735,7 +735,7 @@ def save_document(payload: DocumentSaveRequest):
 
 @app.get("/blog", response_class=HTMLResponse)
 async def get_blog_index(request: Request, format: str = "html"):
-    posts = list_posts(include_drafts=False)
+    posts = list_posts(visibility="public")
     if format == "html":
         return templates.TemplateResponse(
             "blog_index.html",

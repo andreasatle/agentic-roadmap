@@ -74,7 +74,9 @@ def create_post(
     return post_id, str(post_dir.resolve())
 
 
-def list_posts(*, include_drafts: bool = False) -> list[BlogPostMeta]:
+def list_posts(*, visibility: Literal["public", "editor"]) -> list[BlogPostMeta]:
+    if visibility not in ("public", "editor"):
+        raise ValueError("visibility must be 'public' or 'editor'")
     posts: list[BlogPostMeta] = []
     if not POSTS_ROOT.exists() or not POSTS_ROOT.is_dir():
         return []
@@ -91,7 +93,7 @@ def list_posts(*, include_drafts: bool = False) -> list[BlogPostMeta]:
             meta = BlogPostMeta.model_validate(meta_data)
         except Exception:
             continue
-        if not include_drafts and meta.status != "published":
+        if visibility == "public" and meta.status != "published":
             continue
         posts.append(meta)
     posts.sort(key=lambda m: m.created_at, reverse=True)
