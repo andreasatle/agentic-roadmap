@@ -27,6 +27,7 @@ from apps.blog.storage import (
     read_post_intent,
     write_post_content,
     read_revision_metadata,
+    set_post_status,
 )
 from web.schemas import (
     DocumentGenerateRequest,
@@ -34,6 +35,8 @@ from web.schemas import (
     EditContentRequest,
     BlogEditRequest,
     BlogEditResponse,
+    BlogStatusRequest,
+    BlogStatusResponse,
     TitleSetRequest,
     TitleSuggestRequest,
 )
@@ -119,6 +122,28 @@ def read_editor_entry(
             "draft_posts": draft_posts,
             "post_id": None,
         },
+    )
+
+
+@app.post("/blog/status")
+def set_blog_status(
+    payload: BlogStatusRequest,
+    creds = Depends(security),
+) -> BlogStatusResponse:
+    require_admin(creds)
+    try:
+        previous_status, new_status = set_post_status(
+            payload.post_id,
+            payload.target_status,
+        )
+    except FileNotFoundError:
+        raise HTTPException(status_code=404, detail="Post not found")
+    except ValueError as exc:
+        raise HTTPException(status_code=400, detail=str(exc))
+    return BlogStatusResponse(
+        post_id=payload.post_id,
+        previous_status=previous_status,
+        new_status=new_status,
     )
 
 

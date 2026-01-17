@@ -1,7 +1,8 @@
 from typing import Literal, Self
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, model_validator, ConfigDict
 from document_writer.domain.intent.types import IntentEnvelope
+from apps.blog.types import PostStatus
 
 class DocumentGenerateRequest(BaseModel):
     intent: IntentEnvelope
@@ -73,3 +74,18 @@ class BlogEditResponse(BaseModel):
     changed_chunks: list[int]
     rejected_chunks: list[BlogEditRejectedChunk]
     content: str
+
+
+class BlogStatusRequest(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    post_id: str
+    target_status: PostStatus
+
+
+class BlogStatusResponse(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    post_id: str
+    previous_status: PostStatus
+    new_status: PostStatus

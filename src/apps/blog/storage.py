@@ -165,6 +165,13 @@ def update_post_status(post_id: str, new_status: str) -> PostStatus:
     return resolved_status
 
 
+def set_post_status(post_id: str, target_status: PostStatus) -> tuple[PostStatus, PostStatus]:
+    meta = read_post_meta(post_id)
+    previous_status = meta.status
+    new_status = update_post_status(post_id, target_status)
+    return previous_status, new_status
+
+
 def read_post_content(post_id: str, posts_root: str | Path | None = None) -> str:
     resolved_root = Path(posts_root) if posts_root is not None else POSTS_ROOT
     post_dir = resolved_root / post_id
