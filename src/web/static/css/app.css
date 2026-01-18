@@ -50,9 +50,24 @@ main.container {
   padding: 1rem;
 }
 
+main.container > header,
+main.container > section {
+  margin-block: 2.5rem;
+}
+
+main.container > header:first-child,
+main.container > section:first-child {
+  margin-top: 0;
+}
+
+main.container > header:last-child,
+main.container > section:last-child {
+  margin-bottom: 0;
+}
+
 .intent-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   gap: 1rem;
 }
@@ -62,6 +77,38 @@ main.container {
 }
 
 .intent-header-right {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.editor-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0;
+  width: 100%;
+}
+
+.action-group {
+  display: block;
+  width: 100%;
+}
+
+.action-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  margin-bottom: 1.5rem;
+}
+
+.action-label {
+  font-size: 0.8rem;
+  color: #7b7b7b;
+}
+
+.action-row {
   display: flex;
   align-items: center;
   gap: 0.5rem;

@@ -17,7 +17,7 @@
         </section>
         <section>
             <ul>
-                {% for post in draft_posts %}
+                {% for post in posts %}
                     <li>
                         <a href="/blog/editor/{{ post.post_id }}" class="nav-link">
                             {{ post.title or '(untitled)' }}

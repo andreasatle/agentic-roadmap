@@ -18,38 +18,61 @@
             </div>
 
             <div class="intent-header-right">
-                <button
-                    type="button"
-                    class="btn btn--ghost"
-                    id="publish-post-btn"
-                    data-status-action="published"
-                    {% if meta.status != "draft" %}disabled{% endif %}
-                >
-                    Publish
-                </button>
-                <button
-                    type="button"
-                    class="btn btn--ghost"
-                    id="archive-post-btn"
-                    data-status-action="archived"
-                    {% if meta.status != "published" %}disabled{% endif %}
-                >
-                    Archive
-                </button>
-                <button
-                    type="button"
-                    class="btn btn--ghost"
-                    id="restore-post-btn"
-                    data-status-action="draft"
-                    {% if meta.status != "archived" %}disabled{% endif %}
-                >
-                    Restore
-                </button>
-                <a href="/blog/edit/{{ post_id }}/manual" class="btn btn--ghost">Manual edit</a>
-                <a href="/blog/edit/{{ post_id }}/policy" class="btn btn--ghost">Policy edit</a>
-                <button type="button" class="btn btn--ghost" id="open-title-modal-btn">Edit title</button>
-                <button type="button" class="btn btn--ghost" id="open-author-modal-btn">Edit author</button>
-                <button type="button" class="btn btn--ghost" id="open-download-modal-btn">Download</button>
+                <div class="editor-actions">
+                    <div class="action-group">
+                        <div class="action-block">
+                            <div class="action-label">Lifecycle</div>
+                            <div class="action-row">
+                                <button
+                                    type="button"
+                                    class="btn btn--ghost"
+                                    id="publish-post-btn"
+                                    data-status-action="published"
+                                    {% if meta.status != "draft" %}disabled{% endif %}
+                                >
+                                    Publish
+                                </button>
+                                <button
+                                    type="button"
+                                    class="btn btn--ghost"
+                                    id="archive-post-btn"
+                                    data-status-action="archived"
+                                    {% if meta.status != "published" %}disabled{% endif %}
+                                >
+                                    Archive
+                                </button>
+                                <button
+                                    type="button"
+                                    class="btn btn--ghost"
+                                    id="restore-post-btn"
+                                    data-status-action="draft"
+                                    {% if meta.status != "archived" %}disabled{% endif %}
+                                >
+                                    Restore
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-group">
+                        <div class="action-block">
+                            <div class="action-label">Editing</div>
+                            <div class="action-row">
+                                <a href="/blog/edit/{{ post_id }}/manual" class="btn btn--ghost">Manual edit</a>
+                                <a href="/blog/edit/{{ post_id }}/policy" class="btn btn--ghost">Policy edit</a>
+                                <button type="button" class="btn btn--ghost" id="open-title-modal-btn">Edit title</button>
+                                <button type="button" class="btn btn--ghost" id="open-author-modal-btn">Edit author</button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="action-group">
+                        <div class="action-block">
+                            <div class="action-label">Export</div>
+                            <div class="action-row">
+                                <button type="button" class="btn btn--ghost" id="open-download-modal-btn">Download</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </header>
 

@@ -114,12 +114,11 @@ def read_editor_entry(
     if "application/json" in accept.lower():
         raise HTTPException(status_code=406, detail="Editor renders HTML only")
     posts = list_posts(visibility="editor")
-    draft_posts = [post for post in posts if post.status == "draft"]
     return templates.TemplateResponse(
         "blog_editor_entry.html",
         {
             "request": request,
-            "draft_posts": draft_posts,
+            "posts": posts,
             "post_id": None,
         },
     )
