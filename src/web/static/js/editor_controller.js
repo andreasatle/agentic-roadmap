@@ -181,4 +181,142 @@ export function initEditorController() {
       }
     });
   });
+
+  initRevisionHistory();
+}
+
+async function initRevisionHistory() {
+  const statusEl = document.getElementById("revision-history-status");
+  const tableEl = document.getElementById("revision-history-table");
+  const bodyEl = document.getElementById("revision-history-body");
+  if (!statusEl || !tableEl || !bodyEl) {
+    return;
+  }
+  const postId = document.body?.dataset?.postId ?? "";
+  if (!postId) {
+    statusEl.textContent = "Missing post id.";
+    return;
+  }
+  statusEl.textContent = "Loading...";
+  try {
+    const response = await fetch(
+      `/blog/${encodeURIComponent(postId)}/revisions`,
+    );
+    if (!response.ok) {
+      throw new Error("Failed to load revisions.");
+    }
+    const payload = await response.json();
+    if (!Array.isArray(payload)) {
+      throw new Error("Invalid revision response.");
+    }
+    const revisions = payload
+      .filter((entry) => entry && typeof entry === "object")
+      .map((entry) => ({
+        revision_id:
+          typeof entry.revision_id === "number"
+            ? entry.revision_id
+            : Number(entry.revision_id),
+        parent_revision_id: entry.parent_revision_id ?? null,
+        timestamp: entry.timestamp ?? null,
+        delta_type: entry.delta_type ?? null,
+        delta_payload: entry.delta_payload ?? null,
+      }))
+      .filter((entry) => Number.isFinite(entry.revision_id));
+    revisions.sort((a, b) => a.revision_id - b.revision_id);
+    if (revisions.length === 0) {
+      statusEl.textContent = "No revisions yet.";
+      tableEl.hidden = true;
+      return;
+    }
+    const headRevisionId = revisions[revisions.length - 1].revision_id;
+    bodyEl.innerHTML = "";
+    for (const revision of revisions) {
+      const row = document.createElement("tr");
+
+      const idCell = document.createElement("td");
+      idCell.textContent = `r${revision.revision_id}`;
+      if (revision.revision_id === headRevisionId) {
+        const badge = document.createElement("span");
+        badge.className = "revision-badge";
+        badge.textContent = "Head";
+        idCell.appendChild(badge);
+      }
+      row.appendChild(idCell);
+
+      const tsCell = document.createElement("td");
+      tsCell.textContent = revision.timestamp ?? "—";
+      row.appendChild(tsCell);
+
+      const typeCell = document.createElement("td");
+      const displayType = formatDeltaType(revision.delta_type);
+      typeCell.textContent = displayType;
+      if (
+        revision.delta_type &&
+        typeof revision.delta_type === "string" &&
+        displayType !== revision.delta_type
+      ) {
+        typeCell.title = revision.delta_type;
+      }
+      row.appendChild(typeCell);
+
+      const noteCell = document.createElement("td");
+      const note = deriveRevisionNote(revision);
+      noteCell.textContent = note || "—";
+      row.appendChild(noteCell);
+
+      bodyEl.appendChild(row);
+    }
+    statusEl.textContent = "";
+    tableEl.hidden = false;
+  } catch (error) {
+    tableEl.hidden = true;
+    statusEl.textContent =
+      error instanceof Error ? error.message : "Failed to load revisions.";
+  }
+}
+
+function formatDeltaType(deltaType) {
+  if (!deltaType || typeof deltaType !== "string") {
+    return "—";
+  }
+  const normalized = deltaType.toLowerCase();
+  if (normalized.includes("revert")) {
+    return "revert";
+  }
+  if (normalized.includes("create")) {
+    return "create";
+  }
+  if (normalized.includes("content") || normalized.includes("edit")) {
+    return "edit";
+  }
+  return deltaType;
+}
+
+function deriveRevisionNote(revision) {
+  if (!revision || typeof revision !== "object") {
+    return "";
+  }
+  const deltaType = revision.delta_type;
+  if (!deltaType || typeof deltaType !== "string") {
+    return "";
+  }
+  const normalized = deltaType.toLowerCase();
+  if (!normalized.includes("revert")) {
+    return "";
+  }
+  const payload = revision.delta_payload;
+  if (!payload || typeof payload !== "object") {
+    return "revert";
+  }
+  const target =
+    payload.reverted_to_revision_id ??
+    payload.target_revision_id ??
+    payload.revision_id;
+  if (typeof target === "number" && Number.isFinite(target)) {
+    return `revert -> r${target}`;
+  }
+  if (typeof target === "string" && target.trim()) {
+    return `revert -> r${target}`;
+  }
+  return "revert";
 }

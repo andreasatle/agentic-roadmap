@@ -238,6 +238,64 @@ a.btn {
 }
 
 /* ==============================
+   REVISION HISTORY
+   ============================== */
+
+.revision-history-panel {
+  padding: 1rem;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle, #d0d0d0);
+  background: var(--bg-panel, #ffffff);
+}
+
+.revision-history-header {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.revision-history-status {
+  font-size: 0.85rem;
+  color: var(--text-muted, #6b6b6b);
+}
+
+.revision-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+}
+
+.revision-history-table th,
+.revision-history-table td {
+  padding: 0.5rem 0.4rem;
+  text-align: left;
+  border-bottom: 1px solid var(--border-subtle, #e0e0e0);
+}
+
+.revision-history-table th {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text-muted, #6b6b6b);
+}
+
+.revision-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-left: 0.5rem;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-main, #111111);
+  background: rgba(42, 111, 214, 0.2);
+  border: 1px solid var(--accent-blue, #2a6fd6);
+}
+
+/* ==============================
    MODALS — CANONICAL CONTRACT
    ============================== */
 
