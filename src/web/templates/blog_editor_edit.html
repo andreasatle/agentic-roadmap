@@ -10,123 +10,126 @@
     <main class="container">
         <p><a href="/" class="nav-link">Home</a></p>
 
-        <!-- HEADER: title + actions -->
-        <header class="intent-header">
-            <div class="intent-header-left">
-                <h1>Edit blog post</h1>
-                <div>Status: {{ meta.status or "—" }}</div>
-            </div>
-
-            <div class="intent-header-right">
-                <div class="editor-actions">
-                    <div class="action-group">
-                        <div class="action-label">Lifecycle</div>
-                        <div class="action-row">
-                                <button
-                                    type="button"
-                                    class="btn btn--ghost"
-                                    id="publish-post-btn"
-                                    data-status-action="published"
-                                    {% if meta.status != "draft" %}disabled{% endif %}
-                                >
-                                    Publish
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn btn--ghost"
-                                    id="archive-post-btn"
-                                    data-status-action="archived"
-                                    {% if meta.status != "published" %}disabled{% endif %}
-                                >
-                                    Archive
-                                </button>
-                                <button
-                                    type="button"
-                                    class="btn btn--ghost"
-                                    id="restore-post-btn"
-                                    data-status-action="draft"
-                                    {% if meta.status != "archived" %}disabled{% endif %}
-                                >
-                                    Restore
-                                </button>
-                        </div>
-                    </div>
-                    <div class="action-group">
-                        <div class="action-label">Editing</div>
-                        <div class="action-row">
-                                <a href="/blog/edit/{{ post_id }}/manual" class="btn btn--ghost">Manual edit</a>
-                                <a href="/blog/edit/{{ post_id }}/policy" class="btn btn--ghost">Policy edit</a>
-                                <button type="button" class="btn btn--ghost" id="open-title-modal-btn">Edit title</button>
-                                <button type="button" class="btn btn--ghost" id="open-author-modal-btn">Edit author</button>
-                        </div>
-                    </div>
-                    <div class="action-group">
-                        <div class="action-label">Export</div>
-                        <div class="action-row">
-                                <button type="button" class="btn btn--ghost" id="open-download-modal-btn">Download</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </header>
-
         <section id="edit-view" class="stack">
+            <div id="editor-mode" class="stack">
+                <!-- HEADER: title + actions -->
+                <header class="intent-header">
+                    <div class="intent-header-left">
+                        <h1>Edit blog post</h1>
+                        <div>Status: {{ meta.status or "—" }}</div>
+                    </div>
 
-            <!-- Metadata -->
-            <section class="stack" id="current-content-section">
-                <div class="form-row">
+                    <div class="intent-header-right">
+                        <div class="editor-actions">
+                            <div class="action-group">
+                                <div class="action-label">Lifecycle</div>
+                                <div class="action-row">
+                                        <button
+                                            type="button"
+                                            class="btn btn--ghost"
+                                            id="publish-post-btn"
+                                            data-status-action="published"
+                                            {% if meta.status != "draft" %}disabled{% endif %}
+                                        >
+                                            Publish
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn--ghost"
+                                            id="archive-post-btn"
+                                            data-status-action="archived"
+                                            {% if meta.status != "published" %}disabled{% endif %}
+                                        >
+                                            Archive
+                                        </button>
+                                        <button
+                                            type="button"
+                                            class="btn btn--ghost"
+                                            id="restore-post-btn"
+                                            data-status-action="draft"
+                                            {% if meta.status != "archived" %}disabled{% endif %}
+                                        >
+                                            Restore
+                                        </button>
+                                </div>
+                            </div>
+                            <div class="action-group">
+                                <div class="action-label">Editing</div>
+                                <div class="action-row">
+                                        <a href="/blog/edit/{{ post_id }}/manual" class="btn btn--ghost">Manual edit</a>
+                                        <a href="/blog/edit/{{ post_id }}/policy" class="btn btn--ghost">Policy edit</a>
+                                        <button type="button" class="btn btn--ghost" id="open-title-modal-btn">Edit title</button>
+                                        <button type="button" class="btn btn--ghost" id="open-author-modal-btn">Edit author</button>
+                                </div>
+                            </div>
+                            <div class="action-group">
+                                <div class="action-label">Export</div>
+                                <div class="action-row">
+                                        <button type="button" class="btn btn--ghost" id="open-download-modal-btn">Download</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </header>
+
+                <!-- Metadata -->
+                <section class="stack">
+                    <div class="form-row">
+                        <div class="intent-field">
+                            <div class="intent-label-row">
+                                <label class="intent-label-text">Title</label>
+                            </div>
+                            <div id="title-display">{{ meta.title or "—" }}</div>
+                        </div>
+                        <div class="intent-field">
+                            <div class="intent-label-row">
+                                <label class="intent-label-text">Author</label>
+                            </div>
+                            <div id="author-display">{{ meta.author or "—" }}</div>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="intent-field">
+                            <div class="intent-label-row">
+                                <label class="intent-label-text">Last revision</label>
+                            </div>
+                            <div id="post-revision-indicator">
+                                {{ last_revision_id if last_revision_id is not none else "—" }}
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Rendered content -->
+                <section class="stack">
                     <div class="intent-field">
                         <div class="intent-label-row">
-                            <label class="intent-label-text">Title</label>
+                            <label class="intent-label-text">Current content</label>
                         </div>
-                        <div id="title-display">{{ meta.title or "—" }}</div>
+                        <article id="article-text">{{ content_html | safe }}</article>
                     </div>
-                    <div class="intent-field">
-                        <div class="intent-label-row">
-                            <label class="intent-label-text">Author</label>
-                        </div>
-                        <div id="author-display">{{ meta.author or "—" }}</div>
-                    </div>
-                </div>
+                </section>
+            </div>
 
-                <div class="form-row">
-                    <div class="intent-field">
-                        <div class="intent-label-row">
-                            <label class="intent-label-text">Last revision</label>
-                        </div>
-                        <div id="post-revision-indicator">
-                            {{ last_revision_id if last_revision_id is not none else "—" }}
-                        </div>
+            <div id="history-mode" class="stack">
+                <!-- Historical revision viewer (read-only) -->
+                <section class="stack revision-viewer" id="revision-viewer">
+                    <div class="revision-viewer-banner" id="revision-viewer-banner">
+                        Viewing revision r— (read-only)
                     </div>
-                </div>
-            </section>
-
-            <!-- Rendered content -->
-            <section class="stack">
-                <div class="intent-field">
-                    <div class="intent-label-row">
-                        <label class="intent-label-text">Current content</label>
+                    <div class="revision-viewer-actions">
+                        <button type="button" class="btn btn--ghost" id="revision-viewer-copy-btn">
+                            Create new revision from this
+                        </button>
+                        <button type="button" class="btn btn--ghost" id="revision-viewer-return-btn">
+                            Return to current version
+                        </button>
+                        <div class="revision-viewer-status" id="revision-viewer-status"></div>
                     </div>
-                    <article id="article-text">{{ content_html | safe }}</article>
-                </div>
-            </section>
-
-            <!-- Historical revision viewer (read-only) -->
-            <section class="stack revision-viewer" id="revision-viewer" hidden>
-                <div class="revision-viewer-banner" id="revision-viewer-banner">
-                    Viewing revision r— (read-only)
-                </div>
-                <div class="revision-viewer-actions">
-                    <button type="button" class="btn btn--ghost" id="revision-viewer-copy-btn">
-                        Create new revision from this
-                    </button>
-                    <button type="button" class="btn btn--ghost" id="revision-viewer-return-btn">
-                        Return to current version
-                    </button>
-                    <div class="revision-viewer-status" id="revision-viewer-status"></div>
-                </div>
-                <pre class="revision-viewer-content" id="revision-viewer-content"></pre>
-            </section>
+                    <pre class="revision-viewer-content" id="revision-viewer-content"></pre>
+                </section>
+            </div>
 
             <!-- Revision history -->
             <section class="stack revision-history-panel" id="revision-history">

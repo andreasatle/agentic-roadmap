@@ -309,6 +309,7 @@ a.btn {
   border-radius: 8px;
   border: 1px solid var(--border-subtle, #d0d0d0);
   padding: 1rem;
+  background: rgba(247, 201, 72, 0.08);
 }
 
 .revision-viewer-banner {
@@ -342,20 +343,16 @@ a.btn {
   white-space: pre-wrap;
 }
 
-body.history-mode #current-content-section {
+#history-mode {
   display: none;
 }
 
-body.history-mode #revision-viewer {
-  background: rgba(247, 201, 72, 0.08);
-}
-
-body.history-mode .editor-actions {
+body.history-mode #editor-mode {
   display: none;
 }
 
-body.history-mode .revision-action-btn {
-  display: none;
+body.history-mode #history-mode {
+  display: block;
 }
 
 /* ==============================

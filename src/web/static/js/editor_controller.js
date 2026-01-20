@@ -307,7 +307,6 @@ async function initRevisionHistory() {
           ) {
             return;
           }
-          viewerEl.hidden = false;
           document.body?.classList.add("history-mode");
           viewerBanner.textContent = `Viewing revision r${revision.revision_id} (read-only)`;
           viewerContent.textContent = "";
